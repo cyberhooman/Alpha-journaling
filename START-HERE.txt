@@ -1,0 +1,59 @@
+========================================
+   TRADING JOURNAL PRO - QUICK START
+========================================
+
+Your app is NOW RUNNING!
+
+Open your browser and go to:
+http://localhost:3001
+
+========================================
+   WHAT TO DO NOW
+========================================
+
+1. OPEN YOUR BROWSER
+   - Type: http://localhost:3001
+   - Or click this link if your browser supports it
+
+2. CREATE YOUR ACCOUNT
+   - Click "Sign Up"
+   - Enter your email and password
+   - Start journaling!
+
+3. OR USE DEMO ACCOUNT
+   - Email: demo@example.com
+   - Password: demo123
+
+========================================
+   YOUR DATA IS SAVED AT
+========================================
+
+Database File:
+D:\code\Michael riddering design journaling trade\server\data\trading_journal.db
+
+This file contains ALL your trades and data.
+Backup this file regularly!
+
+========================================
+   HOW TO STOP THE APP
+========================================
+
+Close this terminal window or press Ctrl+C
+
+========================================
+   NEXT TIME YOU WANT TO START
+========================================
+
+Method 1: Double-click "Trading Journal Pro" on your Desktop
+Method 2: Run "start-trading-journal.bat" in this folder
+Method 3: Run "npm run dev" in this folder
+
+========================================
+
+SERVERS RUNNING:
+- Frontend: http://localhost:3001
+- Backend:  http://localhost:5000
+
+Keep this window open while using the app!
+
+========================================
