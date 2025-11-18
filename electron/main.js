@@ -5,8 +5,8 @@ const { spawn } = require('child_process');
 let mainWindow;
 let serverProcess;
 
-// Keep track of server port
-const SERVER_PORT = 3001;
+// Keep track of ports
+const SERVER_PORT = 5000;
 const CLIENT_PORT = 5173;
 
 function createWindow() {
