@@ -147,22 +147,23 @@ export default function Settings() {
                 </div>
 
                 <div className="flex sm:flex-row flex-col gap-2">
-                <button
-                  onClick={() => setEditingAccount(account)}
-                  className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
-                >
-                  <Edit className="w-4 h-4 text-dark-400" />
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this account?')) {
-                      deleteMutation.mutate(account.id);
-                    }
-                  }}
-                  className="p-2 hover:bg-red-100 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4 text-red-600" />
-                </button>
+                  <button
+                    onClick={() => setEditingAccount(account)}
+                    className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-4 h-4 text-dark-400" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this account?')) {
+                        deleteMutation.mutate(account.id);
+                      }
+                    }}
+                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -7,6 +7,7 @@ import analyticsRoutes from './routes/analytics.js';
 import tagsRoutes from './routes/tags.js';
 import importRoutes from './routes/import.js';
 import accountsRoutes from './routes/accounts.js';
+import strategiesRoutes from './routes/strategies.js';
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/api/trades', tradesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/tags', tagsRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/strategies', strategiesRoutes);
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

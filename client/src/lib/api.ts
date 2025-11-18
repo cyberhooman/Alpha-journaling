@@ -304,3 +304,23 @@ export const accountsAPI = {
   delete: (id: number) => api.delete(`/accounts/${id}`),
   getStats: (id: number) => api.get(`/accounts/${id}/stats`),
 };
+
+export const strategiesAPI = {
+  getAll: () => api.get('/strategies'),
+  getOne: (id: number) => api.get(`/strategies/${id}`),
+  create: (data: {
+    name: string;
+    description?: string;
+    category?: 'PRICE_ACTION' | 'TECHNICAL' | 'FUNDAMENTAL' | 'SENTIMENT' | 'PATTERN' | 'INDICATOR' | 'CUSTOM';
+    entry_rules?: string;
+    exit_rules?: string;
+    risk_management?: string;
+    timeframes?: string;
+    markets?: string;
+    notes?: string;
+    is_active?: boolean;
+  }) => api.post('/strategies', data),
+  update: (id: number, data: any) => api.put(`/strategies/${id}`, data),
+  delete: (id: number) => api.delete(`/strategies/${id}`),
+  getStats: (id: number) => api.get(`/strategies/${id}/stats`),
+};

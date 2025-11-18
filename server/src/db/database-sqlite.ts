@@ -168,6 +168,31 @@ function initializeDatabase() {
     )
   `);
 
+  // Trading strategies/frameworks library
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS trading_strategies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      description TEXT,
+      category TEXT CHECK (category IN ('PRICE_ACTION', 'TECHNICAL', 'FUNDAMENTAL', 'SENTIMENT', 'PATTERN', 'INDICATOR', 'CUSTOM')),
+      entry_rules TEXT,
+      exit_rules TEXT,
+      risk_management TEXT,
+      timeframes TEXT,
+      markets TEXT,
+      win_rate REAL,
+      avg_rr REAL,
+      total_trades INTEGER DEFAULT 0,
+      winning_trades INTEGER DEFAULT 0,
+      losing_trades INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   console.log('✅ SQLite database initialized at:', dbPath);
 }
 

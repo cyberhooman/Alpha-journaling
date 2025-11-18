@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { tradesAPI, tagsAPI, accountsAPI, strategiesAPI } from '../lib/api';
 
-export default function NewTrade() {
+export default function EditTrade() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
 
   const { data: tags } = useQuery({
@@ -19,6 +20,15 @@ export default function NewTrade() {
       const response = await accountsAPI.getAll();
       return response.data;
     },
+  });
+
+  const { data: tradeData, isLoading: isLoadingTrade } = useQuery({
+    queryKey: ['trade', id],
+    queryFn: async () => {
+      const response = await tradesAPI.getOne(Number(id));
+      return response.data;
+    },
+    enabled: !!id,
   });
 
   const { data: strategies } = useQuery({
@@ -54,10 +64,41 @@ export default function NewTrade() {
     tagIds: [] as number[],
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: any) => tradesAPI.create(data),
+  // Load existing trade data into form
+  useEffect(() => {
+    if (tradeData) {
+      setFormData({
+        accountId: tradeData.account_id ? String(tradeData.account_id) : '',
+        symbol: tradeData.symbol || '',
+        side: tradeData.side || 'LONG',
+        entryDate: tradeData.entry_date ? new Date(tradeData.entry_date).toISOString().slice(0, 16) : '',
+        exitDate: tradeData.exit_date ? new Date(tradeData.exit_date).toISOString().slice(0, 16) : '',
+        entryPrice: tradeData.entry_price ? String(tradeData.entry_price) : '',
+        exitPrice: tradeData.exit_price ? String(tradeData.exit_price) : '',
+        quantity: tradeData.quantity ? String(tradeData.quantity) : '',
+        stopLoss: tradeData.stop_loss ? String(tradeData.stop_loss) : '',
+        takeProfit: tradeData.take_profit ? String(tradeData.take_profit) : '',
+        fees: tradeData.fees ? String(tradeData.fees) : '0',
+        status: tradeData.status || 'OPEN',
+        strategy: tradeData.strategy || '',
+        setup: tradeData.setup || '',
+        timeframe: tradeData.timeframe || '',
+        marketType: tradeData.market_type || '',
+        notes: tradeData.notes || '',
+        entryReasoning: tradeData.entry_reasoning || '',
+        exitReasoning: tradeData.exit_reasoning || '',
+        broker: tradeData.broker || '',
+        screenshotUrl: tradeData.screenshot_url || '',
+        tagIds: tradeData.tag_ids || [],
+      });
+    }
+  }, [tradeData]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: any) => tradesAPI.update(Number(id), data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['trade', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       navigate('/trades');
     },
@@ -80,7 +121,7 @@ export default function NewTrade() {
       screenshotUrl: formData.screenshotUrl || undefined,
     };
 
-    createMutation.mutate(data);
+    updateMutation.mutate(data);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -147,6 +188,14 @@ export default function NewTrade() {
     return () => document.removeEventListener('paste', handlePaste);
   }, []);
 
+  if (isLoadingTrade) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3 sm:gap-4">
@@ -154,8 +203,8 @@ export default function NewTrade() {
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">New Trade</h1>
-          <p className="text-slate-600 mt-1 text-sm sm:text-base">Record a new trade in your journal</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Edit Trade</h1>
+          <p className="text-slate-600 mt-1 text-sm sm:text-base">Update trade details in your journal</p>
         </div>
       </div>
 
@@ -498,8 +547,8 @@ export default function NewTrade() {
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={createMutation.isPending}>
-            {createMutation.isPending ? 'Creating...' : 'Create Trade'}
+          <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={updateMutation.isPending}>
+            {updateMutation.isPending ? 'Updating...' : 'Update Trade'}
           </button>
           <button type="button" onClick={() => navigate(-1)} className="btn btn-secondary w-full sm:w-auto">
             Cancel

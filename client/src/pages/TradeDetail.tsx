@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
 import { tradesAPI } from '../lib/api';
 import { formatToWIB, TIMEZONE_LABEL } from '../lib/dateUtils';
-import TradeChart from '../components/TradeChart';
+import TradingViewChart from '../components/TradingViewChart';
 
 export default function TradeDetail() {
   const { id } = useParams();
@@ -109,7 +109,7 @@ export default function TradeDetail() {
       </div>
 
       {/* Price Chart */}
-      <TradeChart
+      <TradingViewChart
         symbol={tradeData.symbol}
         entryPrice={Number(tradeData.entry_price)}
         exitPrice={tradeData.exit_price ? Number(tradeData.exit_price) : undefined}
