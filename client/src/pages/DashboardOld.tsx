@@ -14,14 +14,10 @@ import {
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import { format, parseISO } from 'date-fns';
@@ -90,8 +86,6 @@ export default function Dashboard() {
     pnl: Number(item.total_pnl),
     trades: Number(item.trades),
   })) || [];
-
-  const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   return (
     <div className="space-y-6">

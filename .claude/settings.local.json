@@ -38,7 +38,9 @@
       "Bash(git remote add:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(powershell -Command \"Stop-Process -Id 45408 -Force\")",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

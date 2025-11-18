@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, X } from 'lucide-react';
-import { accountsAPI } from '../lib/api';
+import { Plus, Edit, Trash2, X, Tag } from 'lucide-react';
+import { accountsAPI, tagsAPI } from '../lib/api';
 import type { TradingAccount } from '../types';
 
 export default function Settings() {
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<TradingAccount | null>(null);
+  const [showNewTagModal, setShowNewTagModal] = useState(false);
+  const [editingTag, setEditingTag] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: accounts, isLoading, error } = useQuery({
@@ -43,11 +45,18 @@ export default function Settings() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
-      accountsAPI.update(id, data),
-    onSuccess: () => {
+    mutationFn: ({ id, data }: { id: number; data: any }) => {
+      console.log('updateMutation - calling API with id:', id, 'data:', data);
+      return accountsAPI.update(id, data);
+    },
+    onSuccess: (data) => {
+      console.log('updateMutation - onSuccess:', data);
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       setEditingAccount(null);
+    },
+    onError: (error: any) => {
+      console.error('updateMutation - onError:', error);
+      alert('Failed to update account: ' + (error.response?.data?.error || error.message));
     },
   });
 
@@ -58,12 +67,41 @@ export default function Settings() {
     },
   });
 
+  // Tags management
+  const { data: tags } = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => tagsAPI.getAll(),
+  });
+
+  const createTagMutation = useMutation({
+    mutationFn: (data: { name: string; color: string }) => tagsAPI.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      setShowNewTagModal(false);
+    },
+  });
+
+  const updateTagMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => tagsAPI.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      setEditingTag(null);
+    },
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationFn: tagsAPI.delete,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tags'] });
+    },
+  });
+
   return (
     <div className="max-w-6xl space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-dark-500">Settings</h1>
-          <p className="text-dark-400 mt-1 text-sm sm:text-base">Manage your trading accounts</p>
+          <p className="text-dark-400 mt-1 text-sm sm:text-base">Manage your trading accounts and tags</p>
         </div>
 
         <button
@@ -183,6 +221,80 @@ export default function Settings() {
         </div>
       )}
 
+      {/* Tags Section */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-dark-500">Trade Tags</h2>
+          <button
+            onClick={() => setShowNewTagModal(true)}
+            className="btn btn-secondary inline-flex items-center gap-2"
+          >
+            <Tag className="w-4 h-4" />
+            New Tag
+          </button>
+        </div>
+
+        {tags?.data && tags.data.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {tags.data.map((tag: any) => (
+              <div
+                key={tag.id}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border"
+                style={{
+                  backgroundColor: `${tag.color}10`,
+                  borderColor: `${tag.color}40`,
+                }}
+              >
+                <span
+                  className="font-medium text-sm"
+                  style={{ color: tag.color }}
+                >
+                  {tag.name}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setEditingTag(tag)}
+                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                  >
+                    <Edit className="w-3 h-3" style={{ color: tag.color }} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Delete tag "${tag.name}"?`)) {
+                        deleteTagMutation.mutate(tag.id);
+                      }
+                    }}
+                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                  >
+                    <Trash2 className="w-3 h-3" style={{ color: tag.color }} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-dark-400 text-sm">No tags yet. Create your first tag to categorize trades.</p>
+        )}
+      </div>
+
+      {/* New/Edit Tag Modal */}
+      {(showNewTagModal || editingTag) && (
+        <TagFormModal
+          tag={editingTag}
+          onClose={() => {
+            setShowNewTagModal(false);
+            setEditingTag(null);
+          }}
+          onSubmit={(data) => {
+            if (editingTag) {
+              updateTagMutation.mutate({ id: editingTag.id, data });
+            } else {
+              createTagMutation.mutate(data);
+            }
+          }}
+        />
+      )}
+
       {/* New/Edit Account Modal */}
       {(showNewAccountModal || editingAccount) && (
         <AccountFormModal
@@ -247,10 +359,8 @@ function AccountFormModal({
 
     const submitData: any = { ...formData };
 
-    // For new accounts, set current_balance to initial_balance
-    if (!account) {
-      delete submitData.current_balance;
-    }
+    // Don't send current_balance - it's calculated from trades
+    delete submitData.current_balance;
 
     console.log('Submitting data:', submitData);
     onSubmit(submitData);
@@ -321,21 +431,6 @@ function AccountFormModal({
               />
             </div>
 
-            {account && (
-              <div>
-                <label className="label">Current Balance *</label>
-                <input
-                  type="number"
-                  className="input"
-                  value={formData.current_balance}
-                  onChange={(e) => setFormData({ ...formData, current_balance: parseFloat(e.target.value) || 0 })}
-                  step="0.01"
-                  min="0"
-                  required
-                />
-              </div>
-            )}
-
             <div>
               <label className="label">Currency</label>
               <select
@@ -399,6 +494,127 @@ function AccountFormModal({
               ) : (
                 account ? 'Update Account' : 'Create Account'
               )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function TagFormModal({
+  tag,
+  onClose,
+  onSubmit,
+}: {
+  tag: any;
+  onClose: () => void;
+  onSubmit: (data: { name: string; color: string }) => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: tag?.name || '',
+    color: tag?.color || '#3B82F6',
+  });
+
+  const presetColors = [
+    '#EF4444', // Red
+    '#F59E0B', // Orange
+    '#10B981', // Green
+    '#3B82F6', // Blue
+    '#8B5CF6', // Purple
+    '#EC4899', // Pink
+    '#6366F1', // Indigo
+    '#14B8A6', // Teal
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert('Please enter a tag name');
+      return;
+    }
+    onSubmit(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl max-w-md w-full">
+        <div className="border-b border-neutral-300 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-dark-500">
+            {tag ? 'Edit Tag' : 'New Tag'}
+          </h2>
+          <button onClick={onClose} className="p-2 hover:bg-neutral-200 rounded-lg">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="label">Tag Name *</label>
+            <input
+              type="text"
+              className="input"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g., Scalping, Swing Trade, Loss"
+              required
+              maxLength={50}
+            />
+          </div>
+
+          <div>
+            <label className="label">Color</label>
+            <div className="grid grid-cols-4 gap-2 mt-2">
+              {presetColors.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, color })}
+                  className={`w-full h-10 rounded-lg border-2 transition-all ${
+                    formData.color === color ? 'border-dark-500 scale-110' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                type="color"
+                value={formData.color}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                className="w-12 h-10 rounded border border-neutral-300 cursor-pointer"
+              />
+              <span className="text-sm text-dark-400">Or pick a custom color</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 p-3 bg-neutral-100 rounded-lg">
+            <span className="text-sm text-dark-400">Preview:</span>
+            <span
+              className="px-3 py-1 rounded-full text-sm font-medium"
+              style={{
+                backgroundColor: `${formData.color}20`,
+                color: formData.color,
+                border: `1px solid ${formData.color}40`
+              }}
+            >
+              {formData.name || 'Tag Name'}
+            </span>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-secondary flex-1"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary flex-1"
+            >
+              {tag ? 'Update Tag' : 'Create Tag'}
             </button>
           </div>
         </form>

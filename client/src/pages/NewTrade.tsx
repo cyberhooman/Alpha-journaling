@@ -29,6 +29,8 @@ export default function NewTrade() {
     },
   });
 
+  const [simpleMode, setSimpleMode] = useState(false);
+
   const [formData, setFormData] = useState({
     accountId: '',
     symbol: '',
@@ -41,6 +43,8 @@ export default function NewTrade() {
     stopLoss: '',
     takeProfit: '',
     fees: '0',
+    pnl: '',
+    pnlPercentage: '',
     status: 'OPEN' as 'OPEN' | 'CLOSED' | 'CANCELLED',
     strategy: '',
     setup: '',
@@ -69,15 +73,18 @@ export default function NewTrade() {
     const data = {
       ...formData,
       accountId: formData.accountId ? parseInt(formData.accountId) : undefined,
-      entryPrice: parseFloat(formData.entryPrice),
+      entryPrice: formData.entryPrice ? parseFloat(formData.entryPrice) : undefined,
       exitPrice: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
-      quantity: parseFloat(formData.quantity),
+      quantity: formData.quantity ? parseFloat(formData.quantity) : (simpleMode ? 1 : undefined), // Default to 1 in simple mode
       stopLoss: formData.stopLoss ? parseFloat(formData.stopLoss) : undefined,
       takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : undefined,
-      fees: parseFloat(formData.fees),
+      fees: formData.fees ? parseFloat(formData.fees) : 0,
+      pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
+      pnlPercentage: formData.pnlPercentage ? parseFloat(formData.pnlPercentage) : undefined,
       exitDate: formData.exitDate || undefined,
       marketType: formData.marketType || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
+      status: simpleMode ? 'CLOSED' : formData.status, // Default to CLOSED in simple mode
     };
 
     createMutation.mutate(data);
@@ -160,35 +167,62 @@ export default function NewTrade() {
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-6">
+        {/* Simple Mode Toggle */}
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900">Entry Mode</h3>
+            <p className="text-xs sm:text-sm text-slate-600 mt-1">
+              {simpleMode ? 'Quick entry with essential fields only' : 'Detailed entry with all fields'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSimpleMode(!simpleMode)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              simpleMode ? 'bg-primary-600' : 'bg-slate-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                simpleMode ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
         {/* Basic Information */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Basic Information</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">
+            {simpleMode ? 'Trade Information' : 'Basic Information'}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <div className="md:col-span-2">
-              <label className="label">Trading Account *</label>
-              <select
-                name="accountId"
-                className="input"
-                value={formData.accountId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select an account...</option>
-                {accounts?.data?.map((account: any) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} ({account.account_type}) - ${Number(account.current_balance).toLocaleString()}
-                  </option>
-                ))}
-              </select>
-              {(!accounts?.data || accounts.data.length === 0) && (
-                <p className="text-sm text-red-600 mt-1">
-                  No accounts found. Please create an account in Settings first.
-                </p>
-              )}
-            </div>
+            {!simpleMode && (
+              <div className="md:col-span-2">
+                <label className="label">Trading Account *</label>
+                <select
+                  name="accountId"
+                  className="input"
+                  value={formData.accountId}
+                  onChange={handleChange}
+                  required={!simpleMode}
+                >
+                  <option value="">Select an account...</option>
+                  {accounts?.data?.map((account: any) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} ({account.account_type}) - ${Number(account.current_balance).toLocaleString()}
+                    </option>
+                  ))}
+                </select>
+                {(!accounts?.data || accounts.data.length === 0) && (
+                  <p className="text-sm text-red-600 mt-1">
+                    No accounts found. Please create an account in Settings first.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
-              <label className="label">Symbol *</label>
+              <label className="label">Symbol (Pair) *</label>
               <input
                 type="text"
                 name="symbol"
@@ -196,20 +230,22 @@ export default function NewTrade() {
                 value={formData.symbol}
                 onChange={handleChange}
                 required
-                placeholder="AAPL"
+                placeholder="e.g., GBPJPY, EURUSD, AAPL"
               />
             </div>
 
-            <div>
-              <label className="label">Side *</label>
-              <select name="side" className="input" value={formData.side} onChange={handleChange} required>
-                <option value="LONG">Long</option>
-                <option value="SHORT">Short</option>
-              </select>
-            </div>
+            {!simpleMode && (
+              <div>
+                <label className="label">Side *</label>
+                <select name="side" className="input" value={formData.side} onChange={handleChange} required>
+                  <option value="LONG">Long</option>
+                  <option value="SHORT">Short</option>
+                </select>
+              </div>
+            )}
 
             <div>
-              <label className="label">Entry Date *</label>
+              <label className="label">{simpleMode ? 'Date *' : 'Entry Date *'}</label>
               <input
                 type="datetime-local"
                 name="entryDate"
@@ -220,42 +256,46 @@ export default function NewTrade() {
               />
             </div>
 
-            <div>
-              <label className="label">Exit Date</label>
-              <input
-                type="datetime-local"
-                name="exitDate"
-                className="input"
-                value={formData.exitDate}
-                onChange={handleChange}
-              />
-            </div>
+            {!simpleMode && (
+              <>
+                <div>
+                  <label className="label">Exit Date</label>
+                  <input
+                    type="datetime-local"
+                    name="exitDate"
+                    className="input"
+                    value={formData.exitDate}
+                    onChange={handleChange}
+                  />
+                </div>
 
-            <div>
-              <label className="label">Status *</label>
-              <select name="status" className="input" value={formData.status} onChange={handleChange} required>
-                <option value="OPEN">Open</option>
-                <option value="CLOSED">Closed</option>
-                <option value="CANCELLED">Cancelled</option>
-              </select>
-            </div>
+                <div>
+                  <label className="label">Status *</label>
+                  <select name="status" className="input" value={formData.status} onChange={handleChange} required>
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="CANCELLED">Cancelled</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="label">Market Type</label>
-              <select name="marketType" className="input" value={formData.marketType} onChange={handleChange}>
-                <option value="">Select...</option>
-                <option value="STOCKS">Stocks</option>
-                <option value="FOREX">Forex</option>
-                <option value="CRYPTO">Crypto</option>
-                <option value="FUTURES">Futures</option>
-                <option value="OPTIONS">Options</option>
-              </select>
-            </div>
+                <div>
+                  <label className="label">Market Type</label>
+                  <select name="marketType" className="input" value={formData.marketType} onChange={handleChange}>
+                    <option value="">Select...</option>
+                    <option value="STOCKS">Stocks</option>
+                    <option value="FOREX">Forex</option>
+                    <option value="CRYPTO">Crypto</option>
+                    <option value="FUTURES">Futures</option>
+                    <option value="OPTIONS">Options</option>
+                  </select>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
         {/* Trade Details */}
-        <div>
+        {!simpleMode && <div>
           <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Trade Details</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
@@ -309,6 +349,38 @@ export default function NewTrade() {
             </div>
 
             <div>
+              <label className="label">P&L (Profit/Loss)</label>
+              <input
+                type="number"
+                step="0.01"
+                name="pnl"
+                className="input"
+                value={formData.pnl}
+                onChange={handleChange}
+                placeholder="Enter profit or loss amount"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Optional: Manually enter P&L or leave blank to calculate automatically
+              </p>
+            </div>
+
+            <div>
+              <label className="label">P&L Percentage</label>
+              <input
+                type="number"
+                step="0.01"
+                name="pnlPercentage"
+                className="input"
+                value={formData.pnlPercentage}
+                onChange={handleChange}
+                placeholder="Enter P&L percentage"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Optional: Enter percentage gain/loss
+              </p>
+            </div>
+
+            <div>
               <label className="label">Stop Loss</label>
               <input
                 type="number"
@@ -332,13 +404,76 @@ export default function NewTrade() {
               />
             </div>
           </div>
-        </div>
+        </div>}
+
+        {/* Simple Mode Fields */}
+        {simpleMode && (
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Prices & Results</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="label">Entry Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="entryPrice"
+                  className="input"
+                  value={formData.entryPrice}
+                  onChange={handleChange}
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <label className="label">Exit Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="exitPrice"
+                  className="input"
+                  value={formData.exitPrice}
+                  onChange={handleChange}
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <label className="label">P&L (Profit/Loss) *</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="pnl"
+                  className="input"
+                  value={formData.pnl}
+                  onChange={handleChange}
+                  placeholder="Enter profit or loss amount"
+                  required={simpleMode}
+                />
+              </div>
+
+              <div>
+                <label className="label">P&L Percentage</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  name="pnlPercentage"
+                  className="input"
+                  value={formData.pnlPercentage}
+                  onChange={handleChange}
+                  placeholder="Optional"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Strategy */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Strategy & Setup</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            <div>
+          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">
+            {simpleMode ? 'Strategy & Notes' : 'Strategy & Setup'}
+          </h3>
+          <div className={`grid grid-cols-1 ${simpleMode ? 'gap-3 sm:gap-4' : 'sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4'}`}>
+            <div className={simpleMode ? '' : ''}>
               <label className="label">Strategy</label>
               <select
                 name="strategy"
@@ -367,45 +502,104 @@ export default function NewTrade() {
               )}
             </div>
 
-            <div>
-              <label className="label">Setup</label>
-              <input
-                type="text"
-                name="setup"
-                className="input"
-                value={formData.setup}
-                onChange={handleChange}
-                placeholder="Bull flag, Support bounce, etc."
-              />
+            {!simpleMode && (
+              <>
+                <div>
+                  <label className="label">Setup</label>
+                  <input
+                    type="text"
+                    name="setup"
+                    className="input"
+                    value={formData.setup}
+                    onChange={handleChange}
+                    placeholder="Bull flag, Support bounce, etc."
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Timeframe</label>
+                  <input
+                    type="text"
+                    name="timeframe"
+                    className="input"
+                    value={formData.timeframe}
+                    onChange={handleChange}
+                    placeholder="5m, 1h, 1D, etc."
+                  />
+                </div>
+
+                <div>
+                  <label className="label">Broker</label>
+                  <input
+                    type="text"
+                    name="broker"
+                    className="input"
+                    value={formData.broker}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Tags Selector */}
+            <div className={simpleMode ? '' : 'md:col-span-3'}>
+              <label className="label">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags?.data && tags.data.length > 0 ? (
+                  tags.data.map((tag: any) => {
+                    const isSelected = formData.tagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tagIds: isSelected
+                              ? prev.tagIds.filter(id => id !== tag.id)
+                              : [...prev.tagIds, tag.id]
+                          }));
+                        }}
+                        className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-offset-1'
+                            : 'opacity-60 hover:opacity-100'
+                        }`}
+                        style={{
+                          backgroundColor: `${tag.color}20`,
+                          color: tag.color,
+                          border: `1px solid ${tag.color}40`
+                        } as React.CSSProperties}
+                      >
+                        {tag.name}
+                        {isSelected && (
+                          <span className="ml-1.5 font-bold">✓</span>
+                        )}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-slate-500">No tags available. Create tags in Settings.</p>
+                )}
+              </div>
             </div>
 
-            <div>
-              <label className="label">Timeframe</label>
-              <input
-                type="text"
-                name="timeframe"
+            <div className={simpleMode ? '' : 'md:col-span-3'}>
+              <label className="label">Notes - Why trade {simpleMode ? 'succeeded or failed' : ''}</label>
+              <textarea
+                name="notes"
                 className="input"
-                value={formData.timeframe}
+                rows={simpleMode ? 4 : 3}
+                value={formData.notes}
                 onChange={handleChange}
-                placeholder="5m, 1h, 1D, etc."
-              />
-            </div>
-
-            <div>
-              <label className="label">Broker</label>
-              <input
-                type="text"
-                name="broker"
-                className="input"
-                value={formData.broker}
-                onChange={handleChange}
+                placeholder={simpleMode ? "Explain what worked or what went wrong with this trade..." : "General notes about this trade"}
               />
             </div>
           </div>
         </div>
 
         {/* Trade Capture */}
-        <div>
+        {!simpleMode && <div>
           <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Trade Capture</h3>
           <p className="text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
             Attach a screenshot of your execution or chart for quick visual context.
@@ -452,49 +646,39 @@ export default function NewTrade() {
               />
             </label>
           )}
-        </div>
+        </div>}
 
-        {/* Notes */}
-        <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Notes & Analysis</h3>
-          <div className="space-y-3 sm:space-y-4">
-            <div>
-              <label className="label">Entry Reasoning</label>
-              <textarea
-                name="entryReasoning"
-                className="input"
-                rows={3}
-                value={formData.entryReasoning}
-                onChange={handleChange}
-                placeholder="Why did you enter this trade?"
-              />
-            </div>
+        {/* Notes & Analysis - Only in detailed mode */}
+        {!simpleMode && (
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Notes & Analysis</h3>
+            <div className="space-y-3 sm:gap-4">
+              <div>
+                <label className="label">Entry Reasoning</label>
+                <textarea
+                  name="entryReasoning"
+                  className="input"
+                  rows={3}
+                  value={formData.entryReasoning}
+                  onChange={handleChange}
+                  placeholder="Why did you enter this trade?"
+                />
+              </div>
 
-            <div>
-              <label className="label">Exit Reasoning</label>
-              <textarea
-                name="exitReasoning"
-                className="input"
-                rows={3}
-                value={formData.exitReasoning}
-                onChange={handleChange}
-                placeholder="Why did you exit this trade?"
-              />
-            </div>
-
-            <div>
-              <label className="label">General Notes</label>
-              <textarea
-                name="notes"
-                className="input"
-                rows={3}
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Additional notes..."
-              />
+              <div>
+                <label className="label">Exit Reasoning</label>
+                <textarea
+                  name="exitReasoning"
+                  className="input"
+                  rows={3}
+                  value={formData.exitReasoning}
+                  onChange={handleChange}
+                  placeholder="Why did you exit this trade?"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">

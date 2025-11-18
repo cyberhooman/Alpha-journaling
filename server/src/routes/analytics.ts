@@ -37,7 +37,7 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
       params
     );
 
-    const stats = statsResult.rows[0];
+    const stats = statsResult.rows[0] as any;
 
     const winRate = stats.closed_trades > 0
       ? (Number(stats.winning_trades) / Number(stats.closed_trades)) * 100
@@ -202,7 +202,7 @@ router.get('/performance', authenticateToken, async (req: AuthRequest, res) => {
       [userId]
     );
 
-    const data = expectancyResult.rows[0];
+    const data = expectancyResult.rows[0] as any;
     const winRate = Number(data.total_trades) > 0
       ? Number(data.wins) / Number(data.total_trades)
       : 0;
@@ -223,7 +223,7 @@ router.get('/performance', authenticateToken, async (req: AuthRequest, res) => {
       [userId]
     );
 
-    const riskMetrics = riskMetricsResult.rows[0];
+    const riskMetrics = riskMetricsResult.rows[0] as any;
 
     // Consecutive wins/losses
     const tradesResult = await query(

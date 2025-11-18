@@ -51,6 +51,8 @@ export default function EditTrade() {
     stopLoss: '',
     takeProfit: '',
     fees: '0',
+    pnl: '',
+    pnlPercentage: '',
     status: 'OPEN' as 'OPEN' | 'CLOSED' | 'CANCELLED',
     strategy: '',
     setup: '',
@@ -79,6 +81,8 @@ export default function EditTrade() {
         stopLoss: tradeData.stop_loss ? String(tradeData.stop_loss) : '',
         takeProfit: tradeData.take_profit ? String(tradeData.take_profit) : '',
         fees: tradeData.fees ? String(tradeData.fees) : '0',
+        pnl: tradeData.pnl ? String(tradeData.pnl) : '',
+        pnlPercentage: tradeData.pnl_percentage ? String(tradeData.pnl_percentage) : '',
         status: tradeData.status || 'OPEN',
         strategy: tradeData.strategy || '',
         setup: tradeData.setup || '',
@@ -116,6 +120,8 @@ export default function EditTrade() {
       stopLoss: formData.stopLoss ? parseFloat(formData.stopLoss) : undefined,
       takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : undefined,
       fees: parseFloat(formData.fees),
+      pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
+      pnlPercentage: formData.pnlPercentage ? parseFloat(formData.pnlPercentage) : undefined,
       exitDate: formData.exitDate || undefined,
       marketType: formData.marketType || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
@@ -358,6 +364,38 @@ export default function EditTrade() {
             </div>
 
             <div>
+              <label className="label">P&L (Profit/Loss)</label>
+              <input
+                type="number"
+                step="0.01"
+                name="pnl"
+                className="input"
+                value={formData.pnl}
+                onChange={handleChange}
+                placeholder="Enter profit or loss amount"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Optional: Manually enter P&L or leave blank to calculate automatically
+              </p>
+            </div>
+
+            <div>
+              <label className="label">P&L Percentage</label>
+              <input
+                type="number"
+                step="0.01"
+                name="pnlPercentage"
+                className="input"
+                value={formData.pnlPercentage}
+                onChange={handleChange}
+                placeholder="Enter P&L percentage"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Optional: Enter percentage gain/loss
+              </p>
+            </div>
+
+            <div>
               <label className="label">Stop Loss</label>
               <input
                 type="number"
@@ -449,6 +487,49 @@ export default function EditTrade() {
                 value={formData.broker}
                 onChange={handleChange}
               />
+            </div>
+
+            {/* Tags Selector */}
+            <div className="md:col-span-3">
+              <label className="label">Tags</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {tags?.data && tags.data.length > 0 ? (
+                  tags.data.map((tag: any) => {
+                    const isSelected = formData.tagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            tagIds: isSelected
+                              ? prev.tagIds.filter(id => id !== tag.id)
+                              : [...prev.tagIds, tag.id]
+                          }));
+                        }}
+                        className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
+                          isSelected
+                            ? 'ring-2 ring-offset-1'
+                            : 'opacity-60 hover:opacity-100'
+                        }`}
+                        style={{
+                          backgroundColor: `${tag.color}20`,
+                          color: tag.color,
+                          border: `1px solid ${tag.color}40`
+                        } as React.CSSProperties}
+                      >
+                        {tag.name}
+                        {isSelected && (
+                          <span className="ml-1.5 font-bold">✓</span>
+                        )}
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-slate-500">No tags available. Create tags in Settings.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>

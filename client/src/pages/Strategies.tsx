@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { strategiesAPI } from '../lib/api';
-import { Plus, BookOpen, Edit, Trash2, TrendingUp, Target, Shield, Clock, Globe, FileText, X, Sparkles, BarChart3, ChevronRight } from 'lucide-react';
+import { Plus, BookOpen, Edit, Trash2, TrendingUp, Target, Shield, Clock, Globe, FileText, X, Sparkles, BarChart3 } from 'lucide-react';
 
 const categoryColors = {
   PRICE_ACTION: 'bg-gradient-to-br from-blue-500 to-blue-600 text-white',

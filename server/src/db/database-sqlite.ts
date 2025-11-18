@@ -207,7 +207,6 @@ export const query = async (text: string, params: any[] = []) => {
     let sqliteParams = [...params];
 
     // Replace $1, $2, etc. with ?
-    let paramIndex = 1;
     sqliteQuery = text.replace(/\$\d+/g, () => '?');
 
     // Handle RETURNING clause

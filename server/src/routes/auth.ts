@@ -95,7 +95,7 @@ router.post('/register', async (req, res) => {
       [email, passwordHash, firstName, lastName]
     );
 
-    const user = result.rows[0];
+    const user = result.rows[0] as any;
 
     // Create default user settings
     await query(
@@ -107,10 +107,11 @@ router.post('/register', async (req, res) => {
     await createSampleTrade(user.id);
 
     // Generate token
+    const jwtSecret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      jwtSecret,
+      { expiresIn: '7d' }
     );
 
     res.status(201).json({
@@ -142,7 +143,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    const user = result.rows[0];
+    const user = result.rows[0] as any;
 
     // Verify password
     const validPassword = await bcrypt.compare(password, user.password_hash);
@@ -151,10 +152,11 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate token
+    const jwtSecret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      jwtSecret,
+      { expiresIn: '7d' }
     );
 
     res.json({

@@ -45,7 +45,7 @@ export const PaymentRecovery: React.FC = () => {
                   startAngle={90}
                   endAngle={-270}
                 >
-                  {data.map((entry, index) => (
+                  {data.map((_entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index]} />
                   ))}
                 </Pie>

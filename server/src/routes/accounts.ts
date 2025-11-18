@@ -18,12 +18,12 @@ const createAccountSchema = z.object({
 const updateAccountSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   account_type: z.enum(['LIVE', 'DEMO', 'PROP_FIRM', 'FUNDED']).optional(),
-  broker: z.string().max(100).optional(),
+  broker: z.string().max(100).or(z.literal('')).optional().nullable(),
   initial_balance: z.number().positive().optional(),
   current_balance: z.number().positive().optional(),
   currency: z.string().max(10).optional(),
-  is_active: z.boolean().optional(),
-  notes: z.string().optional(),
+  is_active: z.union([z.boolean(), z.number()]).optional().transform(val => val === 1 || val === true),
+  notes: z.string().or(z.literal('')).optional().nullable(),
 });
 
 // GET /api/accounts - Get all trading accounts for user
@@ -107,7 +107,9 @@ router.post('/', authenticateToken, async (req, res) => {
 // PUT /api/accounts/:id - Update account
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
+    console.log('Update account - request body:', req.body);
     const data = updateAccountSchema.parse(req.body);
+    console.log('Update account - validated data:', data);
 
     // Check if account exists and belongs to user
     const existing = db.prepare(`
@@ -170,6 +172,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     res.json(updated);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error:', error.errors);
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Error updating account:', error);

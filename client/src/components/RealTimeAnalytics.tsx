@@ -1,7 +1,7 @@
 import React from 'react';
 import { BarChart, Bar, ResponsiveContainer, XAxis } from 'recharts';
 import { Card } from './Card';
-import { Activity } from 'lucide-react';
+// import { Activity } from 'lucide-react';
 
 const generateBarData = (value: number) => {
   return Array.from({ length: 30 }, (_, i) => ({

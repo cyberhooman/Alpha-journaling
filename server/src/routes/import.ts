@@ -81,7 +81,7 @@ router.post('/csv', authenticateToken, async (req: AuthRequest, res) => {
           ]
         );
 
-        imported.push({ row: i + 1, id: result.rows[0].id });
+        imported.push({ row: i + 1, id: (result.rows[0] as any).id });
       } catch (error: any) {
         errors.push({
           row: i + 1,
@@ -106,7 +106,7 @@ router.post('/csv', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Get CSV template
-router.get('/csv/template', (req, res) => {
+router.get('/csv/template', (_req, res) => {
   const template = `Symbol,Side,Entry Date,Exit Date,Entry Price,Exit Price,Quantity,Stop Loss,Take Profit,Fees,Strategy,Notes
 AAPL,LONG,2024-01-15T10:30:00Z,2024-01-15T14:30:00Z,150.50,152.75,10,149.00,153.00,2.50,Breakout,Good entry on volume spike
 TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting resistance level`;

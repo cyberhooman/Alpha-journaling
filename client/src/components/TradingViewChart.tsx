@@ -31,30 +31,36 @@ export default function TradingViewChart({
     if (!containerRef.current) return;
 
     // Convert symbol to TradingView format
-    let tvSymbol = symbol.toUpperCase();
+    let tvSymbol = symbol.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-    // Map common symbols to TradingView format
-    const symbolMap: Record<string, string> = {
-      'BTC': 'BTCUSDT',
-      'ETH': 'ETHUSDT',
-      'AAPL': 'AAPL',
-      'TSLA': 'TSLA',
-      'GOOGL': 'GOOGL',
-      'MSFT': 'MSFT',
-      'AMZN': 'AMZN',
-      'NVDA': 'NVDA',
-      'META': 'META',
-    };
+    // Detect symbol type and determine exchange
+    let exchange = 'NASDAQ'; // Default
 
-    if (symbolMap[tvSymbol]) {
-      tvSymbol = symbolMap[tvSymbol];
-    } else if (!tvSymbol.includes('USDT') && !tvSymbol.includes('USD') && !tvSymbol.match(/^[A-Z]{1,5}$/)) {
-      // If it's a crypto symbol without pair, add USDT
-      tvSymbol = tvSymbol + 'USDT';
+    // Forex pairs detection (6 characters, all letters)
+    const forexPairs = /^[A-Z]{6}$/;
+    if (forexPairs.test(tvSymbol)) {
+      // Forex pair detected (e.g., GBPJPY, EURUSD, GBPUSD)
+      exchange = 'FX_IDC';
+      // Format as XXX/YYY for TradingView
+      tvSymbol = tvSymbol.slice(0, 3) + tvSymbol.slice(3);
     }
-
-    // Determine exchange based on symbol
-    const exchange = tvSymbol.includes('USDT') || tvSymbol.includes('BTC') ? 'BINANCE' : 'NASDAQ';
+    // Crypto detection
+    else if (tvSymbol.endsWith('USDT') || tvSymbol.endsWith('BTC') || tvSymbol.endsWith('ETH')) {
+      exchange = 'BINANCE';
+    }
+    // Single crypto symbols - add USDT pair
+    else if (['BTC', 'ETH', 'XRP', 'LTC', 'ADA', 'DOT', 'DOGE', 'SOL', 'MATIC', 'AVAX'].includes(tvSymbol)) {
+      tvSymbol = tvSymbol + 'USDT';
+      exchange = 'BINANCE';
+    }
+    // Stock symbols (US stocks)
+    else if (['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC'].includes(tvSymbol)) {
+      exchange = 'NASDAQ';
+    }
+    // Default to treating as stock
+    else {
+      exchange = 'NASDAQ';
+    }
 
     // Create the script element
     const script = document.createElement('script');

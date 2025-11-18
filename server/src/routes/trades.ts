@@ -6,6 +6,7 @@ import { AuthRequest, authenticateToken } from '../middleware/auth.js';
 const router = express.Router();
 
 const createTradeSchema = z.object({
+  accountId: z.number().optional(),
   symbol: z.string(),
   side: z.enum(['LONG', 'SHORT']),
   entryDate: z.string(),
@@ -16,6 +17,8 @@ const createTradeSchema = z.object({
   stopLoss: z.number().optional(),
   takeProfit: z.number().optional(),
   fees: z.number().default(0),
+  pnl: z.number().optional(),
+  pnlPercentage: z.number().optional(),
   status: z.enum(['OPEN', 'CLOSED', 'CANCELLED']).default('OPEN'),
   strategy: z.string().optional(),
   setup: z.string().optional(),
@@ -110,13 +113,14 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     // Get tags for each trade (simplified - not optimal but works)
     const trades = result.rows;
     for (const trade of trades) {
+      const tradeAny = trade as any;
       const tagsResult = await query(
         `SELECT tt.* FROM trade_tags tt
          JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
          WHERE ttm.trade_id = $1`,
-        [trade.id]
+        [tradeAny.id]
       );
-      trade.tags = tagsResult.rows || [];
+      tradeAny.tags = tagsResult.rows || [];
     }
 
     res.json(trades);
@@ -141,7 +145,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Trade not found' });
     }
 
-    const trade = result.rows[0];
+    const trade = result.rows[0] as any;
 
     // Get tags for this trade
     const tagsResult = await query(
@@ -165,26 +169,34 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const userId = req.user!.id;
     const data = createTradeSchema.parse(req.body);
 
-    const { pnl, pnlPercentage } = calculatePnL(
-      data.side,
-      data.entryPrice,
-      data.exitPrice || null,
-      data.quantity,
-      data.fees
-    );
+    // Use manual PNL if provided, otherwise calculate it
+    let pnl = data.pnl !== undefined ? data.pnl : null;
+    let pnlPercentage = data.pnlPercentage !== undefined ? data.pnlPercentage : null;
+
+    if (pnl === null || pnlPercentage === null) {
+      const calculated = calculatePnL(
+        data.side,
+        data.entryPrice,
+        data.exitPrice || null,
+        data.quantity,
+        data.fees
+      );
+      pnl = pnl !== null ? pnl : calculated.pnl;
+      pnlPercentage = pnlPercentage !== null ? pnlPercentage : calculated.pnlPercentage;
+    }
 
     const result = await query(
       `INSERT INTO trades (
-        user_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
+        user_id, account_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
         quantity, stop_loss, take_profit, pnl, pnl_percentage, fees, status,
         strategy, setup, timeframe, market_type, notes, entry_reasoning,
         exit_reasoning, mistakes, lessons_learned, emotional_state,
         confidence_level, screenshot_url, broker, account_balance, risk_amount,
         risk_percentage, reward_risk_ratio
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
       RETURNING *`,
       [
-        userId, data.symbol, data.side, data.entryDate, data.exitDate || null,
+        userId, data.accountId || null, data.symbol, data.side, data.entryDate, data.exitDate || null,
         data.entryPrice, data.exitPrice || null, data.quantity, data.stopLoss || null,
         data.takeProfit || null, pnl, pnlPercentage, data.fees, data.status,
         data.strategy || null, data.setup || null, data.timeframe || null,
@@ -196,7 +208,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       ]
     );
 
-    const trade = result.rows[0];
+    const trade = result.rows[0] as any;
 
     // Add tags if provided
     if (data.tagIds && data.tagIds.length > 0) {
@@ -235,22 +247,25 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(404).json({ error: 'Trade not found' });
     }
 
-    const trade = existing.rows[0];
+    const trade = existing.rows[0] as any;
 
-    // Calculate PnL if prices are being updated
-    let pnl = trade.pnl;
-    let pnlPercentage = trade.pnl_percentage;
+    // Use manual PNL if provided, otherwise calculate if prices are being updated
+    let pnl = data.pnl !== undefined ? data.pnl : trade.pnl;
+    let pnlPercentage = data.pnlPercentage !== undefined ? data.pnlPercentage : trade.pnl_percentage;
 
-    if (data.exitPrice !== undefined || data.entryPrice !== undefined || data.quantity !== undefined) {
-      const calculated = calculatePnL(
-        data.side || trade.side,
-        data.entryPrice || trade.entry_price,
-        data.exitPrice !== undefined ? data.exitPrice : trade.exit_price,
-        data.quantity || trade.quantity,
-        data.fees !== undefined ? data.fees : trade.fees
-      );
-      pnl = calculated.pnl;
-      pnlPercentage = calculated.pnlPercentage;
+    // Only calculate PnL if manual values not provided AND prices are being updated
+    if (data.pnl === undefined && data.pnlPercentage === undefined) {
+      if (data.exitPrice !== undefined || data.entryPrice !== undefined || data.quantity !== undefined) {
+        const calculated = calculatePnL(
+          data.side || trade.side,
+          data.entryPrice || trade.entry_price,
+          data.exitPrice !== undefined ? data.exitPrice : trade.exit_price,
+          data.quantity || trade.quantity,
+          data.fees !== undefined ? data.fees : trade.fees
+        );
+        pnl = calculated.pnl;
+        pnlPercentage = calculated.pnlPercentage;
+      }
     }
 
     const result = await query(

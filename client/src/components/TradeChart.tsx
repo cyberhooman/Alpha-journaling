@@ -16,7 +16,7 @@ interface TradeChartProps {
 
 // Custom Candlestick Shape Component
 const Candlestick = (props: any) => {
-  const { x, y, width, height, fill, payload } = props;
+  const { x, y, width, height, payload } = props;
 
   if (!payload || payload.open === undefined) return null;
 
@@ -26,7 +26,6 @@ const Candlestick = (props: any) => {
 
   const candleWidth = width * 0.6;
   const xCenter = x + width / 2;
-  const wickX = xCenter - 1;
 
   // Calculate positions
   const yHigh = y - ((high - close) / (high - low)) * height;
@@ -105,7 +104,6 @@ export default function TradeChart({
       // Generate OHLC for this candle
       const open = currentPrice + (Math.random() - 0.5) * volatility * 0.3;
       const close = currentPrice + (Math.random() - 0.5) * volatility * 0.3;
-      const direction = Math.random() > 0.5 ? 1 : -1;
       const high = Math.max(open, close) + Math.random() * volatility * 0.4;
       const low = Math.min(open, close) - Math.random() * volatility * 0.4;
 
@@ -161,7 +159,6 @@ export default function TradeChart({
 
   const pnl = exitPrice ? ((exitPrice - entryPrice) / entryPrice) * 100 * (side === 'LONG' ? 1 : -1) : 0;
   const isProfit = pnl > 0;
-  const currentPrice = livePrice || exitPrice || (chartData.length > 0 ? chartData[chartData.length - 1].close : entryPrice);
 
   return (
     <div className="card">
