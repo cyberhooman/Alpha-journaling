@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { db } from '../db/database';
-import { authenticateToken } from '../middleware/auth';
+import { db } from '../db/database.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = Router();
 
