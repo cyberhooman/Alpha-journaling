@@ -19,6 +19,7 @@ const updateAccountSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   account_type: z.enum(['LIVE', 'DEMO', 'PROP_FIRM', 'FUNDED']).optional(),
   broker: z.string().max(100).optional(),
+  initial_balance: z.number().positive().optional(),
   current_balance: z.number().positive().optional(),
   currency: z.string().max(10).optional(),
   is_active: z.boolean().optional(),
@@ -131,6 +132,10 @@ router.put('/:id', authenticateToken, async (req, res) => {
     if (data.broker !== undefined) {
       updates.push('broker = ?');
       values.push(data.broker);
+    }
+    if (data.initial_balance !== undefined) {
+      updates.push('initial_balance = ?');
+      values.push(data.initial_balance);
     }
     if (data.current_balance !== undefined) {
       updates.push('current_balance = ?');
