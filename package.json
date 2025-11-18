@@ -2,6 +2,8 @@
   "name": "trading-journal-pro",
   "version": "1.0.0",
   "description": "Professional trading journal app similar to Tradezella",
+  "author": "Trading Journal Pro",
+  "main": "electron/main.js",
   "private": true,
   "workspaces": [
     "client",
@@ -12,12 +14,67 @@
     "dev:server": "npm run dev --workspace=server",
     "dev:client": "npm run dev --workspace=client",
     "build": "npm run build --workspace=client && npm run build --workspace=server",
-    "start": "npm run start --workspace=server"
+    "start": "npm run start --workspace=server",
+    "electron": "wait-on http://localhost:5173 && electron .",
+    "electron:dev": "concurrently \"npm run dev:client\" \"npm run dev:server\" \"npm run electron\"",
+    "electron:build": "npm run build && electron-builder",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
   },
-  "dependencies": {
-    "concurrently": "^7.6.0"
+  "build": {
+    "appId": "com.tradingjournalpro.app",
+    "productName": "Trading Journal Pro",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "client/dist/**/*",
+      "server/dist/**/*",
+      "server/package.json",
+      "server/node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "server/dist",
+        "to": "server/dist"
+      },
+      {
+        "from": "server/node_modules",
+        "to": "server/node_modules"
+      },
+      {
+        "from": "server/package.json",
+        "to": "server/package.json"
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "client/public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": ["dmg"],
+      "icon": "client/public/icon.icns",
+      "category": "public.app-category.finance"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "client/public/icon.png",
+      "category": "Finance"
+    }
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13"
+    "@types/better-sqlite3": "^7.6.13",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.1",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^9.0.3"
   }
 }

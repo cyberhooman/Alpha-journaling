@@ -3,14 +3,19 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
+  base: './', // Important for Electron
   server: {
-    port: 3001,
-    open: true, // Auto-open browser
+    port: 5173,
+    open: false, // Don't auto-open browser for Electron
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
   },
 });
