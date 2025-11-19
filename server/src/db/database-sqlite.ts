@@ -209,9 +209,14 @@ export const query = async (text: string, params: any[] = []) => {
     // Replace $1, $2, etc. with ?
     sqliteQuery = text.replace(/\$\d+/g, () => '?');
 
-    // Handle RETURNING clause
-    const hasReturning = /RETURNING \*/i.test(sqliteQuery);
-    sqliteQuery = sqliteQuery.replace(/RETURNING \*/i, '');
+    // Handle RETURNING clause - check BEFORE removing
+    const hasReturning = /RETURNING\s+\*/i.test(text);
+    sqliteQuery = sqliteQuery.replace(/RETURNING\s+\*/i, '');
+
+    if (text.includes('UPDATE') && text.includes('RETURNING')) {
+      console.log('🔍 Original query has RETURNING:', text.includes('RETURNING'));
+      console.log('🔍 hasReturning detected:', hasReturning);
+    }
 
     if (sqliteQuery.trim().toUpperCase().startsWith('SELECT')) {
       const stmt = db.prepare(sqliteQuery);
