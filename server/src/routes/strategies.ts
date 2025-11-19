@@ -28,6 +28,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       [userId]
     );
 
+    // Prevent caching to ensure fresh data
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     res.json(result.rows);
   } catch (error) {
     console.error('Get strategies error:', error);
