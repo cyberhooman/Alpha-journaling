@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { strategiesAPI } from '../lib/api';
 import { Plus, BookOpen, Edit, Trash2, TrendingUp, Target, Shield, Clock, Globe, FileText, X, Sparkles, BarChart3 } from 'lucide-react';
 
@@ -34,7 +34,6 @@ const categoryLabels = {
 };
 
 export default function Strategies() {
-  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingStrategy, setEditingStrategy] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -50,7 +49,7 @@ export default function Strategies() {
     is_active: true,
   });
 
-  const { data: strategies = [], isLoading } = useQuery({
+  const { data: strategies = [], isLoading, refetch } = useQuery({
     queryKey: ['strategies'],
     queryFn: async () => {
       const response = await strategiesAPI.getAll();
@@ -60,8 +59,8 @@ export default function Strategies() {
 
   const createMutation = useMutation({
     mutationFn: strategiesAPI.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+    onSuccess: async () => {
+      await refetch();
       setShowForm(false);
       resetForm();
     },
@@ -69,8 +68,8 @@ export default function Strategies() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => strategiesAPI.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+    onSuccess: async () => {
+      await refetch();
       setShowForm(false);
       setEditingStrategy(null);
       resetForm();
@@ -79,8 +78,8 @@ export default function Strategies() {
 
   const deleteMutation = useMutation({
     mutationFn: strategiesAPI.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+    onSuccess: async () => {
+      await refetch();
     },
   });
 
