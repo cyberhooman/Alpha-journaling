@@ -61,7 +61,7 @@ export default function Strategies() {
   const createMutation = useMutation({
     mutationFn: strategiesAPI.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'], refetchType: 'all' });
       setShowForm(false);
       resetForm();
     },
@@ -70,7 +70,7 @@ export default function Strategies() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => strategiesAPI.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'], refetchType: 'all' });
       setShowForm(false);
       setEditingStrategy(null);
       resetForm();
@@ -80,7 +80,7 @@ export default function Strategies() {
   const deleteMutation = useMutation({
     mutationFn: strategiesAPI.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'], refetchType: 'all' });
     },
   });
 
