@@ -246,7 +246,11 @@ export const query = async (text: string, params: any[] = []) => {
       if (hasReturning) {
         // Extract table name and WHERE clause to get the updated row
         const tableMatch = sqliteQuery.match(/UPDATE (\w+)/i);
-        const whereMatch = text.match(/WHERE (.+?) RETURNING/i);
+        // Use [\s\S]+? to match any character including newlines (non-greedy)
+        const whereMatch = text.match(/WHERE\s+([\s\S]+?)\s+RETURNING/i);
+
+        console.log('🔍 tableMatch:', tableMatch?.[1]);
+        console.log('🔍 whereMatch:', whereMatch?.[1]);
 
         if (tableMatch && whereMatch) {
           const table = tableMatch[1];
