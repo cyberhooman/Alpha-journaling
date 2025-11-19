@@ -101,9 +101,9 @@ export default function EditTrade() {
   const updateMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.update(Number(id), data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'] });
-      queryClient.invalidateQueries({ queryKey: ['trade', id] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['trade', id], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'], refetchType: 'all' });
       navigate('/trades');
     },
   });

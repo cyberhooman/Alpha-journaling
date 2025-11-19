@@ -35,7 +35,7 @@ export default function Settings() {
     },
     onSuccess: (data) => {
       console.log('createMutation - onSuccess:', data);
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
       setShowNewAccountModal(false);
     },
     onError: (error: any) => {
@@ -51,7 +51,7 @@ export default function Settings() {
     },
     onSuccess: (data) => {
       console.log('updateMutation - onSuccess:', data);
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
       setEditingAccount(null);
     },
     onError: (error: any) => {
@@ -63,7 +63,7 @@ export default function Settings() {
   const deleteMutation = useMutation({
     mutationFn: accountsAPI.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
     },
   });
 
@@ -76,7 +76,7 @@ export default function Settings() {
   const createTagMutation = useMutation({
     mutationFn: (data: { name: string; color: string }) => tagsAPI.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
       setShowNewTagModal(false);
     },
   });
@@ -84,7 +84,7 @@ export default function Settings() {
   const updateTagMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => tagsAPI.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
       setEditingTag(null);
     },
   });
@@ -92,7 +92,7 @@ export default function Settings() {
   const deleteTagMutation = useMutation({
     mutationFn: tagsAPI.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
+      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
     },
   });
 

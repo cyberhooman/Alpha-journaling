@@ -12,8 +12,8 @@ export default function Import() {
     mutationFn: (data: string) => importAPI.uploadCSV(data),
     onSuccess: (response) => {
       setResult(response.data);
-      queryClient.invalidateQueries({ queryKey: ['trades'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'], refetchType: 'all' });
     },
   });
 
