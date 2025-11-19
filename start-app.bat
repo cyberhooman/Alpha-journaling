@@ -29,7 +29,7 @@ start "TradingJournalServer" /B cmd /c "cd /d "%~dp0" && npm run start --workspa
 timeout /t 3 /nobreak > nul
 
 REM Start client dev server
-start "TradingJournalClient" /B cmd /c "cd /d "%~dp0" && npm run dev --workspace=client"
+start "TradingJournalClient" /B cmd /c "cd /d "%~dp0" && npm run dev:local --workspace=client"
 timeout /t 5 /nobreak > nul
 
 REM Start electron
