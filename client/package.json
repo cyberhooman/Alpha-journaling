@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx serve dist -s -l tcp://0.0.0.0:$PORT",
+    "dev": "npx serve ./dist -s -l tcp://0.0.0.0:$PORT",
     "dev:local": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "npx serve dist -s -l tcp://0.0.0.0:$PORT"
+    "start": "npx serve ./dist -s -l tcp://0.0.0.0:$PORT"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.28.4",
