@@ -100,10 +100,12 @@ export default function EditTrade() {
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.update(Number(id), data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['trade', id], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'], refetchType: 'all' });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['trades'] }),
+        queryClient.refetchQueries({ queryKey: ['trade', id] }),
+        queryClient.refetchQueries({ queryKey: ['dashboard'] }),
+      ]);
       navigate('/trades');
     },
   });

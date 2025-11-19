@@ -19,8 +19,8 @@ export default function Trades() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => tradesAPI.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['trades'] });
     },
   });
 

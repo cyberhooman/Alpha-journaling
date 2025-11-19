@@ -10,10 +10,12 @@ export default function Import() {
 
   const importMutation = useMutation({
     mutationFn: (data: string) => importAPI.uploadCSV(data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       setResult(response.data);
-      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'], refetchType: 'all' });
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['trades'] }),
+        queryClient.refetchQueries({ queryKey: ['dashboard'] }),
+      ]);
     },
   });
 

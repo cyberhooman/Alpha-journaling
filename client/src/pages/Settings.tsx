@@ -33,9 +33,9 @@ export default function Settings() {
         throw err;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('createMutation - onSuccess:', data);
-      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
+      await queryClient.refetchQueries({ queryKey: ['accounts'] });
       setShowNewAccountModal(false);
     },
     onError: (error: any) => {
@@ -49,9 +49,9 @@ export default function Settings() {
       console.log('updateMutation - calling API with id:', id, 'data:', data);
       return accountsAPI.update(id, data);
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('updateMutation - onSuccess:', data);
-      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
+      await queryClient.refetchQueries({ queryKey: ['accounts'] });
       setEditingAccount(null);
     },
     onError: (error: any) => {
@@ -62,8 +62,8 @@ export default function Settings() {
 
   const deleteMutation = useMutation({
     mutationFn: accountsAPI.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'], refetchType: 'all' });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['accounts'] });
     },
   });
 
@@ -75,24 +75,24 @@ export default function Settings() {
 
   const createTagMutation = useMutation({
     mutationFn: (data: { name: string; color: string }) => tagsAPI.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['tags'] });
       setShowNewTagModal(false);
     },
   });
 
   const updateTagMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => tagsAPI.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['tags'] });
       setEditingTag(null);
     },
   });
 
   const deleteTagMutation = useMutation({
     mutationFn: tagsAPI.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'], refetchType: 'all' });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['tags'] });
     },
   });
 

@@ -60,9 +60,11 @@ export default function NewTrade() {
 
   const createMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'all' });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'], refetchType: 'all' });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['trades'] }),
+        queryClient.refetchQueries({ queryKey: ['dashboard'] }),
+      ]);
       navigate('/trades');
     },
   });
