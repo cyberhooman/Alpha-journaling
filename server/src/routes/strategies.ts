@@ -39,7 +39,11 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const strategyId = req.params.id;
+    const strategyId = parseInt(req.params.id, 10);
+
+    if (isNaN(strategyId)) {
+      return res.status(400).json({ error: 'Invalid strategy ID' });
+    }
 
     const result = await query(
       'SELECT * FROM trading_strategies WHERE id = $1 AND user_id = $2',
@@ -97,13 +101,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const strategyId = req.params.id;
+    const strategyId = parseInt(req.params.id, 10);
     const data = createStrategySchema.partial().parse(req.body);
 
     console.log('📝 Strategy update request:');
     console.log('   User ID:', userId, typeof userId);
     console.log('   Strategy ID:', strategyId, typeof strategyId);
     console.log('   Data:', JSON.stringify(data));
+
+    if (isNaN(strategyId)) {
+      return res.status(400).json({ error: 'Invalid strategy ID' });
+    }
 
     const result = await query(
       `UPDATE trading_strategies
@@ -154,7 +162,11 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const strategyId = req.params.id;
+    const strategyId = parseInt(req.params.id, 10);
+
+    if (isNaN(strategyId)) {
+      return res.status(400).json({ error: 'Invalid strategy ID' });
+    }
 
     const result = await query(
       'DELETE FROM trading_strategies WHERE id = $1 AND user_id = $2 RETURNING id',
@@ -176,7 +188,11 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.get('/:id/stats', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const strategyId = req.params.id;
+    const strategyId = parseInt(req.params.id, 10);
+
+    if (isNaN(strategyId)) {
+      return res.status(400).json({ error: 'Invalid strategy ID' });
+    }
 
     // First check if strategy exists
     const strategyCheck = await query(
