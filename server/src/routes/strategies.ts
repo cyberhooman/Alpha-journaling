@@ -100,6 +100,11 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     const strategyId = req.params.id;
     const data = createStrategySchema.partial().parse(req.body);
 
+    console.log('📝 Strategy update request:');
+    console.log('   User ID:', userId, typeof userId);
+    console.log('   Strategy ID:', strategyId, typeof strategyId);
+    console.log('   Data:', JSON.stringify(data));
+
     const result = await query(
       `UPDATE trading_strategies
        SET name = COALESCE($1, name),

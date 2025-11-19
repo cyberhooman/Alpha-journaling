@@ -236,6 +236,8 @@ export const query = async (text: string, params: any[] = []) => {
       const stmt = db.prepare(sqliteQuery);
       const info = stmt.run(...sqliteParams);
 
+      console.log('🔄 UPDATE executed, changes:', info.changes);
+
       if (hasReturning) {
         // Extract table name and WHERE clause to get the updated row
         const tableMatch = sqliteQuery.match(/UPDATE (\w+)/i);
@@ -245,15 +247,32 @@ export const query = async (text: string, params: any[] = []) => {
           const table = tableMatch[1];
           const whereClause = whereMatch[1];
 
+          // Count how many placeholders are in the WHERE clause
+          const placeholderCount = (whereClause.match(/\$\d+/g) || []).length;
+
           // Build the SELECT query with the same WHERE clause
           let selectQuery = `SELECT * FROM ${table} WHERE ${whereClause}`;
           selectQuery = selectQuery.replace(/\$\d+/g, () => '?');
 
-          // Get the params used in the WHERE clause (last few params)
-          const whereParams = sqliteParams.slice(-2); // Typically id and user_id
+          // Get the params used in the WHERE clause (last N params)
+          const whereParams = sqliteParams.slice(-placeholderCount);
+
+          console.log('🔍 SELECT query:', selectQuery);
+          console.log('🔍 WHERE params:', whereParams);
+          console.log('🔍 Total params count:', sqliteParams.length, 'WHERE params count:', placeholderCount);
 
           const selectStmt = db.prepare(selectQuery);
           const rows = selectStmt.all(...whereParams);
+
+          console.log('🔍 Rows returned:', rows.length);
+          if (rows.length === 0) {
+            // Check if the record exists at all
+            const checkQuery = `SELECT id, user_id FROM ${table} WHERE id = ?`;
+            const checkStmt = db.prepare(checkQuery);
+            const checkRow = checkStmt.get(whereParams[0]);
+            console.log('🔍 Record check (by id only):', checkRow);
+          }
+
           return { rows };
         }
       }
