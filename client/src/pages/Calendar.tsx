@@ -78,6 +78,7 @@ export default function Calendar() {
             const pnl = dayData ? Number(dayData.pnl) : 0;
             const trades = dayData ? Number(dayData.trades) : 0;
             const wins = dayData ? Number(dayData.wins) : 0;
+            const tags = dayData ? dayData.tags || [] : [];
 
             return (
               <div
@@ -104,6 +105,25 @@ export default function Calendar() {
                       <div className="text-sm text-slate-600">
                         {wins}/{trades} wins
                       </div>
+                      {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {tags.slice(0, 3).map((tag: any) => (
+                            <span
+                              key={tag.id}
+                              className="px-1.5 py-0.5 text-xs rounded-full"
+                              style={{
+                                backgroundColor: `${tag.color}20`,
+                                color: tag.color
+                              }}
+                            >
+                              {tag.name}
+                            </span>
+                          ))}
+                          {tags.length > 3 && (
+                            <span className="text-xs text-slate-500">+{tags.length - 3}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

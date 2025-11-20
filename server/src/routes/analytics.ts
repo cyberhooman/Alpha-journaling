@@ -177,7 +177,22 @@ router.get('/calendar', authenticateToken, async (req: AuthRequest, res) => {
       params
     );
 
-    res.json(result.rows);
+    // Get tags for each date
+    const calendarData = result.rows;
+    for (const dayData of calendarData) {
+      const dayDataAny = dayData as any;
+      const tagsResult = await query(
+        `SELECT DISTINCT tt.id, tt.name, tt.color
+         FROM trade_tags tt
+         JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
+         JOIN trades t ON ttm.trade_id = t.id
+         WHERE t.user_id = $1 AND DATE(t.entry_date) = $2`,
+        [userId, dayDataAny.date]
+      );
+      dayDataAny.tags = tagsResult.rows || [];
+    }
+
+    res.json(calendarData);
   } catch (error) {
     console.error('Calendar error:', error);
     res.status(500).json({ error: 'Internal server error' });
