@@ -125,11 +125,15 @@ export default function Trades() {
                         {trade.side}
                       </span>
                     </td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">${Number(trade.entry_price).toFixed(2)}</td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                      {trade.entry_price ? `$${Number(trade.entry_price).toFixed(2)}` : '-'}
+                    </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
                       {trade.exit_price ? `$${Number(trade.exit_price).toFixed(2)}` : '-'}
                     </td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">{Number(trade.quantity)}</td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                      {trade.quantity ? Number(trade.quantity) : '-'}
+                    </td>
                     <td className={`px-2 sm:px-4 py-2 sm:py-3 font-semibold text-xs sm:text-sm ${
                       (trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>

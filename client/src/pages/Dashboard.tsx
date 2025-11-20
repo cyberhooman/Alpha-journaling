@@ -372,8 +372,12 @@ export default function Dashboard() {
                         {trade.side}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">${trade.entry_price}</td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">{trade.exit_price ? `$${trade.exit_price}` : '-'}</td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">
+                      {trade.entry_price ? `$${trade.entry_price}` : '-'}
+                    </td>
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">
+                      {trade.exit_price ? `$${trade.exit_price}` : '-'}
+                    </td>
                     <td className={`px-3 sm:px-4 py-2 sm:py-3 font-bold text-sm sm:text-base ${(trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {trade.pnl ? `$${Number(trade.pnl).toFixed(2)}` : '-'}
                     </td>

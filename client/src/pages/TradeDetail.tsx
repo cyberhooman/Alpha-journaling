@@ -109,16 +109,18 @@ export default function TradeDetail() {
       </div>
 
       {/* Price Chart */}
-      <TradingViewChart
-        symbol={tradeData.symbol}
-        entryPrice={Number(tradeData.entry_price)}
-        exitPrice={tradeData.exit_price ? Number(tradeData.exit_price) : undefined}
-        entryDate={tradeData.entry_date}
-        exitDate={tradeData.exit_date || undefined}
-        side={tradeData.side}
-        stopLoss={tradeData.stop_loss ? Number(tradeData.stop_loss) : undefined}
-        takeProfit={tradeData.take_profit ? Number(tradeData.take_profit) : undefined}
-      />
+      {tradeData.entry_price && (
+        <TradingViewChart
+          symbol={tradeData.symbol}
+          entryPrice={Number(tradeData.entry_price)}
+          exitPrice={tradeData.exit_price ? Number(tradeData.exit_price) : undefined}
+          entryDate={tradeData.entry_date}
+          exitDate={tradeData.exit_date || undefined}
+          side={tradeData.side}
+          stopLoss={tradeData.stop_loss ? Number(tradeData.stop_loss) : undefined}
+          takeProfit={tradeData.take_profit ? Number(tradeData.take_profit) : undefined}
+        />
+      )}
 
       {(() => {
         const screenshot =
@@ -157,7 +159,9 @@ export default function TradeDetail() {
           <dl className="space-y-3">
             <div className="flex justify-between">
               <dt className="text-slate-600">Entry Price</dt>
-              <dd className="font-semibold">${Number(tradeData.entry_price).toFixed(2)}</dd>
+              <dd className="font-semibold">
+                {tradeData.entry_price ? `$${Number(tradeData.entry_price).toFixed(2)}` : '-'}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-600">Entry Date</dt>
@@ -167,7 +171,9 @@ export default function TradeDetail() {
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-600">Quantity</dt>
-              <dd className="font-semibold">{Number(tradeData.quantity)}</dd>
+              <dd className="font-semibold">
+                {tradeData.quantity ? Number(tradeData.quantity) : '-'}
+              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-600">Stop Loss</dt>
