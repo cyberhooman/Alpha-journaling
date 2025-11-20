@@ -62,7 +62,7 @@ export default function Calendar() {
         <div className="grid grid-cols-7 gap-2">
           {/* Day headers */}
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="text-center font-semibold text-slate-600 py-2">
+            <div key={day} className="text-center font-bold text-slate-700 py-3 text-base">
               {day}
             </div>
           ))}
@@ -82,26 +82,26 @@ export default function Calendar() {
             return (
               <div
                 key={dateStr}
-                className={`aspect-square border border-slate-200 rounded-lg p-2 ${
-                  isToday(day) ? 'ring-2 ring-primary-500' : ''
+                className={`aspect-square border-2 rounded-lg p-3 ${
+                  isToday(day) ? 'border-primary-500 bg-primary-50' : 'border-slate-200'
                 } ${
                   isSameMonth(day, currentDate) ? '' : 'opacity-50'
                 } ${
-                  dayData ? 'hover:shadow-md cursor-pointer transition-shadow' : ''
+                  dayData ? 'hover:shadow-lg cursor-pointer transition-all hover:scale-105' : ''
                 }`}
               >
                 <div className="h-full flex flex-col">
-                  <div className="text-sm font-medium text-slate-900">
+                  <div className="text-lg font-bold text-slate-900 mb-2">
                     {format(day, 'd')}
                   </div>
 
                   {dayData && (
-                    <div className="flex-1 mt-1 space-y-1">
-                      <div className="text-xs text-slate-600">{trades} trades</div>
-                      <div className={`text-xs font-semibold ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <div className="flex-1 space-y-1.5">
+                      <div className="text-sm font-medium text-slate-700">{trades} trades</div>
+                      <div className={`text-base font-bold ${pnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         ${pnl.toFixed(0)}
                       </div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-sm text-slate-600">
                         {wins}/{trades} wins
                       </div>
                     </div>
