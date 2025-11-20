@@ -95,6 +95,7 @@ export default function Trades() {
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">P&L</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">%</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Status</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Tags</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Process</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Actions</th>
                 </tr>
@@ -152,6 +153,26 @@ export default function Trades() {
                       }`}>
                         {trade.status}
                       </span>
+                    </td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {trade.tags && trade.tags.length > 0 ? (
+                          trade.tags.map((tag: any) => (
+                            <span
+                              key={tag.id}
+                              className="px-2 py-0.5 text-xs rounded-full whitespace-nowrap"
+                              style={{
+                                backgroundColor: `${tag.color}20`,
+                                color: tag.color
+                              }}
+                            >
+                              {tag.name}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-slate-400">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3">
                       <Link
