@@ -68,6 +68,10 @@ export default function NewTrade() {
       ]);
       navigate('/trades');
     },
+    onError: (error: any) => {
+      console.error('Create trade error:', error);
+      alert('Failed to create trade: ' + (error.response?.data?.error || error.message));
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
