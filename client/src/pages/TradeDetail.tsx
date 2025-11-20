@@ -53,7 +53,10 @@ export default function TradeDetail() {
         </div>
 
         <div className="flex gap-2">
-          <button className="btn btn-secondary inline-flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/trades/${id}/edit`)}
+            className="btn btn-secondary inline-flex items-center gap-2"
+          >
             <Edit className="w-4 h-4" />
             Edit
           </button>
