@@ -4,7 +4,15 @@
       "Bash(git reset:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(curl:*)",
+      "Skill(frontend-design)",
+      "Bash(npm run dev)",
+      "Bash(git checkout:*)",
+      "Bash(npm run dev:local:*)"
     ],
     "deny": [],
     "ask": []

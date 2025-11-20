@@ -39,6 +39,8 @@ export default function EditTrade() {
     },
   });
 
+  const [isCustomStrategy, setIsCustomStrategy] = useState(false);
+
   const [formData, setFormData] = useState({
     accountId: '',
     symbol: '',
@@ -432,8 +434,16 @@ export default function EditTrade() {
               <select
                 name="strategy"
                 className="input"
-                value={formData.strategy}
-                onChange={handleChange}
+                value={isCustomStrategy ? '__custom__' : formData.strategy}
+                onChange={(e) => {
+                  if (e.target.value === '__custom__') {
+                    setIsCustomStrategy(true);
+                    setFormData({ ...formData, strategy: '' });
+                  } else {
+                    setIsCustomStrategy(false);
+                    setFormData({ ...formData, strategy: e.target.value });
+                  }
+                }}
               >
                 <option value="">Select a strategy...</option>
                 {strategies?.filter((s: any) => s.is_active === 1).map((strategy: any) => (
@@ -443,12 +453,12 @@ export default function EditTrade() {
                 ))}
                 <option value="__custom__">Custom (type below)</option>
               </select>
-              {formData.strategy === '__custom__' && (
+              {isCustomStrategy && (
                 <input
                   type="text"
                   name="strategy"
                   className="input mt-2"
-                  value=""
+                  value={formData.strategy}
                   onChange={(e) => setFormData({ ...formData, strategy: e.target.value })}
                   placeholder="Enter custom strategy name..."
                   autoFocus
