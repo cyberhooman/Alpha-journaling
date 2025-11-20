@@ -173,7 +173,8 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     let pnl = data.pnl !== undefined ? data.pnl : null;
     let pnlPercentage = data.pnlPercentage !== undefined ? data.pnlPercentage : null;
 
-    if (pnl === null || pnlPercentage === null) {
+    // Only calculate PnL if we have the required fields (entryPrice and quantity)
+    if ((pnl === null || pnlPercentage === null) && data.entryPrice !== undefined && data.quantity !== undefined) {
       const calculated = calculatePnL(
         data.side,
         data.entryPrice,
@@ -197,7 +198,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       RETURNING *`,
       [
         userId, data.accountId || null, data.symbol, data.side, data.entryDate, data.exitDate || null,
-        data.entryPrice, data.exitPrice || null, data.quantity, data.stopLoss || null,
+        data.entryPrice || null, data.exitPrice || null, data.quantity || null, data.stopLoss || null,
         data.takeProfit || null, pnl, pnlPercentage, data.fees, data.status,
         data.strategy || null, data.setup || null, data.timeframe || null,
         data.marketType || null, data.notes || null, data.entryReasoning || null,
