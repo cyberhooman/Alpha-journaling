@@ -216,9 +216,9 @@ function runMigrations() {
     console.log('🔄 Running migration: Make entry_price and quantity nullable...');
 
     // Check if the trades table has the NOT NULL constraints
-    const tableInfo = db.pragma('table_info(trades)');
-    const entryPriceCol = tableInfo.find((col: any) => col.name === 'entry_price');
-    const quantityCol = tableInfo.find((col: any) => col.name === 'quantity');
+    const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string; notnull: number }>;
+    const entryPriceCol = tableInfo.find(col => col.name === 'entry_price');
+    const quantityCol = tableInfo.find(col => col.name === 'quantity');
 
     if ((entryPriceCol && entryPriceCol.notnull === 1) || (quantityCol && quantityCol.notnull === 1)) {
       // Need to recreate the table without NOT NULL constraints

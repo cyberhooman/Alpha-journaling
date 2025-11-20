@@ -12,7 +12,8 @@
       "Skill(frontend-design)",
       "Bash(npm run dev)",
       "Bash(git checkout:*)",
-      "Bash(npm run dev:local:*)"
+      "Bash(npm run dev:local:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
