@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Search, TrendingUp, TrendingDown, Trash2, Edit } from 'lucide-react';
+import { Plus, Search, Filter, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { tradesAPI } from '../lib/api';
 import { formatToWIB } from '../lib/dateUtils';
 
@@ -19,8 +19,8 @@ export default function Trades() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => tradesAPI.delete(id),
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: ['trades'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
     },
   });
 
@@ -94,7 +94,6 @@ export default function Trades() {
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Qty</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">P&L</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">%</th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Tags</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Status</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Process</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Actions</th>
@@ -142,27 +141,6 @@ export default function Trades() {
                       {trade.pnl_percentage ? `${Number(trade.pnl_percentage).toFixed(2)}%` : '-'}
                     </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3">
-                      <div className="flex flex-wrap gap-1">
-                        {trade.tags && trade.tags.length > 0 ? (
-                          trade.tags.map((tag: any) => (
-                            <span
-                              key={tag.id}
-                              className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full"
-                              style={{
-                                backgroundColor: `${tag.color}20`,
-                                color: tag.color,
-                                border: `1px solid ${tag.color}40`
-                              }}
-                            >
-                              {tag.name}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-slate-400 text-xs">-</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-2 sm:px-4 py-2 sm:py-3">
                       <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ${
                         trade.status === 'CLOSED' ? 'bg-slate-100 text-slate-700' :
                         trade.status === 'OPEN' ? 'bg-blue-100 text-blue-700' :
@@ -180,26 +158,17 @@ export default function Trades() {
                       </Link>
                     </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3">
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <Link
-                          to={`/trades/${trade.id}/edit`}
-                          className="inline-flex items-center p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit trade"
-                        >
-                          <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </Link>
-                        <button
-                          onClick={() => {
-                            if (confirm('Are you sure you want to delete this trade?')) {
-                              deleteMutation.mutate(trade.id);
-                            }
-                          }}
-                          className="inline-flex items-center p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete trade"
-                        >
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this trade?')) {
+                            deleteMutation.mutate(trade.id);
+                          }
+                        }}
+                        className="inline-flex items-center p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete trade"
+                      >
+                        <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
                     </td>
                   </tr>
                 ))}
