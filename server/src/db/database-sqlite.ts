@@ -71,9 +71,9 @@ function initializeDatabase() {
       side TEXT NOT NULL CHECK (side IN ('LONG', 'SHORT')),
       entry_date DATETIME NOT NULL,
       exit_date DATETIME,
-      entry_price REAL NOT NULL,
+      entry_price REAL,
       exit_price REAL,
-      quantity REAL NOT NULL,
+      quantity REAL,
       stop_loss REAL,
       take_profit REAL,
       pnl REAL,
@@ -196,8 +196,117 @@ function initializeDatabase() {
   console.log('✅ SQLite database initialized at:', dbPath);
 }
 
+// Run migrations for existing databases
+function runMigrations() {
+  // Check if migrations table exists
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Migration 001: Make entry_price and quantity nullable
+  const migration001Applied = db.prepare(
+    'SELECT * FROM schema_migrations WHERE name = ?'
+  ).get('001_make_entry_price_quantity_nullable');
+
+  if (!migration001Applied) {
+    console.log('🔄 Running migration: Make entry_price and quantity nullable...');
+
+    // Check if the trades table has the NOT NULL constraints
+    const tableInfo = db.pragma('table_info(trades)');
+    const entryPriceCol = tableInfo.find((col: any) => col.name === 'entry_price');
+    const quantityCol = tableInfo.find((col: any) => col.name === 'quantity');
+
+    if ((entryPriceCol && entryPriceCol.notnull === 1) || (quantityCol && quantityCol.notnull === 1)) {
+      // Need to recreate the table without NOT NULL constraints
+      db.exec(`
+        -- Create new table with nullable columns
+        CREATE TABLE trades_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          account_id INTEGER REFERENCES trading_accounts(id) ON DELETE SET NULL,
+          symbol TEXT NOT NULL,
+          side TEXT NOT NULL CHECK (side IN ('LONG', 'SHORT')),
+          entry_date DATETIME NOT NULL,
+          exit_date DATETIME,
+          entry_price REAL,
+          exit_price REAL,
+          quantity REAL,
+          stop_loss REAL,
+          take_profit REAL,
+          pnl REAL,
+          pnl_percentage REAL,
+          fees REAL DEFAULT 0,
+          status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
+          strategy TEXT,
+          setup TEXT,
+          timeframe TEXT,
+          market_type TEXT CHECK (market_type IN ('STOCKS', 'FOREX', 'CRYPTO', 'FUTURES', 'OPTIONS')),
+          notes TEXT,
+          entry_reasoning TEXT,
+          exit_reasoning TEXT,
+          mistakes TEXT,
+          lessons_learned TEXT,
+          emotional_state TEXT,
+          confidence_level INTEGER CHECK (confidence_level >= 1 AND confidence_level <= 10),
+          screenshot_url TEXT,
+          broker TEXT,
+          account_balance REAL,
+          risk_amount REAL,
+          risk_percentage REAL,
+          reward_risk_ratio REAL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Copy data from old table (explicitly list columns to handle schema differences)
+        INSERT INTO trades_new (
+          id, user_id, account_id, symbol, side, entry_date, exit_date,
+          entry_price, exit_price, quantity, stop_loss, take_profit, pnl, pnl_percentage,
+          fees, status, strategy, setup, timeframe, market_type, notes, entry_reasoning,
+          exit_reasoning, mistakes, lessons_learned, emotional_state, confidence_level,
+          screenshot_url, broker, account_balance, risk_amount, risk_percentage,
+          reward_risk_ratio, created_at, updated_at
+        )
+        SELECT
+          id, user_id, account_id, symbol, side, entry_date, exit_date,
+          entry_price, exit_price, quantity, stop_loss, take_profit, pnl, pnl_percentage,
+          fees, status, strategy, setup, timeframe, market_type, notes, entry_reasoning,
+          exit_reasoning, mistakes, lessons_learned, emotional_state, confidence_level,
+          screenshot_url, broker, account_balance, risk_amount, risk_percentage,
+          reward_risk_ratio, created_at, updated_at
+        FROM trades;
+
+        -- Drop old table
+        DROP TABLE trades;
+
+        -- Rename new table
+        ALTER TABLE trades_new RENAME TO trades;
+
+        -- Recreate indexes
+        CREATE INDEX IF NOT EXISTS idx_trades_user_id ON trades(user_id);
+        CREATE INDEX IF NOT EXISTS idx_trades_account_id ON trades(account_id);
+        CREATE INDEX IF NOT EXISTS idx_trades_entry_date ON trades(entry_date);
+        CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status);
+        CREATE INDEX IF NOT EXISTS idx_trades_symbol ON trades(symbol);
+      `);
+
+      console.log('✅ Migration completed: entry_price and quantity are now nullable');
+    } else {
+      console.log('✅ Migration skipped: columns already nullable');
+    }
+
+    // Record migration as applied
+    db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('001_make_entry_price_quantity_nullable');
+  }
+}
+
 // Initialize on startup
 initializeDatabase();
+runMigrations();
 
 // Helper function to convert PostgreSQL-style queries to SQLite
 export const query = async (text: string, params: any[] = []) => {
