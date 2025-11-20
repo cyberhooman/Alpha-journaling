@@ -10,7 +10,7 @@ export default function Trades() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const queryClient = useQueryClient();
 
-  const { data: trades, isLoading } = useQuery({
+  const { data: trades, isLoading, refetch } = useQuery({
     queryKey: ['trades', { status: statusFilter === 'ALL' ? undefined : statusFilter }],
     queryFn: () => tradesAPI.getAll({
       status: statusFilter === 'ALL' ? undefined : statusFilter,
@@ -19,8 +19,9 @@ export default function Trades() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => tradesAPI.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'] });
+    onSuccess: async () => {
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 
