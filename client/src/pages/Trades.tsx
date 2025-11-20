@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Filter, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { tradesAPI } from '../lib/api';
 import { formatToWIB } from '../lib/dateUtils';
 
