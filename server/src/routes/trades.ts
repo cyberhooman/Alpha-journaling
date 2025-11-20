@@ -32,7 +32,7 @@ const createTradeSchema = z.object({
   emotionalState: z.string().optional(),
   confidenceLevel: z.number().min(1).max(10).optional(),
   broker: z.string().optional(),
-  screenshotUrl: z.string().min(1).optional(),
+  screenshotUrl: z.string().optional(),
   accountBalance: z.number().optional(),
   riskAmount: z.number().optional(),
   riskPercentage: z.number().optional(),
@@ -167,6 +167,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
+    console.log('📝 Create trade request:', JSON.stringify(req.body, null, 2));
     const data = createTradeSchema.parse(req.body);
 
     // Use manual PNL if provided, otherwise calculate it
