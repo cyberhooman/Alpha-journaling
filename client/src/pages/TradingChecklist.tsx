@@ -16,7 +16,7 @@ export default function TradingChecklist() {
   const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
 
-  const { data: strategies } = useQuery({
+  const { data: strategiesData } = useQuery({
     queryKey: ['strategies'],
     queryFn: async () => {
       const response = await strategiesAPI.getAll();
@@ -24,13 +24,17 @@ export default function TradingChecklist() {
     },
   });
 
-  const { data: accounts } = useQuery({
+  const { data: accountsData } = useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
       const response = await accountsAPI.getAll();
       return response.data;
     },
   });
+
+  // Ensure we have arrays
+  const strategies = Array.isArray(strategiesData) ? strategiesData : [];
+  const accounts = Array.isArray(accountsData) ? accountsData : [];
 
   // Auto-select the first active account on load
   useEffect(() => {
