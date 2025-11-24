@@ -14,7 +14,6 @@ import Calendar from './pages/Calendar';
 import Import from './pages/Import';
 import Settings from './pages/Settings';
 import Strategies from './pages/Strategies';
-import TradingChecklist from './pages/TradingChecklist';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated());
@@ -42,7 +41,6 @@ function App() {
           <Route path="analytics-dashboard" element={<AnalyticsDashboard />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="strategies" element={<Strategies />} />
-          <Route path="checklist" element={<TradingChecklist />} />
           <Route path="import" element={<Import />} />
           <Route path="settings" element={<Settings />} />
         </Route>
