@@ -59,6 +59,18 @@ export default function NewTrade() {
     tagIds: [] as number[],
   });
 
+  // Auto-select the first active account on load
+  useEffect(() => {
+    if (accounts?.data && accounts.data.length > 0 && !formData.accountId) {
+      const activeAccount = accounts.data.find((acc: any) => acc.is_active);
+      if (activeAccount) {
+        setFormData(prev => ({ ...prev, accountId: String(activeAccount.id) }));
+      } else {
+        setFormData(prev => ({ ...prev, accountId: String(accounts.data[0].id) }));
+      }
+    }
+  }, [accounts, formData.accountId]);
+
   const createMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.create(data),
     onSuccess: async () => {
@@ -203,30 +215,28 @@ export default function NewTrade() {
             {simpleMode ? 'Trade Information' : 'Basic Information'}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            {!simpleMode && (
-              <div className="md:col-span-2">
-                <label className="label">Trading Account *</label>
-                <select
-                  name="accountId"
-                  className="input"
-                  value={formData.accountId}
-                  onChange={handleChange}
-                  required={!simpleMode}
-                >
-                  <option value="">Select an account...</option>
-                  {accounts?.data?.map((account: any) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} ({account.account_type}) - ${Number(account.current_balance).toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-                {(!accounts?.data || accounts.data.length === 0) && (
-                  <p className="text-sm text-red-600 mt-1">
-                    No accounts found. Please create an account in Settings first.
-                  </p>
-                )}
-              </div>
-            )}
+            <div className="md:col-span-2">
+              <label className="label">Trading Account *</label>
+              <select
+                name="accountId"
+                className="input"
+                value={formData.accountId}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Select an account...</option>
+                {accounts?.data?.map((account: any) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name} ({account.account_type}) - ${Number(account.current_balance).toLocaleString()}
+                  </option>
+                ))}
+              </select>
+              {(!accounts?.data || accounts.data.length === 0) && (
+                <p className="text-sm text-red-600 mt-1">
+                  No accounts found. Please create an account in Settings first.
+                </p>
+              )}
+            </div>
 
             <div>
               <label className="label">Symbol (Pair) *</label>
