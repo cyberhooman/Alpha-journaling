@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, Circle, AlertTriangle, TrendingUp } from 'lucide-react';
-import { strategiesAPI } from '../lib/api';
+import { CheckCircle2, Circle, AlertTriangle, TrendingUp, Wallet } from 'lucide-react';
+import { strategiesAPI, accountsAPI } from '../lib/api';
 
 interface ChecklistItem {
   id: string;
@@ -13,6 +13,7 @@ interface ChecklistItem {
 
 export default function TradingChecklist() {
   const [selectedStrategy, setSelectedStrategy] = useState<number | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
 
   const { data: strategies } = useQuery({
@@ -22,6 +23,26 @@ export default function TradingChecklist() {
       return response.data;
     },
   });
+
+  const { data: accounts } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => {
+      const response = await accountsAPI.getAll();
+      return response.data;
+    },
+  });
+
+  // Auto-select the first active account on load
+  useEffect(() => {
+    if (accounts && accounts.length > 0 && !selectedAccount) {
+      const activeAccount = accounts.find((acc: any) => acc.is_active);
+      if (activeAccount) {
+        setSelectedAccount(activeAccount.id);
+      } else {
+        setSelectedAccount(accounts[0].id);
+      }
+    }
+  }, [accounts, selectedAccount]);
 
   // Default checklist items
   const defaultChecklist: ChecklistItem[] = [
@@ -149,26 +170,53 @@ export default function TradingChecklist() {
         </button>
       </div>
 
-      {/* Strategy Selector */}
-      <div className="card">
-        <label className="block text-sm font-medium text-slate-700 mb-2">
-          Select Strategy (Optional)
-        </label>
-        <select
-          className="input"
-          value={selectedStrategy || ''}
-          onChange={(e) => setSelectedStrategy(e.target.value ? Number(e.target.value) : null)}
-        >
-          <option value="">General Trading Checklist</option>
-          {strategies?.map((strategy: any) => (
-            <option key={strategy.id} value={strategy.id}>
-              {strategy.name}
-            </option>
-          ))}
-        </select>
-        <p className="text-sm text-slate-500 mt-2">
-          Select a strategy to include strategy-specific criteria
-        </p>
+      {/* Account & Strategy Selector */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Trading Account Selector */}
+        <div className="card">
+          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+            <Wallet className="w-4 h-4" />
+            Trading Account
+          </label>
+          <select
+            className="input"
+            value={selectedAccount || ''}
+            onChange={(e) => setSelectedAccount(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">Select Account</option>
+            {accounts?.map((account: any) => (
+              <option key={account.id} value={account.id}>
+                {account.name} {account.is_active ? '(Active)' : ''} - ${Number(account.current_balance).toFixed(2)}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-slate-500 mt-2">
+            Account you'll be trading with
+          </p>
+        </div>
+
+        {/* Strategy Selector */}
+        <div className="card">
+          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
+            Trading Strategy (Optional)
+          </label>
+          <select
+            className="input"
+            value={selectedStrategy || ''}
+            onChange={(e) => setSelectedStrategy(e.target.value ? Number(e.target.value) : null)}
+          >
+            <option value="">General Trading Checklist</option>
+            {strategies?.map((strategy: any) => (
+              <option key={strategy.id} value={strategy.id}>
+                {strategy.name}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-slate-500 mt-2">
+            Adds strategy-specific criteria
+          </p>
+        </div>
       </div>
 
       {/* Progress Card */}
