@@ -11,7 +11,8 @@ import {
   Settings as SettingsIcon,
   Menu,
   X,
-  Target
+  Target,
+  CheckSquare
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 // import AccountSwitcher from './AccountSwitcher';
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Trades', href: '/trades', icon: BookOpen },
   { name: 'Strategies', href: '/strategies', icon: Target },
+  { name: 'Checklist', href: '/checklist', icon: CheckSquare },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Import', href: '/import', icon: Upload },
