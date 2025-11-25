@@ -10,7 +10,8 @@ import {
   TrendingUp,
   Settings as SettingsIcon,
   Menu,
-  X
+  X,
+  Target
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 // import AccountSwitcher from './AccountSwitcher';
@@ -18,6 +19,7 @@ import { useAuthStore } from '../store/authStore';
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Trades', href: '/trades', icon: BookOpen },
+  { name: 'Strategies', href: '/strategies', icon: Target },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Calendar', href: '/calendar', icon: Calendar },
   { name: 'Import', href: '/import', icon: Upload },
