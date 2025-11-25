@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, X, Tag } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Tag, Moon, Sun } from 'lucide-react';
 import { accountsAPI, tagsAPI } from '../lib/api';
 import type { TradingAccount } from '../types';
+import { useThemeStore } from '../store/themeStore';
 
 export default function Settings() {
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
@@ -10,6 +11,7 @@ export default function Settings() {
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   const queryClient = useQueryClient();
+  const { isDarkMode, toggleDarkMode } = useThemeStore();
 
   const { data: accounts, isLoading, error } = useQuery({
     queryKey: ['accounts'],
@@ -100,8 +102,8 @@ export default function Settings() {
     <div className="max-w-6xl space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-dark-500">Settings</h1>
-          <p className="text-dark-400 mt-1 text-sm sm:text-base">Manage your trading accounts and tags</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-dark-500 dark:text-white">Settings</h1>
+          <p className="text-dark-400 dark:text-slate-400 mt-1 text-sm sm:text-base">Manage your trading accounts and tags</p>
         </div>
 
         <button
@@ -111,6 +113,34 @@ export default function Settings() {
           <Plus className="w-4 h-4" />
           New Account
         </button>
+      </div>
+
+      {/* Dark Mode Section */}
+      <div className="card dark:bg-slate-800 dark:border-slate-700">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-dark-500 dark:text-white">Appearance</h2>
+            <p className="text-sm text-dark-400 dark:text-slate-400 mt-1">Customize how the app looks</p>
+          </div>
+          <button
+            onClick={toggleDarkMode}
+            className={`relative inline-flex items-center h-12 w-24 rounded-full transition-colors ${
+              isDarkMode ? 'bg-blue-600' : 'bg-slate-300'
+            }`}
+          >
+            <span
+              className={`inline-flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg transform transition-transform ${
+                isDarkMode ? 'translate-x-13' : 'translate-x-1'
+              }`}
+            >
+              {isDarkMode ? (
+                <Moon className="w-5 h-5 text-blue-600" />
+              ) : (
+                <Sun className="w-5 h-5 text-amber-500" />
+              )}
+            </span>
+          </button>
+        </div>
       </div>
 
       {error && (

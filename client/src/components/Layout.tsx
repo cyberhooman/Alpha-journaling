@@ -39,16 +39,16 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-100">
+    <div className="min-h-screen bg-neutral-100 dark:bg-slate-900">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-dark-500 border-b border-dark-600 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-dark-500 dark:bg-slate-950 border-b border-dark-600 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <TrendingUp className="w-6 h-6 text-primary-500" />
           <h1 className="text-lg font-bold text-white">Trading Journal</h1>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-white hover:bg-dark-600 rounded-lg"
+          className="p-2 text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -63,17 +63,17 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-dark-500 border-r border-dark-600 transform transition-transform duration-300 ease-in-out z-40 ${
+      <div className={`fixed inset-y-0 left-0 w-64 bg-dark-500 dark:bg-slate-950 border-r border-dark-600 dark:border-slate-800 transform transition-transform duration-300 ease-in-out z-40 ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 lg:top-0 top-14`}>
         <div className="flex flex-col h-full">
           {/* Logo - Hidden on mobile since it's in the top bar */}
-          <div className="hidden lg:block px-6 py-6 border-b border-dark-600">
+          <div className="hidden lg:block px-6 py-6 border-b border-dark-600 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-8 h-8 text-primary-500" />
               <div>
                 <h1 className="text-xl font-bold text-white">Trading Journal</h1>
-                <p className="text-xs text-neutral-400">Pro Edition</p>
+                <p className="text-xs text-neutral-400 dark:text-slate-500">Pro Edition</p>
               </div>
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function Layout() {
                   `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
                       ? 'bg-primary-600 text-white font-medium'
-                      : 'text-neutral-300 hover:bg-dark-600 hover:text-white'
+                      : 'text-neutral-300 hover:bg-dark-600 dark:hover:bg-slate-900 hover:text-white'
                   }`
                 }
               >
@@ -106,17 +106,17 @@ export default function Layout() {
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-dark-600">
+          <div className="p-4 border-t border-dark-600 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-white">
                   {user?.firstName || user?.email}
                 </p>
-                <p className="text-xs text-neutral-400">{user?.email}</p>
+                <p className="text-xs text-neutral-400 dark:text-slate-500">{user?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 text-neutral-400 hover:text-white hover:bg-dark-600 rounded-lg transition-colors"
+                className="p-2 text-neutral-400 hover:text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg transition-colors"
                 title="Logout"
               >
                 <LogOut className="w-5 h-5" />
