@@ -39,13 +39,13 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-terminal-bg data-grid">
+    <div className="min-h-screen bg-terminal-bg dark:data-grid">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-terminal-surface border-b border-terminal-border px-4 py-3 flex items-center justify-between backdrop-blur-lg">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-terminal-surface border-b border-terminal-border px-4 py-3 flex items-center justify-between backdrop-blur-lg shadow-sm">
         <div className="flex items-center gap-3">
           <div className="relative">
             <TrendingUp className="w-7 h-7 text-blue-500" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse-glow"></div>
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full dark:animate-pulse-glow"></div>
           </div>
           <div>
             <h1 className="text-sm font-bold text-terminal-text tracking-tight">TRADING JOURNAL</h1>
@@ -54,7 +54,7 @@ export default function Layout() {
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-terminal-text hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-2 text-terminal-text hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -110,7 +110,7 @@ export default function Layout() {
                   `group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 relative overflow-hidden ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-lg shadow-blue-900/30'
-                      : 'text-terminal-muted hover:bg-gray-800 hover:text-terminal-text'
+                      : 'text-terminal-muted hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-terminal-text'
                   }`
                 }
                 style={{ animationDelay: `${index * 50}ms` }}
@@ -133,7 +133,7 @@ export default function Layout() {
 
           {/* User section */}
           <div className="p-4 border-t border-terminal-border relative z-10">
-            <div className="flex items-center justify-between bg-gray-800/30 rounded-lg p-3 backdrop-blur-sm">
+            <div className="flex items-center justify-between bg-gray-200/50 dark:bg-gray-800/30 rounded-lg p-3 backdrop-blur-sm">
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-terminal-text truncate">
                   {user?.firstName || user?.email?.split('@')[0] || 'User'}
@@ -142,7 +142,7 @@ export default function Layout() {
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 text-terminal-muted hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all ml-2"
+                className="p-2 text-terminal-muted hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-all ml-2"
                 title="Logout"
               >
                 <LogOut className="w-5 h-5" />

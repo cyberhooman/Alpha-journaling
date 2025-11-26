@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, X, Tag, Moon, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Tag, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
 import { accountsAPI, tagsAPI } from '../lib/api';
 import type { TradingAccount } from '../types';
+import { useThemeStore } from '../store/themeStore';
 
 export default function Settings() {
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
@@ -10,6 +11,7 @@ export default function Settings() {
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   const queryClient = useQueryClient();
+  const { isDarkMode, toggleDarkMode } = useThemeStore();
 
   const { data: accounts, isLoading, error } = useQuery({
     queryKey: ['accounts'],
@@ -128,12 +130,26 @@ export default function Settings() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-terminal-text uppercase tracking-wide">Appearance</h2>
-            <p className="text-sm text-terminal-muted font-mono mt-1">Terminal theme is always active</p>
+            <p className="text-sm text-terminal-muted font-mono mt-1">Switch between light and dark mode</p>
           </div>
-          <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-blue-500/30 rounded-lg">
-            <Moon className="w-5 h-5 text-blue-400" />
-            <span className="text-sm font-bold text-blue-400 uppercase tracking-wider">Dark Mode</span>
-          </div>
+          <button
+            onClick={toggleDarkMode}
+            className={`relative inline-flex items-center h-12 w-24 rounded-full transition-colors ${
+              isDarkMode ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-700'
+            }`}
+          >
+            <span
+              className={`inline-flex items-center justify-center w-10 h-10 bg-white dark:bg-gray-900 rounded-full shadow-lg transform transition-transform ${
+                isDarkMode ? 'translate-x-13' : 'translate-x-1'
+              }`}
+            >
+              {isDarkMode ? (
+                <Moon className="w-5 h-5 text-blue-600" />
+              ) : (
+                <Sun className="w-5 h-5 text-amber-500" />
+              )}
+            </span>
+          </button>
         </div>
       </div>
 
