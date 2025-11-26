@@ -39,22 +39,16 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-terminal-bg dark:data-grid">
+    <div className="min-h-screen bg-neutral-100 dark:bg-slate-900">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-terminal-surface border-b border-terminal-border px-4 py-3 flex items-center justify-between backdrop-blur-lg shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <TrendingUp className="w-7 h-7 text-blue-500" />
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full dark:animate-pulse-glow"></div>
-          </div>
-          <div>
-            <h1 className="text-sm font-bold text-terminal-text tracking-tight">TRADING JOURNAL</h1>
-            <p className="text-[10px] text-terminal-muted font-mono">PRO TERMINAL</p>
-          </div>
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-dark-500 dark:bg-slate-950 border-b border-dark-600 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-6 h-6 text-primary-500" />
+          <h1 className="text-lg font-bold text-white">Trading Journal</h1>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-terminal-text hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          className="p-2 text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
@@ -69,26 +63,17 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-terminal-surface border-r border-terminal-border transform transition-transform duration-300 ease-in-out z-40 backdrop-blur-xl ${
+      <div className={`fixed inset-y-0 left-0 w-64 bg-dark-500 dark:bg-slate-950 border-r border-dark-600 dark:border-slate-800 transform transition-transform duration-300 ease-in-out z-40 ${
         mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 lg:top-0 top-14`}>
-        <div className="flex flex-col h-full relative">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-500 rounded-full blur-3xl"></div>
-          </div>
-
+        <div className="flex flex-col h-full">
           {/* Logo - Hidden on mobile since it's in the top bar */}
-          <div className="hidden lg:block px-6 py-6 border-b border-terminal-border relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <TrendingUp className="w-9 h-9 text-blue-500" />
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full animate-pulse-glow"></div>
-              </div>
+          <div className="hidden lg:block px-6 py-6 border-b border-dark-600 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-8 h-8 text-primary-500" />
               <div>
-                <h1 className="text-lg font-bold text-terminal-text tracking-tight">TRADING JOURNAL</h1>
-                <p className="text-xs text-terminal-muted font-mono">PRO TERMINAL v2.0</p>
+                <h1 className="text-xl font-bold text-white">Trading Journal</h1>
+                <p className="text-xs text-neutral-400 dark:text-slate-500">Pro Edition</p>
               </div>
             </div>
           </div>
@@ -99,50 +84,39 @@ export default function Layout() {
           </div> */}
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-2 relative z-10">
-            {navigation.map((item, index) => (
+          <nav className="flex-1 px-4 py-2 space-y-1">
+            {navigation.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.href}
                 end={item.href === '/'}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `group flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 relative overflow-hidden ${
+                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold shadow-lg shadow-blue-900/30'
-                      : 'text-terminal-muted hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-terminal-text'
+                      ? 'bg-primary-600 text-white font-medium'
+                      : 'text-neutral-300 hover:bg-dark-600 dark:hover:bg-slate-900 hover:text-white'
                   }`
                 }
-                style={{ animationDelay: `${index * 50}ms` }}
               >
-                {({ isActive }) => (
-                  <>
-                    {isActive && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-transparent opacity-50"></div>
-                    )}
-                    <item.icon className={`w-5 h-5 relative z-10 ${isActive ? 'drop-shadow-[0_0_4px_rgba(59,130,246,0.5)]' : ''}`} />
-                    <span className="relative z-10 text-sm tracking-wide">{item.name}</span>
-                    {isActive && (
-                      <div className="absolute right-0 top-0 bottom-0 w-1 bg-blue-400 rounded-l-full"></div>
-                    )}
-                  </>
-                )}
+                <item.icon className="w-5 h-5" />
+                {item.name}
               </NavLink>
             ))}
           </nav>
 
           {/* User section */}
-          <div className="p-4 border-t border-terminal-border relative z-10">
-            <div className="flex items-center justify-between bg-gray-200/50 dark:bg-gray-800/30 rounded-lg p-3 backdrop-blur-sm">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-terminal-text truncate">
-                  {user?.firstName || user?.email?.split('@')[0] || 'User'}
+          <div className="p-4 border-t border-dark-600 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-white">
+                  {user?.firstName || user?.email}
                 </p>
-                <p className="text-xs text-terminal-muted font-mono truncate">{user?.email}</p>
+                <p className="text-xs text-neutral-400 dark:text-slate-500">{user?.email}</p>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 text-terminal-muted hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-all ml-2"
+                className="p-2 text-neutral-400 hover:text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg transition-colors"
                 title="Logout"
               >
                 <LogOut className="w-5 h-5" />

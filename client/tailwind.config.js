@@ -8,24 +8,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Financial Terminal Palette
-        'terminal-bg': '#0a0e14',
-        'terminal-surface': '#151921',
-        'terminal-border': '#1f2937',
-        'terminal-text': '#e5e7eb',
-        'terminal-muted': '#9ca3af',
-
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#fff4ed',
+          100: '#ffe8db',
+          200: '#ffccb0',
+          300: '#ffb085',
+          400: '#ff944d',
+          500: '#FF7522',
+          600: '#e6661e',
+          700: '#cc5619',
+          800: '#b34615',
+          900: '#993611',
         },
         accent: {
           50: '#f0f9ff',
@@ -65,10 +58,6 @@ export default {
         },
         success: '#10b981',
         danger: '#ef4444',
-      },
-      fontFamily: {
-        sans: ['Plus Jakarta Sans', '-apple-system', 'system-ui', 'sans-serif'],
-        mono: ['DM Mono', 'Courier New', 'monospace'],
       },
     },
   },

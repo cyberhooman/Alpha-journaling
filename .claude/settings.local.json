@@ -14,7 +14,13 @@
       "Bash(git checkout:*)",
       "Bash(npm run dev:local:*)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(timeout 5 bash:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx vite --clearCache)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []
