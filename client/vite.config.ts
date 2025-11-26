@@ -5,11 +5,12 @@ export default defineConfig({
   plugins: [react()],
   base: './', // Important for Electron
   server: {
+    host: '0.0.0.0', // Listen on all network interfaces
     port: 5173,
     open: false, // Don't auto-open browser for Electron
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },

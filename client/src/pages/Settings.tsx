@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, X, Tag, Moon, Sun } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Tag, Moon, Settings as SettingsIcon } from 'lucide-react';
 import { accountsAPI, tagsAPI } from '../lib/api';
 import type { TradingAccount } from '../types';
-import { useThemeStore } from '../store/themeStore';
 
 export default function Settings() {
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
@@ -11,7 +10,6 @@ export default function Settings() {
   const [showNewTagModal, setShowNewTagModal] = useState(false);
   const [editingTag, setEditingTag] = useState<any>(null);
   const queryClient = useQueryClient();
-  const { isDarkMode, toggleDarkMode } = useThemeStore();
 
   const { data: accounts, isLoading, error } = useQuery({
     queryKey: ['accounts'],
@@ -99,59 +97,58 @@ export default function Settings() {
   });
 
   return (
-    <div className="max-w-6xl space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-dark-500 dark:text-white">Settings</h1>
-          <p className="text-dark-400 dark:text-slate-400 mt-1 text-sm sm:text-base">Manage your trading accounts and tags</p>
-        </div>
-
-        <button
-          onClick={() => setShowNewAccountModal(true)}
-          className="btn btn-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4" />
-          New Account
-        </button>
-      </div>
-
-      {/* Dark Mode Section */}
-      <div className="card dark:bg-slate-800 dark:border-slate-700">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-dark-500 dark:text-white">Appearance</h2>
-            <p className="text-sm text-dark-400 dark:text-slate-400 mt-1">Customize how the app looks</p>
+    <div className="max-w-6xl space-y-6 animate-fade-in">
+      {/* Header - Terminal Style */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600/20 via-purple-500/10 to-transparent rounded-xl border border-terminal-border p-6 backdrop-blur-sm">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <SettingsIcon className="w-8 h-8 text-purple-400 animate-pulse-glow" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full animate-ping"></div>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-terminal-text tracking-tight">SETTINGS</h1>
+              <p className="text-xs text-terminal-muted font-mono mt-1">ACCOUNT & SYSTEM CONFIGURATION</p>
+            </div>
           </div>
           <button
-            onClick={toggleDarkMode}
-            className={`relative inline-flex items-center h-12 w-24 rounded-full transition-colors ${
-              isDarkMode ? 'bg-blue-600' : 'bg-slate-300'
-            }`}
+            onClick={() => setShowNewAccountModal(true)}
+            className="btn btn-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <span
-              className={`inline-flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg transform transition-transform ${
-                isDarkMode ? 'translate-x-13' : 'translate-x-1'
-              }`}
-            >
-              {isDarkMode ? (
-                <Moon className="w-5 h-5 text-blue-600" />
-              ) : (
-                <Sun className="w-5 h-5 text-amber-500" />
-              )}
-            </span>
+            <Plus className="w-5 h-5" />
+            New Account
           </button>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl"></div>
+      </div>
+
+      {/* Appearance Section - Terminal Style */}
+      <div className="card">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-terminal-text uppercase tracking-wide">Appearance</h2>
+            <p className="text-sm text-terminal-muted font-mono mt-1">Terminal theme is always active</p>
+          </div>
+          <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/50 border border-blue-500/30 rounded-lg">
+            <Moon className="w-5 h-5 text-blue-400" />
+            <span className="text-sm font-bold text-blue-400 uppercase tracking-wider">Dark Mode</span>
+          </div>
         </div>
       </div>
 
       {error && (
-        <div className="card bg-red-50 border-red-200 p-4">
-          <p className="text-red-700">Error loading accounts: {(error as any).message}</p>
+        <div className="card bg-red-900/20 border-red-500/30 p-4">
+          <p className="text-red-400 font-mono text-sm">Error loading accounts: {(error as any).message}</p>
         </div>
       )}
 
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-terminal-border"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-500 absolute top-0"></div>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4">
@@ -159,67 +156,67 @@ export default function Settings() {
             <div key={account.id} className="card">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <h3 className="text-lg sm:text-xl font-semibold text-dark-500 break-words">
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                    <h3 className="text-xl font-bold text-terminal-text break-words">
                       {account.name}
                     </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      account.account_type === 'LIVE' ? 'bg-green-100 text-green-700' :
-                      account.account_type === 'PROP_FIRM' ? 'bg-blue-100 text-blue-700' :
-                      account.account_type === 'FUNDED' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-700'
+                    <span className={`text-[10px] font-bold px-3 py-1 rounded-md whitespace-nowrap uppercase tracking-wider border ${
+                      account.account_type === 'LIVE' ? 'bg-green-900/30 text-green-300 border-green-500/30' :
+                      account.account_type === 'PROP_FIRM' ? 'bg-blue-900/30 text-blue-300 border-blue-500/30' :
+                      account.account_type === 'FUNDED' ? 'bg-purple-900/30 text-purple-300 border-purple-500/30' :
+                      'bg-gray-800/50 text-gray-400 border-gray-600'
                     }`}>
-                      {account.account_type}
+                      {account.account_type.replace('_', ' ')}
                     </span>
                     {!account.is_active && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 whitespace-nowrap">
+                      <span className="text-[10px] font-bold px-3 py-1 rounded-md bg-red-900/30 text-red-300 border border-red-500/30 whitespace-nowrap uppercase tracking-wider">
                         Inactive
                       </span>
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-sm">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">Initial Balance</p>
-                      <p className="font-semibold text-dark-500 text-sm sm:text-base">
+                      <p className="text-terminal-muted text-[10px] font-bold uppercase tracking-widest mb-1">Initial Balance</p>
+                      <p className="font-bold text-terminal-text text-base mono-number">
                         ${Number(account.initial_balance).toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">Current Balance</p>
-                      <p className="font-semibold text-dark-500 text-sm sm:text-base">
+                      <p className="text-terminal-muted text-[10px] font-bold uppercase tracking-widest mb-1">Current Balance</p>
+                      <p className="font-bold text-terminal-text text-base mono-number">
                         ${Number(account.current_balance).toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">P&L</p>
-                      <p className={`font-semibold text-sm sm:text-base ${
+                      <p className="text-terminal-muted text-[10px] font-bold uppercase tracking-widest mb-1">P&L</p>
+                      <p className={`font-bold text-base mono-number ${
                         account.current_balance >= account.initial_balance
-                          ? 'text-green-600'
-                          : 'text-red-600'
+                          ? 'neon-glow-green'
+                          : 'neon-glow-red'
                       }`}>
                         ${(account.current_balance - account.initial_balance).toLocaleString()}
                       </p>
                     </div>
                     {account.broker && (
                       <div>
-                        <p className="text-dark-400 text-xs sm:text-sm">Broker</p>
-                        <p className="font-semibold text-dark-500 text-sm sm:text-base break-words">{account.broker}</p>
+                        <p className="text-terminal-muted text-[10px] font-bold uppercase tracking-widest mb-1">Broker</p>
+                        <p className="font-semibold text-terminal-text text-sm break-words">{account.broker}</p>
                       </div>
                     )}
                   </div>
 
                   {account.notes && (
-                    <p className="mt-3 text-xs sm:text-sm text-dark-400">{account.notes}</p>
+                    <p className="mt-4 text-sm text-terminal-muted font-mono italic border-l-2 border-blue-500/30 pl-3">{account.notes}</p>
                   )}
                 </div>
 
                 <div className="flex sm:flex-row flex-col gap-2">
                   <button
                     onClick={() => setEditingAccount(account)}
-                    className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
+                    className="p-2 hover:bg-gray-800 border border-transparent hover:border-blue-500/30 rounded-lg transition-all"
                   >
-                    <Edit className="w-4 h-4 text-dark-400" />
+                    <Edit className="w-4 h-4 text-terminal-muted hover:text-blue-400" />
                   </button>
                   <button
                     onClick={() => {
@@ -227,9 +224,9 @@ export default function Settings() {
                         deleteMutation.mutate(account.id);
                       }
                     }}
-                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-red-900/30 border border-transparent hover:border-red-500/30 rounded-lg transition-all"
                   >
-                    <Trash2 className="w-4 h-4 text-red-600" />
+                    <Trash2 className="w-4 h-4 text-terminal-muted hover:text-red-400" />
                   </button>
                 </div>
               </div>
@@ -238,12 +235,13 @@ export default function Settings() {
 
           {accounts?.data?.length === 0 && (
             <div className="card text-center py-12">
-              <p className="text-dark-400 mb-4">No trading accounts yet</p>
+              <Plus className="w-16 h-16 mx-auto mb-4 text-terminal-muted opacity-20" />
+              <p className="text-terminal-muted mb-4 font-mono text-sm uppercase tracking-wider">No Trading Accounts Yet</p>
               <button
                 onClick={() => setShowNewAccountModal(true)}
                 className="btn btn-primary inline-flex items-center gap-2"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-5 h-5" />
                 Create Your First Account
               </button>
             </div>
@@ -251,42 +249,42 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Tags Section */}
+      {/* Tags Section - Terminal Style */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-dark-500">Trade Tags</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-terminal-text uppercase tracking-wide">Trade Tags</h2>
           <button
             onClick={() => setShowNewTagModal(true)}
             className="btn btn-secondary inline-flex items-center gap-2"
           >
-            <Tag className="w-4 h-4" />
+            <Tag className="w-5 h-5" />
             New Tag
           </button>
         </div>
 
         {tags?.data && tags.data.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {tags.data.map((tag: any) => (
               <div
                 key={tag.id}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border"
+                className="inline-flex items-center gap-3 px-4 py-2.5 rounded-lg border backdrop-blur-sm transition-all hover:scale-105"
                 style={{
-                  backgroundColor: `${tag.color}10`,
-                  borderColor: `${tag.color}40`,
+                  backgroundColor: `${tag.color}15`,
+                  borderColor: `${tag.color}50`,
                 }}
               >
                 <span
-                  className="font-medium text-sm"
+                  className="font-bold text-sm"
                   style={{ color: tag.color }}
                 >
                   {tag.name}
                 </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 border-l pl-2" style={{ borderColor: `${tag.color}30` }}>
                   <button
                     onClick={() => setEditingTag(tag)}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                    className="p-1.5 hover:bg-black hover:bg-opacity-20 rounded transition-all"
                   >
-                    <Edit className="w-3 h-3" style={{ color: tag.color }} />
+                    <Edit className="w-3.5 h-3.5" style={{ color: tag.color }} />
                   </button>
                   <button
                     onClick={() => {
@@ -294,16 +292,16 @@ export default function Settings() {
                         deleteTagMutation.mutate(tag.id);
                       }
                     }}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                    className="p-1.5 hover:bg-black hover:bg-opacity-20 rounded transition-all"
                   >
-                    <Trash2 className="w-3 h-3" style={{ color: tag.color }} />
+                    <Trash2 className="w-3.5 h-3.5" style={{ color: tag.color }} />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-dark-400 text-sm">No tags yet. Create your first tag to categorize trades.</p>
+          <p className="text-terminal-muted text-sm font-mono">No tags yet. Create your first tag to categorize trades.</p>
         )}
       </div>
 
@@ -397,14 +395,14 @@ function AccountFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-neutral-300 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-terminal-surface border border-terminal-border rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/50">
+        <div className="sticky top-0 bg-terminal-surface border-b border-terminal-border px-6 py-4 flex items-center justify-between backdrop-blur-lg">
+          <h2 className="text-2xl font-bold text-terminal-text uppercase tracking-wide">
             {account ? 'Edit Account' : 'New Trading Account'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 rounded-lg">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-800 border border-transparent hover:border-blue-500/30 rounded-lg transition-all">
+            <X className="w-5 h-5 text-terminal-text" />
           </button>
         </div>
 
@@ -483,26 +481,26 @@ function AccountFormModal({
               rows={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add any notes about this account..."
+              placeholder="ADD ANY NOTES ABOUT THIS ACCOUNT..."
             />
           </div>
 
           {account && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-terminal-border">
               <input
                 type="checkbox"
                 id="is_active"
                 checked={formData.is_active}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="w-4 h-4 text-primary-600 rounded"
+                className="w-4 h-4 text-blue-600 rounded accent-blue-500"
               />
-              <label htmlFor="is_active" className="text-sm text-dark-500">
+              <label htmlFor="is_active" className="text-sm text-terminal-text font-semibold">
                 Account is active
               </label>
             </div>
           )}
 
-          <div className="flex gap-3 pt-4 border-t border-neutral-300">
+          <div className="flex gap-3 pt-4 border-t border-terminal-border">
             <button
               type="button"
               onClick={onClose}
@@ -519,7 +517,7 @@ function AccountFormModal({
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  {account ? 'Updating...' : 'Creating...'}
+                  {account ? 'UPDATING...' : 'CREATING...'}
                 </span>
               ) : (
                 account ? 'Update Account' : 'Create Account'
@@ -567,14 +565,14 @@ function TagFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full">
-        <div className="border-b border-neutral-300 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-terminal-surface border border-terminal-border rounded-xl max-w-md w-full shadow-2xl shadow-black/50">
+        <div className="border-b border-terminal-border px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-terminal-text uppercase tracking-wide">
             {tag ? 'Edit Tag' : 'New Tag'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 rounded-lg">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-gray-800 border border-transparent hover:border-blue-500/30 rounded-lg transition-all">
+            <X className="w-5 h-5 text-terminal-text" />
           </button>
         </div>
 
@@ -601,38 +599,38 @@ function TagFormModal({
                   type="button"
                   onClick={() => setFormData({ ...formData, color })}
                   className={`w-full h-10 rounded-lg border-2 transition-all ${
-                    formData.color === color ? 'border-dark-500 scale-110' : 'border-transparent'
+                    formData.color === color ? 'border-blue-400 scale-110 shadow-lg' : 'border-terminal-border'
                   }`}
                   style={{ backgroundColor: color }}
                 />
               ))}
             </div>
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg border border-terminal-border">
               <input
                 type="color"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="w-12 h-10 rounded border border-neutral-300 cursor-pointer"
+                className="w-12 h-10 rounded border border-terminal-border cursor-pointer"
               />
-              <span className="text-sm text-dark-400">Or pick a custom color</span>
+              <span className="text-sm text-terminal-muted font-mono">Or pick a custom color</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-3 bg-neutral-100 rounded-lg">
-            <span className="text-sm text-dark-400">Preview:</span>
+          <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-blue-500/30">
+            <span className="text-sm text-terminal-muted font-bold uppercase tracking-wider">Preview:</span>
             <span
-              className="px-3 py-1 rounded-full text-sm font-medium"
+              className="px-3 py-1.5 rounded-md text-sm font-bold border"
               style={{
                 backgroundColor: `${formData.color}20`,
                 color: formData.color,
-                border: `1px solid ${formData.color}40`
+                borderColor: `${formData.color}50`
               }}
             >
               {formData.name || 'Tag Name'}
             </span>
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 border-t border-terminal-border">
             <button
               type="button"
               onClick={onClose}
