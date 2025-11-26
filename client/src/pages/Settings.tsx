@@ -156,23 +156,23 @@ export default function Settings() {
       ) : (
         <div className="grid gap-4">
           {accounts?.data?.map((account: TradingAccount) => (
-            <div key={account.id} className="card">
+            <div key={account.id} className="card dark:bg-slate-800 dark:border-slate-700">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <h3 className="text-lg sm:text-xl font-semibold text-dark-500 break-words">
+                    <h3 className="text-lg sm:text-xl font-semibold text-dark-500 dark:text-white break-words">
                       {account.name}
                     </h3>
                     <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      account.account_type === 'LIVE' ? 'bg-green-100 text-green-700' :
-                      account.account_type === 'PROP_FIRM' ? 'bg-blue-100 text-blue-700' :
-                      account.account_type === 'FUNDED' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-700'
+                      account.account_type === 'LIVE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                      account.account_type === 'PROP_FIRM' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                      account.account_type === 'FUNDED' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' :
+                      'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                     }`}>
                       {account.account_type}
                     </span>
                     {!account.is_active && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 whitespace-nowrap">
+                      <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 whitespace-nowrap">
                         Inactive
                       </span>
                     )}
@@ -180,46 +180,46 @@ export default function Settings() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-sm">
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">Initial Balance</p>
-                      <p className="font-semibold text-dark-500 text-sm sm:text-base">
+                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Initial Balance</p>
+                      <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base">
                         ${Number(account.initial_balance).toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">Current Balance</p>
-                      <p className="font-semibold text-dark-500 text-sm sm:text-base">
+                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Current Balance</p>
+                      <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base">
                         ${Number(account.current_balance).toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className="text-dark-400 text-xs sm:text-sm">P&L</p>
+                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">P&L</p>
                       <p className={`font-semibold text-sm sm:text-base ${
                         account.current_balance >= account.initial_balance
-                          ? 'text-green-600'
-                          : 'text-red-600'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
                       }`}>
                         ${(account.current_balance - account.initial_balance).toLocaleString()}
                       </p>
                     </div>
                     {account.broker && (
                       <div>
-                        <p className="text-dark-400 text-xs sm:text-sm">Broker</p>
-                        <p className="font-semibold text-dark-500 text-sm sm:text-base break-words">{account.broker}</p>
+                        <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Broker</p>
+                        <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base break-words">{account.broker}</p>
                       </div>
                     )}
                   </div>
 
                   {account.notes && (
-                    <p className="mt-3 text-xs sm:text-sm text-dark-400">{account.notes}</p>
+                    <p className="mt-3 text-xs sm:text-sm text-dark-400 dark:text-slate-400">{account.notes}</p>
                   )}
                 </div>
 
                 <div className="flex sm:flex-row flex-col gap-2">
                   <button
                     onClick={() => setEditingAccount(account)}
-                    className="p-2 hover:bg-neutral-200 rounded-lg transition-colors"
+                    className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
-                    <Edit className="w-4 h-4 text-dark-400" />
+                    <Edit className="w-4 h-4 text-dark-400 dark:text-slate-400" />
                   </button>
                   <button
                     onClick={() => {
@@ -227,9 +227,9 @@ export default function Settings() {
                         deleteMutation.mutate(account.id);
                       }
                     }}
-                    className="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                   >
-                    <Trash2 className="w-4 h-4 text-red-600" />
+                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                   </button>
                 </div>
               </div>
@@ -237,8 +237,8 @@ export default function Settings() {
           ))}
 
           {accounts?.data?.length === 0 && (
-            <div className="card text-center py-12">
-              <p className="text-dark-400 mb-4">No trading accounts yet</p>
+            <div className="card dark:bg-slate-800 dark:border-slate-700 text-center py-12">
+              <p className="text-dark-400 dark:text-slate-400 mb-4">No trading accounts yet</p>
               <button
                 onClick={() => setShowNewAccountModal(true)}
                 className="btn btn-primary inline-flex items-center gap-2"
@@ -252,9 +252,9 @@ export default function Settings() {
       )}
 
       {/* Tags Section */}
-      <div className="card">
+      <div className="card dark:bg-slate-800 dark:border-slate-700">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-dark-500">Trade Tags</h2>
+          <h2 className="text-xl font-semibold text-dark-500 dark:text-white">Trade Tags</h2>
           <button
             onClick={() => setShowNewTagModal(true)}
             className="btn btn-secondary inline-flex items-center gap-2"
@@ -284,7 +284,7 @@ export default function Settings() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setEditingTag(tag)}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                    className="p-1 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 rounded"
                   >
                     <Edit className="w-3 h-3" style={{ color: tag.color }} />
                   </button>
@@ -294,7 +294,7 @@ export default function Settings() {
                         deleteTagMutation.mutate(tag.id);
                       }
                     }}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
+                    className="p-1 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 rounded"
                   >
                     <Trash2 className="w-3 h-3" style={{ color: tag.color }} />
                   </button>
@@ -303,7 +303,7 @@ export default function Settings() {
             ))}
           </div>
         ) : (
-          <p className="text-dark-400 text-sm">No tags yet. Create your first tag to categorize trades.</p>
+          <p className="text-dark-400 dark:text-slate-400 text-sm">No tags yet. Create your first tag to categorize trades.</p>
         )}
       </div>
 
@@ -398,13 +398,13 @@ function AccountFormModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-neutral-300 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500">
+      <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-300 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-dark-500 dark:text-white">
             {account ? 'Edit Account' : 'New Trading Account'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 rounded-lg">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg">
+            <X className="w-5 h-5 dark:text-slate-300" />
           </button>
         </div>
 
@@ -496,13 +496,13 @@ function AccountFormModal({
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 className="w-4 h-4 text-primary-600 rounded"
               />
-              <label htmlFor="is_active" className="text-sm text-dark-500">
+              <label htmlFor="is_active" className="text-sm text-dark-500 dark:text-slate-300">
                 Account is active
               </label>
             </div>
           )}
 
-          <div className="flex gap-3 pt-4 border-t border-neutral-300">
+          <div className="flex gap-3 pt-4 border-t border-neutral-300 dark:border-slate-700">
             <button
               type="button"
               onClick={onClose}
@@ -568,13 +568,13 @@ function TagFormModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl max-w-md w-full">
-        <div className="border-b border-neutral-300 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500">
+      <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full">
+        <div className="border-b border-neutral-300 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-dark-500 dark:text-white">
             {tag ? 'Edit Tag' : 'New Tag'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 rounded-lg">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg">
+            <X className="w-5 h-5 dark:text-slate-300" />
           </button>
         </div>
 
@@ -612,14 +612,14 @@ function TagFormModal({
                 type="color"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="w-12 h-10 rounded border border-neutral-300 cursor-pointer"
+                className="w-12 h-10 rounded border border-neutral-300 dark:border-slate-600 cursor-pointer"
               />
-              <span className="text-sm text-dark-400">Or pick a custom color</span>
+              <span className="text-sm text-dark-400 dark:text-slate-400">Or pick a custom color</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-3 bg-neutral-100 rounded-lg">
-            <span className="text-sm text-dark-400">Preview:</span>
+          <div className="flex items-center gap-2 p-3 bg-neutral-100 dark:bg-slate-700 rounded-lg">
+            <span className="text-sm text-dark-400 dark:text-slate-300">Preview:</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-medium"
               style={{
