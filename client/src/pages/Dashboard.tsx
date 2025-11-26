@@ -142,28 +142,28 @@ export default function Dashboard() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header with gradient */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-blue-600 rounded-xl sm:rounded-2xl p-5 sm:p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-800 dark:to-blue-800 rounded-xl sm:rounded-2xl p-5 sm:p-8 text-white shadow-xl">
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2 sm:gap-3">
               <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-pulse-glow" />
-              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">Dashboard</h1>
             </div>
             {/* Account Selector */}
             <select
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
-              className="px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white font-medium hover:bg-white/30 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="px-3 py-2 bg-white/20 dark:bg-slate-700/80 backdrop-blur-sm border border-white/30 dark:border-slate-600 rounded-lg text-white font-medium hover:bg-white/30 dark:hover:bg-slate-600 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
             >
-              <option value="all" className="text-slate-900">All Accounts</option>
+              <option value="all" className="text-slate-900 dark:text-slate-100 dark:bg-slate-800">All Accounts</option>
               {accounts?.data?.map((account: any) => (
-                <option key={account.id} value={account.id} className="text-slate-900">
+                <option key={account.id} value={account.id} className="text-slate-900 dark:text-slate-100 dark:bg-slate-800">
                   {account.name}
                 </option>
               ))}
             </select>
           </div>
-          <p className="text-primary-100 text-sm sm:text-lg">
+          <p className="text-primary-100 dark:text-slate-200 text-sm sm:text-lg">
             {selectedAccountId === 'all'
               ? "Welcome back! Here's your trading overview."
               : `Viewing stats for ${selectedAccount?.name || 'selected account'}`}
@@ -186,13 +186,25 @@ export default function Dashboard() {
 
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <p className="text-xs sm:text-sm font-medium text-slate-600 uppercase tracking-wide">{stat.title}</p>
-                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${stat.iconBg} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
-                  <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color} icon-glow`} />
+                <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 uppercase tracking-wide">{stat.title}</p>
+                <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${stat.iconBg} dark:bg-slate-700 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6`}>
+                  <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color} ${
+                    stat.color.includes('green') ? 'dark:text-green-400' :
+                    stat.color.includes('red') ? 'dark:text-red-400' :
+                    stat.color.includes('primary') ? 'dark:text-primary-400' :
+                    stat.color.includes('purple') ? 'dark:text-purple-400' :
+                    'dark:text-slate-400'
+                  } icon-glow`} />
                 </div>
               </div>
 
-              <div className={`text-3xl sm:text-5xl font-black ${stat.color} tracking-tight`}>
+              <div className={`text-3xl sm:text-5xl font-black ${stat.color} ${
+                stat.color.includes('green') ? 'dark:text-green-400' :
+                stat.color.includes('red') ? 'dark:text-red-400' :
+                stat.color.includes('primary') ? 'dark:text-primary-400' :
+                stat.color.includes('purple') ? 'dark:text-purple-400' :
+                'dark:text-slate-300'
+              } tracking-tight`}>
                 <CountingNumber
                   value={stat.value}
                   prefix={stat.prefix}
@@ -213,8 +225,8 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* PnL Over Time */}
         <div className="chart-card">
-          <h3 className="text-base sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             P&L Over Time
           </h3>
           {pnlChartData.length > 0 ? (
@@ -226,9 +238,9 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" stroke="#64748b" fontSize={10} className="sm:text-xs" />
-                <YAxis stroke="#64748b" fontSize={10} className="sm:text-xs" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-700" />
+                <XAxis dataKey="date" stroke="#64748b" className="dark:stroke-slate-400 sm:text-xs" fontSize={10} />
+                <YAxis stroke="#64748b" className="dark:stroke-slate-400 sm:text-xs" fontSize={10} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -249,18 +261,18 @@ export default function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-72 flex flex-col items-center justify-center text-slate-400">
+            <div className="h-72 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <TrendingUp className="w-16 h-16 mb-4 opacity-20" />
-              <p className="text-lg font-medium">No chart data yet</p>
-              <p className="text-sm">Start adding trades to see your performance</p>
+              <p className="text-lg font-medium dark:text-slate-300">No chart data yet</p>
+              <p className="text-sm dark:text-slate-400">Start adding trades to see your performance</p>
             </div>
           )}
         </div>
 
         {/* Top Symbols */}
         <div className="chart-card">
-          <h3 className="text-base sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 flex items-center gap-2">
-            <Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white mb-4 sm:mb-6 flex items-center gap-2">
+            <Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Top Symbols by P&L
           </h3>
           {symbolsData.length > 0 ? (
@@ -272,9 +284,9 @@ export default function Dashboard() {
                     <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.6}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} className="sm:text-xs" />
-                <YAxis stroke="#64748b" fontSize={10} className="sm:text-xs" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-700" />
+                <XAxis dataKey="name" stroke="#64748b" className="dark:stroke-slate-400 sm:text-xs" fontSize={10} />
+                <YAxis stroke="#64748b" className="dark:stroke-slate-400 sm:text-xs" fontSize={10} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -287,10 +299,10 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-72 flex flex-col items-center justify-center text-slate-400">
+            <div className="h-72 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
               <Award className="w-16 h-16 mb-4 opacity-20" />
-              <p className="text-lg font-medium">No symbols traded yet</p>
-              <p className="text-sm">Your top performing symbols will appear here</p>
+              <p className="text-lg font-medium dark:text-slate-300">No symbols traded yet</p>
+              <p className="text-sm dark:text-slate-400">Your top performing symbols will appear here</p>
             </div>
           )}
         </div>
@@ -299,26 +311,26 @@ export default function Dashboard() {
       {/* Performance Breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
         <div className="card">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
-            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Performance
           </h3>
           <div className="space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Winning Trades</span>
-              <span className="font-bold text-lg sm:text-xl text-green-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Winning Trades</span>
+              <span className="font-bold text-lg sm:text-xl text-green-600 dark:text-green-400">
                 <CountingNumber value={overview.winningTrades} decimals={0} />
               </span>
             </div>
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Losing Trades</span>
-              <span className="font-bold text-lg sm:text-xl text-red-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Losing Trades</span>
+              <span className="font-bold text-lg sm:text-xl text-red-600 dark:text-red-400">
                 <CountingNumber value={overview.losingTrades} decimals={0} />
               </span>
             </div>
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-blue-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Open Trades</span>
-              <span className="font-bold text-lg sm:text-xl text-blue-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Open Trades</span>
+              <span className="font-bold text-lg sm:text-xl text-blue-600 dark:text-blue-400">
                 <CountingNumber value={overview.openTrades} decimals={0} />
               </span>
             </div>
@@ -326,26 +338,26 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
-            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Average Trades
           </h3>
           <div className="space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-slate-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Avg P&L</span>
-              <span className={`font-bold text-lg sm:text-xl ${overview.avgPnl >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Avg P&L</span>
+              <span className={`font-bold text-lg sm:text-xl ${overview.avgPnl >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 $<CountingNumber value={Math.abs(overview.avgPnl)} decimals={2} />
               </span>
             </div>
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Avg Win</span>
-              <span className="font-bold text-lg sm:text-xl text-green-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Avg Win</span>
+              <span className="font-bold text-lg sm:text-xl text-green-600 dark:text-green-400">
                 $<CountingNumber value={overview.avgWin} decimals={2} />
               </span>
             </div>
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Avg Loss</span>
-              <span className="font-bold text-lg sm:text-xl text-red-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Avg Loss</span>
+              <span className="font-bold text-lg sm:text-xl text-red-600 dark:text-red-400">
                 $<CountingNumber value={Math.abs(overview.avgLoss)} decimals={2} />
               </span>
             </div>
@@ -353,20 +365,20 @@ export default function Dashboard() {
         </div>
 
         <div className="card sm:col-span-2 lg:col-span-1">
-          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Best/Worst
           </h3>
           <div className="space-y-3 sm:space-y-4">
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Best Trade</span>
-              <span className="font-bold text-lg sm:text-xl text-green-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Best Trade</span>
+              <span className="font-bold text-lg sm:text-xl text-green-600 dark:text-green-400">
                 $<CountingNumber value={overview.bestTrade} decimals={2} />
               </span>
             </div>
-            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 rounded-lg">
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Worst Trade</span>
-              <span className="font-bold text-lg sm:text-xl text-red-600">
+            <div className="flex justify-between items-center p-2 sm:p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              <span className="text-slate-700 dark:text-slate-300 font-medium text-sm sm:text-base">Worst Trade</span>
+              <span className="font-bold text-lg sm:text-xl text-red-600 dark:text-red-400">
                 $<CountingNumber value={Math.abs(overview.worstTrade)} decimals={2} />
               </span>
             </div>
@@ -377,11 +389,11 @@ export default function Dashboard() {
       {/* Recent Trades */}
       <div className="card">
         <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <h3 className="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
+          <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600 dark:text-primary-400" />
             Recent Trades
           </h3>
-          <a href="/trades" className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-semibold hover:underline">
+          <a href="/trades" className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-xs sm:text-sm font-semibold hover:underline">
             View all →
           </a>
         </div>
@@ -389,40 +401,40 @@ export default function Dashboard() {
         {recentTrades?.data && recentTrades.data.length > 0 ? (
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-[600px]">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
+              <thead className="bg-slate-50 dark:bg-slate-700 border-b-2 border-slate-200 dark:border-slate-600">
                 <tr>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">Symbol</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">Side</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">Entry</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">Exit</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">P&L</th>
-                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600">Status</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">Symbol</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">Side</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">Entry</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">Exit</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">P&L</th>
+                  <th className="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-200">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {recentTrades.data.map((trade: any) => (
-                  <tr key={trade.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 font-bold text-slate-900 text-sm sm:text-base">{trade.symbol}</td>
+                  <tr key={trade.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 font-bold text-slate-900 dark:text-white text-sm sm:text-base">{trade.symbol}</td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3">
-                      <span className={`inline-flex items-center gap-1 font-medium text-xs sm:text-sm ${trade.side === 'LONG' ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`inline-flex items-center gap-1 font-medium text-xs sm:text-sm ${trade.side === 'LONG' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {trade.side === 'LONG' ? <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" /> : <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4" />}
                         {trade.side}
                       </span>
                     </td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 dark:text-slate-300 text-sm sm:text-base">
                       {trade.entry_price ? `$${trade.entry_price}` : '-'}
                     </td>
-                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 text-sm sm:text-base">
+                    <td className="px-3 sm:px-4 py-2 sm:py-3 text-slate-700 dark:text-slate-300 text-sm sm:text-base">
                       {trade.exit_price ? `$${trade.exit_price}` : '-'}
                     </td>
-                    <td className={`px-3 sm:px-4 py-2 sm:py-3 font-bold text-sm sm:text-base ${(trade.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <td className={`px-3 sm:px-4 py-2 sm:py-3 font-bold text-sm sm:text-base ${(trade.pnl || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {trade.pnl ? `$${Number(trade.pnl).toFixed(2)}` : '-'}
                     </td>
                     <td className="px-3 sm:px-4 py-2 sm:py-3">
                       <span className={`px-2 sm:px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap ${
-                        trade.status === 'CLOSED' ? 'bg-slate-100 text-slate-700' :
-                        trade.status === 'OPEN' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                        trade.status === 'CLOSED' ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200' :
+                        trade.status === 'OPEN' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300' :
+                        'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
                       }`}>
                         {trade.status}
                       </span>
@@ -433,10 +445,10 @@ export default function Dashboard() {
             </table>
           </div>
         ) : (
-          <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+          <div className="py-12 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
             <Activity className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-lg font-medium">No trades yet</p>
-            <p className="text-sm mb-4">Start by adding your first trade</p>
+            <p className="text-lg font-medium dark:text-slate-300">No trades yet</p>
+            <p className="text-sm dark:text-slate-400 mb-4">Start by adding your first trade</p>
             <a href="/trades/new" className="btn btn-primary">
               Add Trade
             </a>
