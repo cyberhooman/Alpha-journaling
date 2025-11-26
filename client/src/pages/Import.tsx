@@ -54,17 +54,17 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900">Import Trades</h1>
-        <p className="text-slate-600 mt-1">Import trades from your broker via CSV file</p>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Import Trades</h1>
+        <p className="text-slate-600 dark:text-slate-300 mt-1">Import trades from your broker via CSV file</p>
       </div>
 
       {/* Template Download */}
-      <div className="card bg-primary-50 border-primary-200">
+      <div className="card bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800">
         <div className="flex items-start gap-4">
-          <Download className="w-6 h-6 text-primary-600 flex-shrink-0 mt-1" />
+          <Download className="w-6 h-6 text-primary-600 dark:text-primary-400 flex-shrink-0 mt-1" />
           <div className="flex-1">
-            <h3 className="font-semibold text-slate-900 mb-1">CSV Template</h3>
-            <p className="text-sm text-slate-600 mb-3">
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-1">CSV Template</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-3">
               Download our CSV template to ensure your data is formatted correctly
             </p>
             <button onClick={downloadTemplate} className="btn btn-primary text-sm">
@@ -76,11 +76,11 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
 
       {/* CSV Format Guide */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-3">Required Fields</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">Required Fields</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <h4 className="font-medium text-slate-900 mb-2">Required:</h4>
-            <ul className="space-y-1 text-slate-600">
+            <h4 className="font-medium text-slate-900 dark:text-white mb-2">Required:</h4>
+            <ul className="space-y-1 text-slate-600 dark:text-slate-300">
               <li>• Symbol</li>
               <li>• Side (LONG, SHORT, BUY, or SELL)</li>
               <li>• Entry Date (ISO format)</li>
@@ -89,8 +89,8 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
             </ul>
           </div>
           <div>
-            <h4 className="font-medium text-slate-900 mb-2">Optional:</h4>
-            <ul className="space-y-1 text-slate-600">
+            <h4 className="font-medium text-slate-900 dark:text-white mb-2">Optional:</h4>
+            <ul className="space-y-1 text-slate-600 dark:text-slate-300">
               <li>• Exit Date</li>
               <li>• Exit Price</li>
               <li>• Stop Loss</li>
@@ -104,11 +104,11 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
 
       {/* File Upload */}
       <div className="card">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload CSV File</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Upload CSV File</h3>
 
-        <div className="border-2 border-dashed border-slate-300 rounded-lg p-8">
+        <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8">
           <div className="text-center">
-            <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+            <Upload className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
             <label className="cursor-pointer">
               <span className="btn btn-primary">Choose File</span>
               <input
@@ -118,15 +118,15 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
                 className="hidden"
               />
             </label>
-            <p className="text-sm text-slate-500 mt-2">or drag and drop your CSV file here</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">or drag and drop your CSV file here</p>
           </div>
         </div>
 
         {csvData && (
           <div className="mt-4">
-            <div className="bg-slate-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-medium text-slate-900 mb-2">Preview:</p>
-              <pre className="text-xs text-slate-600 overflow-x-auto max-h-40">
+            <div className="bg-slate-50 dark:bg-slate-700 rounded-lg p-4 mb-4">
+              <p className="text-sm font-medium text-slate-900 dark:text-white mb-2">Preview:</p>
+              <pre className="text-xs text-slate-600 dark:text-slate-300 overflow-x-auto max-h-40">
                 {csvData.split('\n').slice(0, 5).join('\n')}
                 {csvData.split('\n').length > 5 && '\n...'}
               </pre>
@@ -146,16 +146,16 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
       {/* Import Results */}
       {result && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Import Results</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Import Results</h3>
 
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-green-600">
+              <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
                 <CheckCircle className="w-5 h-5" />
                 <span className="font-semibold">{result.imported} trades imported</span>
               </div>
               {result.errors > 0 && (
-                <div className="flex items-center gap-2 text-red-600">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400">
                   <XCircle className="w-5 h-5" />
                   <span className="font-semibold">{result.errors} errors</span>
                 </div>
@@ -164,10 +164,10 @@ TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting 
 
             {result.details.errors.length > 0 && (
               <div>
-                <h4 className="font-medium text-slate-900 mb-2">Errors:</h4>
-                <div className="bg-red-50 rounded-lg p-4 space-y-2 max-h-60 overflow-y-auto">
+                <h4 className="font-medium text-slate-900 dark:text-white mb-2">Errors:</h4>
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 space-y-2 max-h-60 overflow-y-auto">
                   {result.details.errors.map((error: any, index: number) => (
-                    <div key={index} className="text-sm text-red-700">
+                    <div key={index} className="text-sm text-red-700 dark:text-red-300">
                       Row {error.row}: {error.error}
                     </div>
                   ))}
