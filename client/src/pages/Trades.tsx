@@ -2,18 +2,28 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { Plus, Search, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
-import { tradesAPI } from '../lib/api';
+import { tradesAPI, accountsAPI } from '../lib/api';
 import { formatToWIB } from '../lib/dateUtils';
 
 export default function Trades() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [accountFilter, setAccountFilter] = useState('ALL');
   const queryClient = useQueryClient();
 
+  const { data: accounts } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => {
+      const response = await accountsAPI.getAll();
+      return response.data;
+    },
+  });
+
   const { data: trades, isLoading, refetch } = useQuery({
-    queryKey: ['trades', { status: statusFilter === 'ALL' ? undefined : statusFilter }],
+    queryKey: ['trades', { status: statusFilter === 'ALL' ? undefined : statusFilter, accountId: accountFilter === 'ALL' ? undefined : accountFilter }],
     queryFn: () => tradesAPI.getAll({
       status: statusFilter === 'ALL' ? undefined : statusFilter,
+      accountId: accountFilter === 'ALL' ? undefined : accountFilter,
     }),
   });
 
@@ -55,6 +65,19 @@ export default function Trades() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <select
+            className="input w-full sm:w-48 text-sm sm:text-base"
+            value={accountFilter}
+            onChange={(e) => setAccountFilter(e.target.value)}
+          >
+            <option value="ALL">All Accounts</option>
+            {accounts?.data?.map((account: any) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
 
           <select
             className="input w-full sm:w-48 text-sm sm:text-base"
