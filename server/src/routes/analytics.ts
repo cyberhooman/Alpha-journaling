@@ -8,15 +8,25 @@ const router = express.Router();
 router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate, accountId } = req.query;
 
-    let dateFilter = '';
+    let filters = '';
     const params: any[] = [userId];
+    let paramIndex = 2;
+
+    if (accountId) {
+      filters += ` AND account_id = $${paramIndex}`;
+      params.push(accountId);
+      paramIndex++;
+    }
 
     if (startDate && endDate) {
-      dateFilter = 'AND entry_date BETWEEN $2 AND $3';
+      filters += ` AND entry_date BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
       params.push(startDate, endDate);
+      paramIndex += 2;
     }
+
+    const dateFilter = filters; // Keep for backward compatibility
 
     // Overall statistics
     const statsResult = await query(

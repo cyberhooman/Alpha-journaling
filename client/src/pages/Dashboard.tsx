@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   TrendingUp,
@@ -8,7 +9,7 @@ import {
   Award,
   Sparkles,
 } from 'lucide-react';
-import { analyticsAPI, tradesAPI } from '../lib/api';
+import { analyticsAPI, tradesAPI, accountsAPI } from '../lib/api';
 import { DashboardStats } from '../types';
 import {
   LineChart,
@@ -25,14 +26,29 @@ import { format, parseISO } from 'date-fns';
 import CountingNumber from '../components/CountingNumber';
 
 export default function Dashboard() {
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('all');
+
+  const { data: accounts } = useQuery({
+    queryKey: ['accounts'],
+    queryFn: async () => {
+      const response = await accountsAPI.getAll();
+      return response.data;
+    },
+  });
+
   const { data: stats, isLoading } = useQuery<{ data: DashboardStats }>({
-    queryKey: ['dashboard'],
-    queryFn: () => analyticsAPI.getDashboard(),
+    queryKey: ['dashboard', selectedAccountId],
+    queryFn: () => analyticsAPI.getDashboard(
+      selectedAccountId === 'all' ? {} : { accountId: selectedAccountId }
+    ),
   });
 
   const { data: recentTrades } = useQuery({
-    queryKey: ['recent-trades'],
-    queryFn: () => tradesAPI.getAll({ limit: 5 }),
+    queryKey: ['recent-trades', selectedAccountId],
+    queryFn: () => tradesAPI.getAll({
+      limit: 5,
+      accountId: selectedAccountId === 'all' ? undefined : selectedAccountId
+    }),
   });
 
   if (isLoading) {
@@ -121,16 +137,37 @@ export default function Dashboard() {
     trades: Number(item.trades),
   })) || [];
 
+  const selectedAccount = accounts?.data?.find((acc: any) => acc.id === Number(selectedAccountId));
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header with gradient */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-blue-600 rounded-xl sm:rounded-2xl p-5 sm:p-8 text-white shadow-xl">
         <div className="relative z-10">
-          <div className="flex items-center gap-2 sm:gap-3 mb-2">
-            <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-pulse-glow" />
-            <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 animate-pulse-glow" />
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight">Dashboard</h1>
+            </div>
+            {/* Account Selector */}
+            <select
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              className="px-3 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-white font-medium hover:bg-white/30 transition-all focus:outline-none focus:ring-2 focus:ring-white/50"
+            >
+              <option value="all" className="text-slate-900">All Accounts</option>
+              {accounts?.data?.map((account: any) => (
+                <option key={account.id} value={account.id} className="text-slate-900">
+                  {account.name}
+                </option>
+              ))}
+            </select>
           </div>
-          <p className="text-primary-100 text-sm sm:text-lg">Welcome back! Here's your trading overview.</p>
+          <p className="text-primary-100 text-sm sm:text-lg">
+            {selectedAccountId === 'all'
+              ? "Welcome back! Here's your trading overview."
+              : `Viewing stats for ${selectedAccount?.name || 'selected account'}`}
+          </p>
         </div>
         <div className="absolute top-0 right-0 w-32 h-32 sm:w-64 sm:h-64 bg-white/10 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 sm:w-48 sm:h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
