@@ -111,6 +111,7 @@ export default function Trades() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Date</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Account</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Symbol</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Side</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600">Entry</th>
@@ -125,10 +126,17 @@ export default function Trades() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {filteredTrades.map((trade: any) => (
+                {filteredTrades.map((trade: any) => {
+                  const tradeAccount = accounts?.data?.find((acc: any) => acc.id === trade.account_id);
+                  return (
                   <tr key={trade.id} className="hover:bg-slate-50">
                     <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm whitespace-nowrap">
                       {formatToWIB(trade.entry_date, 'MMM dd, yyyy')}
+                    </td>
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm">
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium whitespace-nowrap">
+                        {tradeAccount?.name || 'Unknown'}
+                      </span>
                     </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-sm sm:text-base">
                       <Link
@@ -220,7 +228,8 @@ export default function Trades() {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
