@@ -66,13 +66,19 @@ function calculatePnL(
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    const { status, symbol, startDate, endDate, limit = 100, offset = 0 } = req.query;
+    const { status, symbol, startDate, endDate, accountId, limit = 100, offset = 0 } = req.query;
 
     // Simple query for SQLite - get trades first
     let queryText = `SELECT * FROM trades WHERE user_id = $1`;
 
     const params: any[] = [userId];
     let paramCount = 1;
+
+    if (accountId) {
+      paramCount++;
+      queryText += ` AND account_id = $${paramCount}`;
+      params.push(accountId);
+    }
 
     if (status) {
       paramCount++;
