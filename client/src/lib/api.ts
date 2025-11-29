@@ -6,7 +6,8 @@ import {
   mockTags,
 } from './mockData';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Use production API URL with HTTPS, fallback to relative path for production builds
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 const USE_MOCK_DATA = false; // Demo mode - set to false to use real API
 
 const api = axios.create({
