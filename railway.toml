@@ -1,7 +1,0 @@
-[build]
-builder = "nixpacks"
-workingDir = "client"
-
-[deploy]
-startCommand = "npx serve -s dist -l $PORT"
-healthcheckPath = "/"

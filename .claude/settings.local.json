@@ -20,7 +20,8 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(npx vite --clearCache)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []
