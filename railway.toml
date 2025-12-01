@@ -1,7 +1,7 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd client && npm ci && npm run build"
+workingDir = "client"
 
 [deploy]
-startCommand = "cd client && npx serve -s dist -l $PORT"
+startCommand = "npx serve -s dist -l $PORT"
 healthcheckPath = "/"
