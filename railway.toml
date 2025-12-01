@@ -5,4 +5,3 @@ buildCommand = "cd client && npm ci && npm run build"
 [deploy]
 startCommand = "cd client && npx serve -s dist -l $PORT"
 healthcheckPath = "/"
-restartPolicyType = "on-failure"
