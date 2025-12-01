@@ -1,4 +1,5 @@
-// Database module - uses PostgreSQL for production
-// For local development with SQLite, change imports to './database-sqlite.js'
-export { query, db } from './database-postgres.js';
-export { default } from './database-postgres.js';
+// Database module - currently using SQLite
+// To upgrade to PostgreSQL: change imports to './database-postgres.js'
+// and set DATABASE_URL environment variable in Railway
+export { query, db } from './database-sqlite.js';
+export { default } from './database-sqlite.js';
