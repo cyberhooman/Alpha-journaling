@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Search, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown, Trash2, Download } from 'lucide-react';
 import { tradesAPI, accountsAPI } from '../lib/api';
 import { formatToWIB } from '../lib/dateUtils';
 
@@ -39,6 +39,33 @@ export default function Trades() {
     trade.symbol.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
+  const handleExportCSV = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const accountParam = accountFilter !== 'ALL' ? `?accountId=${accountFilter}` : '';
+      const response = await fetch(`${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api')}/trades/export/csv${accountParam}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Export failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `trades_export_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export trades. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
@@ -46,10 +73,20 @@ export default function Trades() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">Trades</h1>
           <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm sm:text-base">Manage and review all your trades</p>
         </div>
-        <Link to="/trades/new" className="btn btn-primary inline-flex items-center gap-2 w-full sm:w-auto justify-center">
-          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-          New Trade
-        </Link>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <button
+            onClick={handleExportCSV}
+            className="btn btn-secondary inline-flex items-center gap-2 flex-1 sm:flex-initial justify-center"
+            title="Export trades to CSV"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
+          <Link to="/trades/new" className="btn btn-primary inline-flex items-center gap-2 flex-1 sm:flex-initial justify-center">
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            New Trade
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}

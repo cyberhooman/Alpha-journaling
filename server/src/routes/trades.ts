@@ -369,4 +369,156 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
+// Export trades to CSV
+router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const userId = req.user!.id;
+    const { accountId } = req.query;
+
+    // Get all trades for the user
+    let queryText = `
+      SELECT
+        t.*,
+        ta.name as account_name,
+        ta.broker as account_broker
+      FROM trades t
+      LEFT JOIN trading_accounts ta ON t.account_id = ta.id
+      WHERE t.user_id = $1
+      ORDER BY t.entry_date DESC
+    `;
+
+    const params: any[] = [userId];
+
+    if (accountId) {
+      queryText = `
+        SELECT
+          t.*,
+          ta.name as account_name,
+          ta.broker as account_broker
+        FROM trades t
+        LEFT JOIN trading_accounts ta ON t.account_id = ta.id
+        WHERE t.user_id = $1 AND t.account_id = $2
+        ORDER BY t.entry_date DESC
+      `;
+      params.push(accountId);
+    }
+
+    const result = await query(queryText, params);
+    const trades = result.rows;
+
+    // Get tags for each trade
+    const tradesWithTags = await Promise.all(
+      trades.map(async (trade: any) => {
+        const tagsResult = await query(
+          `SELECT tt.name, tt.color
+           FROM trade_tags tt
+           JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
+           WHERE ttm.trade_id = $1`,
+          [trade.id]
+        );
+        const tags = tagsResult.rows.map((t: any) => t.name).join('; ');
+        return { ...trade, tags };
+      })
+    );
+
+    // Create CSV header
+    const headers = [
+      'ID',
+      'Account',
+      'Symbol',
+      'Side',
+      'Entry Date',
+      'Exit Date',
+      'Entry Price',
+      'Exit Price',
+      'Quantity',
+      'Stop Loss',
+      'Take Profit',
+      'PnL',
+      'PnL %',
+      'Fees',
+      'Status',
+      'Strategy',
+      'Setup',
+      'Timeframe',
+      'Market Type',
+      'Broker',
+      'Account Balance',
+      'Risk Amount',
+      'Risk %',
+      'R:R Ratio',
+      'Confidence',
+      'Tags',
+      'Entry Reasoning',
+      'Exit Reasoning',
+      'Mistakes',
+      'Lessons Learned',
+      'Emotional State',
+      'Notes',
+    ];
+
+    // Create CSV rows
+    const csvRows = [
+      headers.join(','),
+      ...tradesWithTags.map((trade: any) => {
+        const formatValue = (value: any) => {
+          if (value === null || value === undefined) return '';
+          // Escape quotes and wrap in quotes if contains comma or quotes
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          return stringValue;
+        };
+
+        return [
+          formatValue(trade.id),
+          formatValue(trade.account_name || 'Unknown'),
+          formatValue(trade.symbol),
+          formatValue(trade.side),
+          formatValue(trade.entry_date),
+          formatValue(trade.exit_date),
+          formatValue(trade.entry_price),
+          formatValue(trade.exit_price),
+          formatValue(trade.quantity),
+          formatValue(trade.stop_loss),
+          formatValue(trade.take_profit),
+          formatValue(trade.pnl),
+          formatValue(trade.pnl_percentage),
+          formatValue(trade.fees),
+          formatValue(trade.status),
+          formatValue(trade.strategy),
+          formatValue(trade.setup),
+          formatValue(trade.timeframe),
+          formatValue(trade.market_type),
+          formatValue(trade.broker),
+          formatValue(trade.account_balance),
+          formatValue(trade.risk_amount),
+          formatValue(trade.risk_percentage),
+          formatValue(trade.reward_risk_ratio),
+          formatValue(trade.confidence_level),
+          formatValue(trade.tags),
+          formatValue(trade.entry_reasoning),
+          formatValue(trade.exit_reasoning),
+          formatValue(trade.mistakes),
+          formatValue(trade.lessons_learned),
+          formatValue(trade.emotional_state),
+          formatValue(trade.notes),
+        ].join(',');
+      }),
+    ];
+
+    const csv = csvRows.join('\n');
+
+    // Set headers for CSV download
+    const filename = `trades_export_${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Export CSV error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
