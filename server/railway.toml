@@ -1,0 +1,3 @@
+[[mounts]]
+path = "/app/server/data"
+size = 1
