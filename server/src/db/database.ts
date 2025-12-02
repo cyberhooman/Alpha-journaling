@@ -1,5 +1,4 @@
-// Database module - currently using SQLite
-// To upgrade to PostgreSQL: change imports to './database-postgres.js'
-// and set DATABASE_URL environment variable in Railway
-export { query, db } from './database-sqlite.js';
-export { default } from './database-sqlite.js';
+// Database module - using PostgreSQL for production persistence
+// SQLite loses data on Railway redeploys (ephemeral filesystem)
+export { query, db } from './database-postgres.js';
+export { default } from './database-postgres.js';
