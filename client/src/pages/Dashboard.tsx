@@ -76,6 +76,7 @@ export default function Dashboard() {
     avgLoss: 0,
     bestTrade: 0,
     worstTrade: 0,
+    avgHoldingDays: 0,
   };
 
   const isProfitable = overview.totalPnl >= 0;
