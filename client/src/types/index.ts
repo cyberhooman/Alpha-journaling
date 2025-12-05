@@ -72,6 +72,7 @@ export interface DashboardStats {
     avgWin: number;
     avgLoss: number;
     profitFactor: number;
+    avgHoldingDays: number;
   };
   pnlByDay: Array<{ date: string; pnl: number; trades: number }>;
   pnlBySymbol: Array<{ symbol: string; trades: number; total_pnl: number; avg_pnl: number; wins: number; losses: number }>;
