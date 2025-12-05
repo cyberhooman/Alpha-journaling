@@ -8,6 +8,7 @@ import {
   Target,
   Award,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import { analyticsAPI, tradesAPI, accountsAPI } from '../lib/api';
 import { DashboardStats } from '../types';
@@ -121,6 +122,17 @@ export default function Dashboard() {
       bgGradient: 'from-purple-50 to-violet-50',
       iconBg: 'bg-purple-100',
       glowColor: 'shadow-purple-200',
+    },
+    {
+      title: 'Avg Hold Time',
+      value: overview.avgHoldingDays || 0,
+      suffix: ' days',
+      decimals: 1,
+      icon: Clock,
+      color: 'text-amber-600',
+      bgGradient: 'from-amber-50 to-orange-50',
+      iconBg: 'bg-amber-100',
+      glowColor: 'shadow-amber-200',
     },
   ];
 

@@ -389,8 +389,8 @@ function AccountFormModal({
 
     const submitData: any = { ...formData };
 
-    // Don't send current_balance - it's calculated from trades
-    delete submitData.current_balance;
+    // Allow current_balance to be updated manually
+    // Users can adjust balance directly in Settings
 
     console.log('Submitting data:', submitData);
     onSubmit(submitData);

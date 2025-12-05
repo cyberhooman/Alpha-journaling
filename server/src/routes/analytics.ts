@@ -41,7 +41,12 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
         COALESCE(MAX(pnl), 0) as best_trade,
         COALESCE(MIN(pnl), 0) as worst_trade,
         COALESCE(AVG(CASE WHEN pnl > 0 THEN pnl ELSE NULL END), 0) as avg_win,
-        COALESCE(AVG(CASE WHEN pnl < 0 THEN pnl ELSE NULL END), 0) as avg_loss
+        COALESCE(AVG(CASE WHEN pnl < 0 THEN pnl ELSE NULL END), 0) as avg_loss,
+        COALESCE(AVG(CASE
+          WHEN status = 'CLOSED' AND exit_date IS NOT NULL
+          THEN (julianday(exit_date) - julianday(entry_date))
+          ELSE NULL
+        END), 0) as avg_holding_days
       FROM trades
       WHERE user_id = $1 ${dateFilter}`,
       params
@@ -146,6 +151,7 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
         avgWin: Number(stats.avg_win),
         avgLoss: Number(stats.avg_loss),
         profitFactor: Math.round(profitFactor * 100) / 100,
+        avgHoldingDays: Math.round(Number(stats.avg_holding_days) * 10) / 10,
       },
       pnlByDay: pnlByDayResult.rows,
       pnlBySymbol: pnlBySymbolResult.rows,
