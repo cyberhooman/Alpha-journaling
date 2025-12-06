@@ -15,10 +15,10 @@ interface AuthState {
   isAuthenticated: () => boolean;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  // Demo mode - fake user for viewing design
-  user: { id: 1, email: 'demo@example.com', firstName: 'Demo', lastName: 'User' },
-  token: 'demo-token',
+export const useAuthStore = create<AuthState>((set, get) => ({
+  // Load user and token from localStorage
+  user: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null,
+  token: localStorage.getItem('token'),
 
   setAuth: (user, token) => {
     localStorage.setItem('user', JSON.stringify(user));
@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   isAuthenticated: () => {
-    // Always return true for demo mode
-    return true;
+    const state = get();
+    return !!(state.user && state.token);
   },
 }));
