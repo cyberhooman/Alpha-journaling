@@ -155,7 +155,7 @@ export default function Trades() {
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Exit</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Qty</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">P&L</th>
-                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">%</th>
+                  <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Days</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Status</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Tags</th>
                   <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-200">Process</th>
@@ -209,10 +209,15 @@ export default function Trades() {
                     }`}>
                       {trade.pnl ? `$${Number(trade.pnl).toFixed(2)}` : '-'}
                     </td>
-                    <td className={`px-2 sm:px-4 py-2 sm:py-3 font-semibold text-xs sm:text-sm ${
-                      (trade.pnl_percentage || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {trade.pnl_percentage ? `${Number(trade.pnl_percentage).toFixed(2)}%` : '-'}
+                    <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm dark:text-slate-300">
+                      {(() => {
+                        if (!trade.entry_date) return '-';
+                        const entryDate = new Date(trade.entry_date);
+                        const exitDate = trade.exit_date ? new Date(trade.exit_date) : new Date();
+                        const diffTime = Math.abs(exitDate.getTime() - entryDate.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        return diffDays;
+                      })()}
                     </td>
                     <td className="px-2 sm:px-4 py-2 sm:py-3">
                       <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ${
