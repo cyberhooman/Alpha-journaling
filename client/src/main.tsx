@@ -75,7 +75,8 @@ const queryClient = new QueryClient({
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 0, // Data is immediately stale, triggers refetch on invalidate
+      staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes - prevents unnecessary refetches
+      cacheTime: 10 * 60 * 1000, // Keep unused data in cache for 10 minutes
     },
   },
 });

@@ -45,7 +45,7 @@ export default function NewTrade() {
     takeProfit: '',
     fees: '0',
     pnl: '',
-    pnlPercentage: '',
+    mfe: '',
     status: 'OPEN' as 'OPEN' | 'CLOSED' | 'CANCELLED',
     strategy: '',
     setup: '',
@@ -73,11 +73,12 @@ export default function NewTrade() {
 
   const createMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.create(data),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['trades'] }),
-        queryClient.refetchQueries({ queryKey: ['dashboard'] }),
-      ]);
+    onSuccess: () => {
+      // Invalidate queries (marks them stale) instead of awaiting refetch
+      // They will refresh when the user navigates to those pages
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-trades'] });
       navigate('/trades');
     },
     onError: (error: any) => {
@@ -99,7 +100,7 @@ export default function NewTrade() {
       takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : undefined,
       fees: formData.fees ? parseFloat(formData.fees) : 0,
       pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
-      pnlPercentage: formData.pnlPercentage ? parseFloat(formData.pnlPercentage) : undefined,
+      mfe: formData.mfe ? parseFloat(formData.mfe) : undefined,
       exitDate: formData.exitDate || undefined,
       marketType: formData.marketType || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
@@ -382,18 +383,18 @@ export default function NewTrade() {
             </div>
 
             <div>
-              <label className="label">P&L Percentage</label>
+              <label className="label">MFE (Max Favorable Excursion)</label>
               <input
                 type="number"
                 step="0.01"
-                name="pnlPercentage"
+                name="mfe"
                 className="input"
-                value={formData.pnlPercentage}
+                value={formData.mfe}
                 onChange={handleChange}
-                placeholder="Enter P&L percentage"
+                placeholder="Enter MFE value"
               />
               <p className="text-xs text-slate-500 mt-1">
-                Optional: Enter percentage gain/loss
+                Optional: Maximum profit reached during trade
               </p>
             </div>
 
@@ -469,13 +470,13 @@ export default function NewTrade() {
               </div>
 
               <div>
-                <label className="label">P&L Percentage</label>
+                <label className="label">MFE (Max Favorable Excursion)</label>
                 <input
                   type="number"
                   step="0.01"
-                  name="pnlPercentage"
+                  name="mfe"
                   className="input"
-                  value={formData.pnlPercentage}
+                  value={formData.mfe}
                   onChange={handleChange}
                   placeholder="Optional"
                 />

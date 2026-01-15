@@ -77,7 +77,7 @@ function initializeDatabase() {
       stop_loss REAL,
       take_profit REAL,
       pnl REAL,
-      pnl_percentage REAL,
+      mfe REAL,
       fees REAL DEFAULT 0,
       status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
       strategy TEXT,
@@ -193,6 +193,20 @@ function initializeDatabase() {
     )
   `);
 
+  // Create performance indexes
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_trades_user_id ON trades(user_id);
+    CREATE INDEX IF NOT EXISTS idx_trades_account_id ON trades(account_id);
+    CREATE INDEX IF NOT EXISTS idx_trades_entry_date ON trades(entry_date);
+    CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status);
+    CREATE INDEX IF NOT EXISTS idx_trades_symbol ON trades(symbol);
+    CREATE INDEX IF NOT EXISTS idx_trades_user_status ON trades(user_id, status);
+    CREATE INDEX IF NOT EXISTS idx_trades_user_date ON trades(user_id, entry_date);
+    CREATE INDEX IF NOT EXISTS idx_trade_tags_user ON trade_tags(user_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_tag_mappings_trade ON trade_tag_mappings(trade_id);
+    CREATE INDEX IF NOT EXISTS idx_trade_tag_mappings_tag ON trade_tag_mappings(tag_id);
+  `);
+
   console.log('✅ SQLite database initialized at:', dbPath);
 }
 
@@ -301,6 +315,37 @@ function runMigrations() {
 
     // Record migration as applied
     db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('001_make_entry_price_quantity_nullable');
+  }
+
+  // Migration 002: Rename pnl_percentage to mfe
+  const migration002Applied = db.prepare(
+    'SELECT * FROM schema_migrations WHERE name = ?'
+  ).get('002_rename_pnl_percentage_to_mfe');
+
+  if (!migration002Applied) {
+    console.log('🔄 Running migration: Rename pnl_percentage to mfe...');
+
+    // Check if the trades table has pnl_percentage column
+    const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string }>;
+    const hasPnlPercentage = tableInfo.some(col => col.name === 'pnl_percentage');
+    const hasMfe = tableInfo.some(col => col.name === 'mfe');
+
+    if (hasPnlPercentage && !hasMfe) {
+      // SQLite doesn't support RENAME COLUMN in older versions, so we add a new column
+      db.exec(`ALTER TABLE trades ADD COLUMN mfe REAL`);
+      // Copy data from pnl_percentage to mfe (optional - only if you want to migrate existing data)
+      // db.exec(`UPDATE trades SET mfe = pnl_percentage`);
+      console.log('✅ Migration completed: Added mfe column');
+    } else if (!hasMfe) {
+      // No pnl_percentage column, just add mfe
+      db.exec(`ALTER TABLE trades ADD COLUMN mfe REAL`);
+      console.log('✅ Migration completed: Added mfe column');
+    } else {
+      console.log('✅ Migration skipped: mfe column already exists');
+    }
+
+    // Record migration as applied
+    db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('002_rename_pnl_percentage_to_mfe');
   }
 }
 

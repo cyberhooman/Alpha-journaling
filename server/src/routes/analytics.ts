@@ -62,79 +62,84 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
       ? Math.abs(Number(stats.avg_win) / Number(stats.avg_loss))
       : 0;
 
-    // PnL by day
-    const pnlByDayResult = await query(
-      `SELECT
-        DATE(entry_date) as date,
-        SUM(pnl) as pnl,
-        COUNT(*) as trades
-      FROM trades
-      WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
-      GROUP BY DATE(entry_date)
-      ORDER BY date ASC`,
-      params
-    );
-
-    // PnL by symbol
-    const pnlBySymbolResult = await query(
-      `SELECT
-        symbol,
-        COUNT(*) as trades,
-        SUM(pnl) as total_pnl,
-        AVG(pnl) as avg_pnl,
-        SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) as losses
-      FROM trades
-      WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
-      GROUP BY symbol
-      ORDER BY total_pnl DESC
-      LIMIT 10`,
-      params
-    );
-
-    // PnL by strategy
-    const pnlByStrategyResult = await query(
-      `SELECT
-        strategy,
-        COUNT(*) as trades,
-        SUM(pnl) as total_pnl,
-        AVG(pnl) as avg_pnl,
-        SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins
-      FROM trades
-      WHERE user_id = $1 AND status = 'CLOSED' AND strategy IS NOT NULL ${dateFilter}
-      GROUP BY strategy
-      ORDER BY total_pnl DESC`,
-      params
-    );
-
-    // PnL by setup
-    const pnlBySetupResult = await query(
-      `SELECT
-        setup,
-        COUNT(*) as trades,
-        SUM(pnl) as total_pnl,
-        AVG(pnl) as avg_pnl,
-        SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins
-      FROM trades
-      WHERE user_id = $1 AND status = 'CLOSED' AND setup IS NOT NULL ${dateFilter}
-      GROUP BY setup
-      ORDER BY total_pnl DESC`,
-      params
-    );
-
-    // Win rate by day of week
-    const winRateByDayResult = await query(
-      `SELECT
-        CAST(strftime('%w', entry_date) AS INTEGER) as day_of_week,
-        COUNT(*) as trades,
-        SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
-        SUM(pnl) as total_pnl
-      FROM trades
-      WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
-      GROUP BY day_of_week
-      ORDER BY day_of_week`,
-      params
-    );
+    // Run all analytics queries in parallel for better performance
+    const [
+      pnlByDayResult,
+      pnlBySymbolResult,
+      pnlByStrategyResult,
+      pnlBySetupResult,
+      winRateByDayResult
+    ] = await Promise.all([
+      // PnL by day
+      query(
+        `SELECT
+          DATE(entry_date) as date,
+          SUM(pnl) as pnl,
+          COUNT(*) as trades
+        FROM trades
+        WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
+        GROUP BY DATE(entry_date)
+        ORDER BY date ASC`,
+        params
+      ),
+      // PnL by symbol
+      query(
+        `SELECT
+          symbol,
+          COUNT(*) as trades,
+          SUM(pnl) as total_pnl,
+          AVG(pnl) as avg_pnl,
+          SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+          SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) as losses
+        FROM trades
+        WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
+        GROUP BY symbol
+        ORDER BY total_pnl DESC
+        LIMIT 10`,
+        params
+      ),
+      // PnL by strategy
+      query(
+        `SELECT
+          strategy,
+          COUNT(*) as trades,
+          SUM(pnl) as total_pnl,
+          AVG(pnl) as avg_pnl,
+          SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins
+        FROM trades
+        WHERE user_id = $1 AND status = 'CLOSED' AND strategy IS NOT NULL ${dateFilter}
+        GROUP BY strategy
+        ORDER BY total_pnl DESC`,
+        params
+      ),
+      // PnL by setup
+      query(
+        `SELECT
+          setup,
+          COUNT(*) as trades,
+          SUM(pnl) as total_pnl,
+          AVG(pnl) as avg_pnl,
+          SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins
+        FROM trades
+        WHERE user_id = $1 AND status = 'CLOSED' AND setup IS NOT NULL ${dateFilter}
+        GROUP BY setup
+        ORDER BY total_pnl DESC`,
+        params
+      ),
+      // Win rate by day of week
+      query(
+        `SELECT
+          CAST(strftime('%w', entry_date) AS INTEGER) as day_of_week,
+          COUNT(*) as trades,
+          SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+          SUM(pnl) as total_pnl
+        FROM trades
+        WHERE user_id = $1 AND status = 'CLOSED' ${dateFilter}
+        GROUP BY day_of_week
+        ORDER BY day_of_week`,
+        params
+      )
+    ]);
 
     res.json({
       overview: {

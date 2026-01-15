@@ -18,7 +18,7 @@ const createTradeSchema = z.object({
   takeProfit: z.number().optional(),
   fees: z.number().default(0),
   pnl: z.number().optional(),
-  pnlPercentage: z.number().optional(),
+  mfe: z.number().optional(),
   status: z.enum(['OPEN', 'CLOSED', 'CANCELLED']).default('OPEN'),
   strategy: z.string().optional(),
   setup: z.string().optional(),
@@ -48,7 +48,7 @@ function calculatePnL(
   quantity: number,
   fees: number
 ) {
-  if (!exitPrice) return { pnl: null, pnlPercentage: null };
+  if (!exitPrice) return { pnl: null };
 
   let pnl: number;
   if (side === 'LONG') {
@@ -57,9 +57,7 @@ function calculatePnL(
     pnl = (entryPrice - exitPrice) * quantity - fees;
   }
 
-  const pnlPercentage = (pnl / (entryPrice * quantity)) * 100;
-
-  return { pnl, pnlPercentage };
+  return { pnl };
 }
 
 // Get all trades
@@ -115,18 +113,34 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     params.push(offset);
 
     const result = await query(queryText, params);
-
-    // Get tags for each trade (simplified - not optimal but works)
     const trades = result.rows;
-    for (const trade of trades) {
-      const tradeAny = trade as any;
+
+    // Optimize: Get all tags for all trades in one query instead of N+1
+    if (trades.length > 0) {
+      const tradeIds = trades.map((t: any) => t.id);
+      const placeholders = tradeIds.map((_, i) => `$${i + 1}`).join(',');
+
       const tagsResult = await query(
-        `SELECT tt.* FROM trade_tags tt
+        `SELECT ttm.trade_id, tt.id, tt.name, tt.color
+         FROM trade_tags tt
          JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
-         WHERE ttm.trade_id = $1`,
-        [tradeAny.id]
+         WHERE ttm.trade_id IN (${placeholders})`,
+        tradeIds
       );
-      tradeAny.tags = tagsResult.rows || [];
+
+      // Group tags by trade_id
+      const tagsByTradeId = new Map();
+      tagsResult.rows.forEach((tag: any) => {
+        if (!tagsByTradeId.has(tag.trade_id)) {
+          tagsByTradeId.set(tag.trade_id, []);
+        }
+        tagsByTradeId.get(tag.trade_id).push(tag);
+      });
+
+      // Attach tags to trades
+      trades.forEach((trade: any) => {
+        trade.tags = tagsByTradeId.get(trade.id) || [];
+      });
     }
 
     res.json(trades);
@@ -161,6 +175,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
       [trade.id]
     );
     trade.tags = tagsResult.rows || [];
+    trade.tag_ids = tagsResult.rows.map((t: any) => t.id);
 
     res.json(trade);
   } catch (error) {
@@ -178,10 +193,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 
     // Use manual PNL if provided, otherwise calculate it
     let pnl = data.pnl !== undefined ? data.pnl : null;
-    let pnlPercentage = data.pnlPercentage !== undefined ? data.pnlPercentage : null;
+    let mfe = data.mfe !== undefined ? data.mfe : null;
 
     // Only calculate PnL if we have the required fields (entryPrice and quantity)
-    if ((pnl === null || pnlPercentage === null) && data.entryPrice !== undefined && data.quantity !== undefined) {
+    if (pnl === null && data.entryPrice !== undefined && data.quantity !== undefined) {
       const calculated = calculatePnL(
         data.side,
         data.entryPrice,
@@ -189,14 +204,13 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         data.quantity,
         data.fees
       );
-      pnl = pnl !== null ? pnl : calculated.pnl;
-      pnlPercentage = pnlPercentage !== null ? pnlPercentage : calculated.pnlPercentage;
+      pnl = calculated.pnl;
     }
 
     const result = await query(
       `INSERT INTO trades (
         user_id, account_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
-        quantity, stop_loss, take_profit, pnl, pnl_percentage, fees, status,
+        quantity, stop_loss, take_profit, pnl, mfe, fees, status,
         strategy, setup, timeframe, market_type, notes, entry_reasoning,
         exit_reasoning, mistakes, lessons_learned, emotional_state,
         confidence_level, screenshot_url, broker, account_balance, risk_amount,
@@ -206,7 +220,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
       [
         userId, data.accountId || null, data.symbol, data.side, data.entryDate, data.exitDate || null,
         data.entryPrice || null, data.exitPrice || null, data.quantity || null, data.stopLoss || null,
-        data.takeProfit || null, pnl, pnlPercentage, data.fees, data.status,
+        data.takeProfit || null, pnl, mfe, data.fees, data.status,
         data.strategy || null, data.setup || null, data.timeframe || null,
         data.marketType || null, data.notes || null, data.entryReasoning || null,
         data.exitReasoning || null, data.mistakes || null, data.lessonsLearned || null,
@@ -259,10 +273,10 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
     // Use manual PNL if provided, otherwise calculate if prices are being updated
     let pnl = data.pnl !== undefined ? data.pnl : trade.pnl;
-    let pnlPercentage = data.pnlPercentage !== undefined ? data.pnlPercentage : trade.pnl_percentage;
+    let mfe = data.mfe !== undefined ? data.mfe : trade.mfe;
 
     // Only calculate PnL if manual values not provided AND prices are being updated
-    if (data.pnl === undefined && data.pnlPercentage === undefined) {
+    if (data.pnl === undefined) {
       if (data.exitPrice !== undefined || data.entryPrice !== undefined || data.quantity !== undefined) {
         const calculated = calculatePnL(
           data.side || trade.side,
@@ -272,7 +286,6 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
           data.fees !== undefined ? data.fees : trade.fees
         );
         pnl = calculated.pnl;
-        pnlPercentage = calculated.pnlPercentage;
       }
     }
 
@@ -289,7 +302,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         stop_loss = COALESCE($9, stop_loss),
         take_profit = COALESCE($10, take_profit),
         pnl = COALESCE($11, pnl),
-        pnl_percentage = COALESCE($12, pnl_percentage),
+        mfe = COALESCE($12, mfe),
         fees = COALESCE($13, fees),
         status = COALESCE($14, status),
         strategy = COALESCE($15, strategy),
@@ -314,7 +327,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       [
         data.accountId, data.symbol, data.side, data.entryDate, data.exitDate,
         data.entryPrice, data.exitPrice, data.quantity, data.stopLoss,
-        data.takeProfit, pnl, pnlPercentage, data.fees, data.status,
+        data.takeProfit, pnl, mfe, data.fees, data.status,
         data.strategy, data.setup, data.timeframe, data.marketType,
         data.notes, data.entryReasoning, data.exitReasoning, data.mistakes,
         data.lessonsLearned, data.emotionalState, data.confidenceLevel,
@@ -435,7 +448,7 @@ router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
       'Stop Loss',
       'Take Profit',
       'PnL',
-      'PnL %',
+      'MFE',
       'Fees',
       'Status',
       'Strategy',
@@ -484,7 +497,7 @@ router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
           formatValue(trade.stop_loss),
           formatValue(trade.take_profit),
           formatValue(trade.pnl),
-          formatValue(trade.pnl_percentage),
+          formatValue(trade.mfe),
           formatValue(trade.fees),
           formatValue(trade.status),
           formatValue(trade.strategy),
