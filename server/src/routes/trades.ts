@@ -33,6 +33,7 @@ const createTradeSchema = z.object({
   confidenceLevel: z.number().min(1).max(10).optional(),
   broker: z.string().optional(),
   screenshotUrl: z.string().optional(),
+  screenshotUrl2: z.string().optional(),
   accountBalance: z.number().optional(),
   riskAmount: z.number().optional(),
   riskPercentage: z.number().optional(),
@@ -216,9 +217,9 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         quantity, stop_loss, take_profit, pnl, mfe, fees, status,
         strategy, setup, timeframe, market_type, notes, entry_reasoning,
         exit_reasoning, mistakes, lessons_learned, emotional_state,
-        confidence_level, screenshot_url, broker, account_balance, risk_amount,
+        confidence_level, screenshot_url, screenshot_url_2, broker, account_balance, risk_amount,
         risk_percentage, reward_risk_ratio
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
       RETURNING *`,
       [
         userId, data.accountId || null, data.symbol, data.side, data.entryDate, data.exitDate || null,
@@ -228,7 +229,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
         data.marketType || null, data.notes || null, data.entryReasoning || null,
         data.exitReasoning || null, data.mistakes || null, data.lessonsLearned || null,
         data.emotionalState || null, data.confidenceLevel || null, data.screenshotUrl || null,
-        data.broker || null, data.accountBalance || null, data.riskAmount || null,
+        data.screenshotUrl2 || null, data.broker || null, data.accountBalance || null, data.riskAmount || null,
         data.riskPercentage || null, data.rewardRiskRatio || null
       ]
     );
@@ -320,12 +321,13 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         emotional_state = COALESCE($24, emotional_state),
         confidence_level = COALESCE($25, confidence_level),
         screenshot_url = COALESCE($26, screenshot_url),
-        broker = COALESCE($27, broker),
-        account_balance = COALESCE($28, account_balance),
-        risk_amount = COALESCE($29, risk_amount),
-        risk_percentage = COALESCE($30, risk_percentage),
-        reward_risk_ratio = COALESCE($31, reward_risk_ratio)
-      WHERE id = $32 AND user_id = $33
+        screenshot_url_2 = COALESCE($27, screenshot_url_2),
+        broker = COALESCE($28, broker),
+        account_balance = COALESCE($29, account_balance),
+        risk_amount = COALESCE($30, risk_amount),
+        risk_percentage = COALESCE($31, risk_percentage),
+        reward_risk_ratio = COALESCE($32, reward_risk_ratio)
+      WHERE id = $33 AND user_id = $34
       RETURNING *`,
       [
         data.accountId, data.symbol, data.side, data.entryDate, data.exitDate,
@@ -334,7 +336,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         data.strategy, data.setup, data.timeframe, data.marketType,
         data.notes, data.entryReasoning, data.exitReasoning, data.mistakes,
         data.lessonsLearned, data.emotionalState, data.confidenceLevel,
-        data.screenshotUrl, data.broker, data.accountBalance, data.riskAmount,
+        data.screenshotUrl, data.screenshotUrl2, data.broker, data.accountBalance, data.riskAmount,
         data.riskPercentage, data.rewardRiskRatio, tradeId, userId
       ]
     );

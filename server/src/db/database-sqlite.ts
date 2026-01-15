@@ -347,6 +347,28 @@ function runMigrations() {
     // Record migration as applied
     db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('002_rename_pnl_percentage_to_mfe');
   }
+
+  // Migration 003: Add screenshot_url_2 for second screenshot
+  const migration003Applied = db.prepare(
+    'SELECT * FROM schema_migrations WHERE name = ?'
+  ).get('003_add_screenshot_url_2');
+
+  if (!migration003Applied) {
+    console.log('🔄 Running migration: Add screenshot_url_2...');
+
+    const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string }>;
+    const hasScreenshotUrl2 = tableInfo.some(col => col.name === 'screenshot_url_2');
+
+    if (!hasScreenshotUrl2) {
+      db.exec(`ALTER TABLE trades ADD COLUMN screenshot_url_2 TEXT`);
+      console.log('✅ Migration completed: Added screenshot_url_2 column');
+    } else {
+      console.log('✅ Migration skipped: screenshot_url_2 column already exists');
+    }
+
+    // Record migration as applied
+    db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('003_add_screenshot_url_2');
+  }
 }
 
 // Initialize on startup
