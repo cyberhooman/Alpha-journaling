@@ -19,7 +19,7 @@ export default function Trades() {
     },
   });
 
-  const { data: trades, isLoading, refetch } = useQuery({
+  const { data: trades, isLoading } = useQuery({
     queryKey: ['trades', { status: statusFilter === 'ALL' ? undefined : statusFilter, accountId: accountFilter === 'ALL' ? undefined : accountFilter }],
     queryFn: () => tradesAPI.getAll({
       status: statusFilter === 'ALL' ? undefined : statusFilter,
