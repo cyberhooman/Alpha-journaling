@@ -116,8 +116,11 @@ export default function EditTrade() {
     e.preventDefault();
 
     const data = {
-      ...formData,
       accountId: formData.accountId ? parseInt(formData.accountId) : undefined,
+      symbol: formData.symbol,
+      side: formData.side,
+      entryDate: formData.entryDate,
+      exitDate: formData.exitDate || undefined,
       entryPrice: parseFloat(formData.entryPrice),
       exitPrice: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
       quantity: parseFloat(formData.quantity),
@@ -126,9 +129,17 @@ export default function EditTrade() {
       fees: parseFloat(formData.fees),
       pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
       mfe: formData.mfe ? parseFloat(formData.mfe) : undefined,
-      exitDate: formData.exitDate || undefined,
+      status: formData.status,
+      strategy: formData.strategy || undefined,
+      setup: formData.setup || undefined,
+      timeframe: formData.timeframe || undefined,
       marketType: formData.marketType || undefined,
+      notes: formData.notes || undefined,
+      entryReasoning: formData.entryReasoning || undefined,
+      exitReasoning: formData.exitReasoning || undefined,
+      broker: formData.broker || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
+      tagIds: formData.tagIds,
     };
 
     updateMutation.mutate(data);
