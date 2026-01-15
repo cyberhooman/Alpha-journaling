@@ -7,6 +7,7 @@ const router = express.Router();
 // Get dashboard statistics
 router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const startTime = Date.now();
     const userId = req.user!.id;
     const { startDate, endDate, accountId } = req.query;
 
@@ -164,6 +165,8 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
       pnlBySetup: pnlBySetupResult.rows,
       winRateByDay: winRateByDayResult.rows,
     });
+    const totalTime = Date.now() - startTime;
+    console.log(`📊 GET /analytics/dashboard completed in ${totalTime}ms`);
   } catch (error) {
     console.error('Analytics error:', error);
     res.status(500).json({ error: 'Internal server error' });

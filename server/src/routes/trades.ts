@@ -63,6 +63,7 @@ function calculatePnL(
 // Get all trades
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
+    const startTime = Date.now();
     const userId = req.user!.id;
     const { status, symbol, startDate, endDate, accountId, limit = 100, offset = 0 } = req.query;
 
@@ -143,6 +144,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
       });
     }
 
+    const totalTime = Date.now() - startTime;
+    console.log(`📊 GET /trades completed in ${totalTime}ms (${trades.length} trades)`);
     res.json(trades);
   } catch (error) {
     console.error('Get trades error:', error);
