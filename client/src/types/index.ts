@@ -26,7 +26,7 @@ export interface Trade {
   stop_loss?: number;
   take_profit?: number;
   pnl?: number;
-  pnl_percentage?: number;
+  mfe?: number;
   fees: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED';
   strategy?: string;
