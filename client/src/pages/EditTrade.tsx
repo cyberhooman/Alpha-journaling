@@ -54,7 +54,7 @@ export default function EditTrade() {
     takeProfit: '',
     fees: '0',
     pnl: '',
-    pnlPercentage: '',
+    mfe: '',
     status: 'OPEN' as 'OPEN' | 'CLOSED' | 'CANCELLED',
     strategy: '',
     setup: '',
@@ -84,7 +84,7 @@ export default function EditTrade() {
         takeProfit: tradeData.take_profit ? String(tradeData.take_profit) : '',
         fees: tradeData.fees ? String(tradeData.fees) : '0',
         pnl: tradeData.pnl ? String(tradeData.pnl) : '',
-        pnlPercentage: tradeData.pnl_percentage ? String(tradeData.pnl_percentage) : '',
+        mfe: tradeData.mfe ? String(tradeData.mfe) : '',
         status: tradeData.status || 'OPEN',
         strategy: tradeData.strategy || '',
         setup: tradeData.setup || '',
@@ -102,12 +102,12 @@ export default function EditTrade() {
 
   const updateMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.update(Number(id), data),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['trades'] }),
-        queryClient.refetchQueries({ queryKey: ['trade', id] }),
-        queryClient.refetchQueries({ queryKey: ['dashboard'] }),
-      ]);
+    onSuccess: () => {
+      // Invalidate queries (marks them stale) instead of awaiting refetch
+      // They will refresh when the user navigates to those pages
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['trade', id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       navigate('/trades');
     },
   });
@@ -125,7 +125,7 @@ export default function EditTrade() {
       takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : undefined,
       fees: parseFloat(formData.fees),
       pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
-      pnlPercentage: formData.pnlPercentage ? parseFloat(formData.pnlPercentage) : undefined,
+      mfe: formData.mfe ? parseFloat(formData.mfe) : undefined,
       exitDate: formData.exitDate || undefined,
       marketType: formData.marketType || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
@@ -384,18 +384,18 @@ export default function EditTrade() {
             </div>
 
             <div>
-              <label className="label">P&L Percentage</label>
+              <label className="label">MFE (Max Favorable Excursion)</label>
               <input
                 type="number"
                 step="0.01"
-                name="pnlPercentage"
+                name="mfe"
                 className="input"
-                value={formData.pnlPercentage}
+                value={formData.mfe}
                 onChange={handleChange}
-                placeholder="Enter P&L percentage"
+                placeholder="Enter MFE value"
               />
               <p className="text-xs text-slate-500 mt-1">
-                Optional: Enter percentage gain/loss
+                Optional: Maximum profit reached during trade
               </p>
             </div>
 
