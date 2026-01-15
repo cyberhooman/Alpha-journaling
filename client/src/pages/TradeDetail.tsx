@@ -17,11 +17,11 @@ export default function TradeDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: () => tradesAPI.delete(Number(id)),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.refetchQueries({ queryKey: ['trades'] }),
-        queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-      ]);
+    onSuccess: () => {
+      // Invalidate queries (marks them stale) instead of awaiting refetch
+      // They will refresh when the user navigates to those pages
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       navigate('/trades');
     },
   });
@@ -87,9 +87,9 @@ export default function TradeDetail() {
             </p>
           </div>
           <div>
-            <p className="text-sm text-slate-600 mb-1">P&L %</p>
-            <p className={`text-3xl font-bold ${(tradeData.pnl_percentage || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {tradeData.pnl_percentage ? `${Number(tradeData.pnl_percentage).toFixed(2)}%` : '-'}
+            <p className="text-sm text-slate-600 mb-1">MFE</p>
+            <p className={`text-3xl font-bold ${(tradeData.mfe || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {tradeData.mfe ? `$${Number(tradeData.mfe).toFixed(2)}` : '-'}
             </p>
           </div>
           <div>

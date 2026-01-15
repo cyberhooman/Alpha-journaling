@@ -25,13 +25,34 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Log request start time for performance monitoring
+  (config as any).metadata = { startTime: Date.now() };
+  console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
   return config;
 });
 
 // Handle auth errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Log response time for performance monitoring
+    const startTime = (response.config as any).metadata?.startTime;
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      const url = response.config.url;
+      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${url} - ${duration}ms`);
+      if (duration > 1000) {
+        console.warn(`⚠️ SLOW API CALL: ${url} took ${duration}ms`);
+      }
+    }
+    return response;
+  },
   (error) => {
+    // Log error response time
+    const startTime = (error.config as any)?.metadata?.startTime;
+    if (startTime) {
+      const duration = Date.now() - startTime;
+      console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${duration}ms`);
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
