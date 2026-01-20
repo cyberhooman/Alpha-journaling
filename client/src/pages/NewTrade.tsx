@@ -621,6 +621,44 @@ export default function NewTrade() {
                 placeholder={simpleMode ? "Explain what worked or what went wrong with this trade..." : "General notes about this trade"}
               />
             </div>
+
+            {/* Screenshot in Simple Mode */}
+            {simpleMode && (
+              <div>
+                <label className="label">Screenshot</label>
+                {formData.screenshotUrl ? (
+                  <div className="space-y-2">
+                    <div className="relative w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+                      <img
+                        src={formData.screenshotUrl}
+                        alt="Trade screenshot"
+                        className="w-full object-contain max-h-[200px] bg-slate-100"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRemoveScreenshot}
+                      className="btn btn-danger text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
+                    <div className="text-center px-4">
+                      <p className="font-semibold text-slate-700 text-sm">Click to upload or Ctrl+V</p>
+                      <p className="text-xs text-slate-500 mt-1">PNG, JPG up to 5MB</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleScreenshotUpload}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
