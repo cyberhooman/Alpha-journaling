@@ -168,6 +168,17 @@ function initializeDatabase() {
     )
   `);
 
+  // Token blacklist for logout functionality
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS token_blacklist (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      token_hash TEXT UNIQUE NOT NULL,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      expires_at DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Trading strategies/frameworks library
   db.exec(`
     CREATE TABLE IF NOT EXISTS trading_strategies (
@@ -205,6 +216,8 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_trade_tags_user ON trade_tags(user_id);
     CREATE INDEX IF NOT EXISTS idx_trade_tag_mappings_trade ON trade_tag_mappings(trade_id);
     CREATE INDEX IF NOT EXISTS idx_trade_tag_mappings_tag ON trade_tag_mappings(tag_id);
+    CREATE INDEX IF NOT EXISTS idx_token_blacklist_hash ON token_blacklist(token_hash);
+    CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at);
   `);
 
   console.log('✅ SQLite database initialized at:', dbPath);

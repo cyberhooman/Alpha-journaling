@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { query } from '../db/database.js';
+import { getJWTSecret } from '../config/security.js';
+import { authenticateToken, blacklistToken, type AuthRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -36,19 +38,18 @@ async function createSampleTrade(userId: number) {
 
     // Calculate P&L
     const pnl = (sampleTrade.exitPrice - sampleTrade.entryPrice) * sampleTrade.quantity - sampleTrade.fees;
-    const pnlPercentage = ((sampleTrade.exitPrice - sampleTrade.entryPrice) / sampleTrade.entryPrice) * 100;
 
     await query(
       `INSERT INTO trades (
         user_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
-        quantity, stop_loss, take_profit, fees, pnl, pnl_percentage, status,
+        quantity, stop_loss, take_profit, fees, pnl, status,
         strategy, setup, timeframe, market_type, broker, entry_reasoning,
         exit_reasoning, notes, confidence_level, emotional_state
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
       [
         sampleTrade.userId, sampleTrade.symbol, sampleTrade.side, sampleTrade.entryDate,
         sampleTrade.exitDate, sampleTrade.entryPrice, sampleTrade.exitPrice, sampleTrade.quantity,
-        sampleTrade.stopLoss, sampleTrade.takeProfit, sampleTrade.fees, pnl, pnlPercentage,
+        sampleTrade.stopLoss, sampleTrade.takeProfit, sampleTrade.fees, pnl,
         sampleTrade.status, sampleTrade.strategy, sampleTrade.setup, sampleTrade.timeframe,
         sampleTrade.marketType, sampleTrade.broker, sampleTrade.entryReasoning,
         sampleTrade.exitReasoning, sampleTrade.notes, sampleTrade.confidenceLevel,
@@ -65,7 +66,12 @@ async function createSampleTrade(userId: number) {
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string()
+    .min(12, 'Password must be at least 12 characters long')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
 });
@@ -107,10 +113,9 @@ router.post('/register', async (req, res) => {
     await createSampleTrade(user.id);
 
     // Generate token
-    const jwtSecret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      jwtSecret,
+      getJWTSecret(),
       { expiresIn: '7d' }
     );
 
@@ -152,10 +157,9 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate token
-    const jwtSecret = process.env.JWT_SECRET || 'secret';
     const token = jwt.sign(
       { id: user.id, email: user.email },
-      jwtSecret,
+      getJWTSecret(),
       { expiresIn: '7d' }
     );
 
@@ -173,6 +177,30 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: error.errors });
     }
     console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Logout - Blacklist the token
+router.post('/logout', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token || !req.user) {
+      return res.status(400).json({ error: 'Invalid request' });
+    }
+
+    // Decode token to get expiration
+    const decoded = jwt.decode(token) as { exp: number };
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    // Add token to blacklist
+    await blacklistToken(token, req.user.id, expiresAt);
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

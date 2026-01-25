@@ -4,7 +4,9 @@ const { Pool } = pg;
 // PostgreSQL connection pool
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+  ssl: process.env.DATABASE_URL?.includes('localhost')
+    ? undefined
+    : { rejectUnauthorized: true },
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
@@ -72,7 +74,7 @@ async function initializeDatabase() {
         stop_loss DECIMAL(15, 8),
         take_profit DECIMAL(15, 8),
         pnl DECIMAL(15, 2),
-        pnl_percentage DECIMAL(10, 4),
+        mfe DECIMAL(15, 2),
         fees DECIMAL(15, 2) DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
         strategy TEXT,
@@ -163,6 +165,23 @@ async function initializeDatabase() {
       )
     `);
 
+    // Token blacklist for logout functionality
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS token_blacklist (
+        id SERIAL PRIMARY KEY,
+        token_hash TEXT UNIQUE NOT NULL,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Create index for token blacklist lookups
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_token_blacklist_hash ON token_blacklist(token_hash);
+      CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at);
+    `);
+
     // Trading strategies/frameworks library
     await client.query(`
       CREATE TABLE IF NOT EXISTS trading_strategies (
@@ -216,7 +235,7 @@ export const query = async (text: string, params: any[] = []) => {
   } catch (error) {
     console.error('PostgreSQL query error:', error);
     console.error('Query:', text);
-    console.error('Params:', params);
+    // DO NOT log params - they may contain sensitive data like passwords
     throw error;
   }
 };
