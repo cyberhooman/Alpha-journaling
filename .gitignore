@@ -43,3 +43,12 @@ Thumbs.db
 .cache/
 .temp/
 dist-electron/
+
+# Artifacts
+nul
+*.log
+token_response.json
+
+# Database WAL files
+*.db-shm
+*.db-wal

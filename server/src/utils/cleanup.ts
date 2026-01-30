@@ -14,7 +14,7 @@ export async function cleanupExpiredTokens(): Promise<void> {
     const result = await query(
       "DELETE FROM token_blacklist WHERE expires_at < CURRENT_TIMESTAMP"
     );
-    const count = result.rowCount || result.changes || 0;
+    const count = result.rowCount ?? 0;
     if (count > 0) {
       console.log(`🧹 Cleaned up ${count} expired tokens from blacklist`);
     }
