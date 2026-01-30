@@ -1,3 +1,12 @@
+[build]
+builder = "nixpacks"
+
+[build.nixpacks]
+nixPkgs = ["nodejs_22"]
+
+[deploy]
+startCommand = "npm run start --workspace=server"
+
 [[mounts]]
 path = "/app/server/data"
 size = 1
