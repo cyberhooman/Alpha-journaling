@@ -1,3 +1,10 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "server/Dockerfile"
+
+[deploy]
+startCommand = "npm run start --workspace=server"
+
 [[mounts]]
 path = "/app/server/data"
 size = 1
