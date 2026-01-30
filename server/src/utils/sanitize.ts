@@ -2,13 +2,6 @@
  * Input sanitization utilities to prevent XSS and injection attacks
  */
 
-import { JSDOM } from 'jsdom';
-import createDOMPurify from 'dompurify';
-
-// Create DOMPurify instance for server-side use
-const window = new JSDOM('').window;
-const DOMPurify = createDOMPurify(window as any);
-
 /**
  * Sanitize HTML/text input to prevent XSS attacks
  * Removes all HTML tags and scripts
@@ -17,11 +10,24 @@ export function sanitizeText(input: string | null | undefined): string | null {
   if (!input) return null;
 
   // Remove all HTML tags, keeping only text content
-  const sanitized = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // No HTML tags allowed
-    ALLOWED_ATTR: [], // No attributes allowed
-    KEEP_CONTENT: true, // Keep text content
-  });
+  // First decode HTML entities, then strip tags
+  let sanitized = input
+    // Remove script tags and their content
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove style tags and their content
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    // Remove all HTML tags but keep content
+    .replace(/<[^>]+>/g, '')
+    // Decode common HTML entities
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    // Re-escape potentially dangerous characters for output
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 
   return sanitized.trim() || null;
 }
