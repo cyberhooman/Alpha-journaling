@@ -5,6 +5,9 @@
   "author": "Trading Journal Pro",
   "main": "electron/main.js",
   "private": true,
+  "engines": {
+    "node": ">=20"
+  },
   "workspaces": [
     "client",
     "server"
