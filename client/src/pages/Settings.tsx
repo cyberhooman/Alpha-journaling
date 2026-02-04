@@ -21,22 +21,17 @@ export default function Settings() {
     },
   });
 
-  console.log('Settings - Loading:', isLoading, 'Accounts:', accounts, 'Error:', error);
-
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('createMutation - calling API with:', data);
       try {
         const result = await accountsAPI.create(data);
-        console.log('createMutation - API response:', result);
         return result;
       } catch (err) {
         console.error('createMutation - API error:', err);
         throw err;
       }
     },
-    onSuccess: async (data) => {
-      console.log('createMutation - onSuccess:', data);
+    onSuccess: async () => {
       await queryClient.refetchQueries({ queryKey: ['accounts'] });
       setShowNewAccountModal(false);
     },
@@ -48,11 +43,9 @@ export default function Settings() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => {
-      console.log('updateMutation - calling API with id:', id, 'data:', data);
       return accountsAPI.update(id, data);
     },
-    onSuccess: async (data) => {
-      console.log('updateMutation - onSuccess:', data);
+    onSuccess: async () => {
       await queryClient.refetchQueries({ queryKey: ['accounts'] });
       setEditingAccount(null);
     },
@@ -335,12 +328,9 @@ export default function Settings() {
             setEditingAccount(null);
           }}
           onSubmit={(data) => {
-            console.log('onSubmit called with data:', data);
             if (editingAccount) {
-              console.log('Calling updateMutation');
               updateMutation.mutate({ id: editingAccount.id, data });
             } else {
-              console.log('Calling createMutation');
               createMutation.mutate(data);
             }
           }}
@@ -369,12 +359,11 @@ function AccountFormModal({
     current_balance: account?.current_balance || 0,
     currency: account?.currency || 'USD',
     notes: account?.notes || '',
-    is_active: account?.is_active ?? true,
+    is_active: account ? Boolean(account.is_active) : true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted!', formData);
 
     // Validate required fields
     if (!formData.name) {
@@ -392,7 +381,6 @@ function AccountFormModal({
     // Allow current_balance to be updated manually
     // Users can adjust balance directly in Settings
 
-    console.log('Submitting data:', submitData);
     onSubmit(submitData);
   };
 
@@ -454,7 +442,10 @@ function AccountFormModal({
                 type="number"
                 className="input"
                 value={formData.initial_balance}
-                onChange={(e) => setFormData({ ...formData, initial_balance: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setFormData({ ...formData, initial_balance: isNaN(val) ? 0 : val });
+                }}
                 step="0.01"
                 min="0"
                 required
@@ -462,18 +453,33 @@ function AccountFormModal({
             </div>
 
             <div>
-              <label className="label">Currency</label>
-              <select
+              <label className="label">Current Balance</label>
+              <input
+                type="number"
                 className="input"
-                value={formData.currency}
-                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
-              >
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-                <option value="JPY">JPY</option>
-              </select>
+                value={formData.current_balance}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setFormData({ ...formData, current_balance: isNaN(val) ? 0 : val });
+                }}
+                step="0.01"
+                min="0"
+              />
             </div>
+          </div>
+
+          <div>
+            <label className="label">Currency</label>
+            <select
+              className="input"
+              value={formData.currency}
+              onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+            >
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="JPY">JPY</option>
+            </select>
           </div>
 
           <div>

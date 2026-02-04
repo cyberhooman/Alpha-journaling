@@ -64,11 +64,9 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // POST /api/accounts - Create new trading account
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    console.log('Creating account - req.user:', req.user);
     const data = createAccountSchema.parse(req.body);
 
     const userId = req.user?.id;
-    console.log('User ID for account:', userId);
 
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -104,12 +102,22 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Whitelist of allowed field names to prevent SQL injection
+const ALLOWED_ACCOUNT_FIELDS = new Set([
+  'name',
+  'account_type',
+  'broker',
+  'initial_balance',
+  'current_balance',
+  'currency',
+  'is_active',
+  'notes'
+]);
+
 // PUT /api/accounts/:id - Update account
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    console.log('Update account - request body:', req.body);
     const data = updateAccountSchema.parse(req.body);
-    console.log('Update account - validated data:', data);
 
     // Check if account exists and belongs to user
     const existing = db.prepare(`
@@ -157,6 +165,15 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     if (updates.length > 0) {
+      // Additional validation: ensure all field names in updates are whitelisted
+      // This is redundant given the explicit if checks above, but provides defense in depth
+      const fieldNames = updates.map(u => u.split(' = ')[0]);
+      for (const fieldName of fieldNames) {
+        if (!ALLOWED_ACCOUNT_FIELDS.has(fieldName)) {
+          return res.status(400).json({ error: 'Invalid field name' });
+        }
+      }
+
       values.push(req.params.id);
       db.prepare(`
         UPDATE trading_accounts

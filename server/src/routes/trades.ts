@@ -1,24 +1,43 @@
 import express from 'express';
 import { z } from 'zod';
-import { query } from '../db/database.js';
+import { query, db } from '../db/database.js';
 import { AuthRequest, authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper to validate base64 image strings
+function isValidBase64Image(str: string): boolean {
+  if (!str) return true; // Empty is valid (optional field)
+
+  // Check if it's a data URL
+  const dataUrlPattern = /^data:image\/(png|jpeg|jpg|gif|webp);base64,/;
+  if (!dataUrlPattern.test(str)) {
+    return false;
+  }
+
+  // Extract the base64 part
+  const base64Data = str.split(',')[1];
+  if (!base64Data) return false;
+
+  // Validate base64 format
+  const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+  return base64Pattern.test(base64Data);
+}
+
 const createTradeSchema = z.object({
-  accountId: z.number().optional(),
-  symbol: z.string(),
+  accountId: z.number().int().positive().optional(),
+  symbol: z.string().min(1),
   side: z.enum(['LONG', 'SHORT']),
   entryDate: z.string(),
   exitDate: z.string().optional(),
-  entryPrice: z.number().optional(),
-  exitPrice: z.number().optional(),
-  quantity: z.number().optional(),
-  stopLoss: z.number().optional(),
-  takeProfit: z.number().optional(),
-  fees: z.number().default(0),
-  pnl: z.number().optional(),
-  mfe: z.number().optional(),
+  entryPrice: z.number().finite().positive().optional(),
+  exitPrice: z.number().finite().positive().optional(),
+  quantity: z.number().finite().positive().optional(),
+  stopLoss: z.number().finite().positive().optional(),
+  takeProfit: z.number().finite().positive().optional(),
+  fees: z.number().finite().nonnegative().default(0),
+  pnl: z.number().finite().optional(),
+  mfe: z.number().finite().optional(),
   status: z.enum(['OPEN', 'CLOSED', 'CANCELLED']).default('OPEN'),
   strategy: z.string().optional(),
   setup: z.string().optional(),
@@ -30,15 +49,21 @@ const createTradeSchema = z.object({
   mistakes: z.string().optional(),
   lessonsLearned: z.string().optional(),
   emotionalState: z.string().optional(),
-  confidenceLevel: z.number().min(1).max(10).optional(),
+  confidenceLevel: z.number().int().min(1).max(10).optional(),
   broker: z.string().optional(),
-  screenshotUrl: z.string().optional(),
-  screenshotUrl2: z.string().optional(),
-  accountBalance: z.number().optional(),
-  riskAmount: z.number().optional(),
-  riskPercentage: z.number().optional(),
-  rewardRiskRatio: z.number().optional(),
-  tagIds: z.array(z.number()).optional(),
+  screenshotUrl: z.string().max(10485760).optional().refine(
+    (val) => !val || isValidBase64Image(val),
+    { message: 'Invalid image format. Must be a valid base64-encoded image.' }
+  ),
+  screenshotUrl2: z.string().max(10485760).optional().refine(
+    (val) => !val || isValidBase64Image(val),
+    { message: 'Invalid image format. Must be a valid base64-encoded image.' }
+  ),
+  accountBalance: z.number().finite().nonnegative().optional(),
+  riskAmount: z.number().finite().nonnegative().optional(),
+  riskPercentage: z.number().finite().nonnegative().max(100).optional(),
+  rewardRiskRatio: z.number().finite().nonnegative().optional(),
+  tagIds: z.array(z.number().int().positive()).optional(),
 });
 
 // Calculate PnL
@@ -50,6 +75,15 @@ function calculatePnL(
   fees: number
 ) {
   if (!exitPrice) return { pnl: null };
+
+  // Validate inputs to prevent calculation errors
+  if (!entryPrice || entryPrice <= 0 || !quantity || quantity <= 0 || fees < 0) {
+    return { pnl: null };
+  }
+
+  if (isNaN(entryPrice) || isNaN(exitPrice) || isNaN(quantity) || isNaN(fees)) {
+    return { pnl: null };
+  }
 
   let pnl: number;
   if (side === 'LONG') {
@@ -192,7 +226,6 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const userId = req.user!.id;
-    console.log('📝 Create trade request:', JSON.stringify(req.body, null, 2));
     const data = createTradeSchema.parse(req.body);
 
     // Use manual PNL if provided, otherwise calculate it
@@ -341,18 +374,19 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       ]
     );
 
-    // Update tags if provided
+    // Update tags if provided (wrapped in transaction for atomicity)
     if (data.tagIds !== undefined) {
-      await query('DELETE FROM trade_tag_mappings WHERE trade_id = $1', [tradeId]);
+      const updateTags = db.transaction(() => {
+        db.prepare('DELETE FROM trade_tag_mappings WHERE trade_id = ?').run(tradeId);
 
-      if (data.tagIds.length > 0) {
-        for (const tagId of data.tagIds) {
-          await query(
-            'INSERT INTO trade_tag_mappings (trade_id, tag_id) VALUES ($1, $2)',
-            [tradeId, tagId]
-          );
+        if (data.tagIds && data.tagIds.length > 0) {
+          const insertStmt = db.prepare('INSERT INTO trade_tag_mappings (trade_id, tag_id) VALUES (?, ?)');
+          for (const tagId of data.tagIds) {
+            insertStmt.run(tradeId, tagId);
+          }
         }
-      }
+      });
+      updateTags();
     }
 
     res.json(result.rows[0]);

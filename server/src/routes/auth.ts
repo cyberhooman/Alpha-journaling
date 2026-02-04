@@ -65,14 +65,14 @@ async function createSampleTrade(userId: number) {
 }
 
 const registerSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform(val => val.toLowerCase().trim()),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
 });
 
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().transform(val => val.toLowerCase().trim()),
   password: z.string(),
 });
 

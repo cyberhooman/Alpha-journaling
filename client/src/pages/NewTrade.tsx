@@ -50,7 +50,7 @@ export default function NewTrade() {
     strategy: '',
     setup: '',
     timeframe: '',
-    marketType: '' as any,
+    marketType: '' as 'STOCKS' | 'FOREX' | 'CRYPTO' | 'FUTURES' | 'OPTIONS' | '',
     notes: '',
     entryReasoning: '',
     exitReasoning: '',
@@ -90,17 +90,30 @@ export default function NewTrade() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Helper function to safely parse numbers
+    const safeParseFloat = (value: string): number | undefined => {
+      if (!value || value.trim() === '') return undefined;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
+    const safeParseInt = (value: string): number | undefined => {
+      if (!value || value.trim() === '') return undefined;
+      const parsed = parseInt(value);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+
     const data = {
       ...formData,
-      accountId: formData.accountId ? parseInt(formData.accountId) : undefined,
-      entryPrice: formData.entryPrice ? parseFloat(formData.entryPrice) : undefined,
-      exitPrice: formData.exitPrice ? parseFloat(formData.exitPrice) : undefined,
-      quantity: formData.quantity ? parseFloat(formData.quantity) : (simpleMode ? 1 : undefined), // Default to 1 in simple mode
-      stopLoss: formData.stopLoss ? parseFloat(formData.stopLoss) : undefined,
-      takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : undefined,
-      fees: formData.fees ? parseFloat(formData.fees) : 0,
-      pnl: formData.pnl ? parseFloat(formData.pnl) : undefined,
-      mfe: formData.mfe ? parseFloat(formData.mfe) : undefined,
+      accountId: safeParseInt(formData.accountId),
+      entryPrice: safeParseFloat(formData.entryPrice),
+      exitPrice: safeParseFloat(formData.exitPrice),
+      quantity: safeParseFloat(formData.quantity) ?? (simpleMode ? 1 : undefined), // Default to 1 in simple mode
+      stopLoss: safeParseFloat(formData.stopLoss),
+      takeProfit: safeParseFloat(formData.takeProfit),
+      fees: safeParseFloat(formData.fees) ?? 0,
+      pnl: safeParseFloat(formData.pnl),
+      mfe: safeParseFloat(formData.mfe),
       exitDate: formData.exitDate || undefined,
       marketType: formData.marketType || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
@@ -135,6 +148,9 @@ export default function NewTrade() {
     reader.onload = () => {
       setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
     };
+    reader.onerror = () => {
+      alert('Failed to read the image file. Please try again.');
+    };
     reader.readAsDataURL(file);
   };
 
@@ -161,6 +177,9 @@ export default function NewTrade() {
           const reader = new FileReader();
           reader.onload = () => {
             setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
+          };
+          reader.onerror = () => {
+            alert('Failed to read the pasted image. Please try again.');
           };
           reader.readAsDataURL(file);
 

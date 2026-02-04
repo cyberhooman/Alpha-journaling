@@ -201,19 +201,37 @@ router.get('/calendar', authenticateToken, async (req: AuthRequest, res) => {
       params
     );
 
-    // Get tags for each date
+    // Get tags for all dates in one query to avoid N+1 problem
     const calendarData = result.rows;
-    for (const dayData of calendarData) {
-      const dayDataAny = dayData as any;
+
+    if (calendarData.length > 0) {
+      // Build the date filter for the tag query
+      const dates = calendarData.map((d: any) => d.date);
+      const datePlaceholders = dates.map((_: any, i: number) => `$${i + 2}`).join(',');
+
       const tagsResult = await query(
-        `SELECT DISTINCT tt.id, tt.name, tt.color
+        `SELECT DISTINCT DATE(t.entry_date) as date, tt.id, tt.name, tt.color
          FROM trade_tags tt
          JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
          JOIN trades t ON ttm.trade_id = t.id
-         WHERE t.user_id = $1 AND DATE(t.entry_date) = $2`,
-        [userId, dayDataAny.date]
+         WHERE t.user_id = $1 AND DATE(t.entry_date) IN (${datePlaceholders})
+         ORDER BY date, tt.name`,
+        [userId, ...dates]
       );
-      dayDataAny.tags = tagsResult.rows || [];
+
+      // Group tags by date
+      const tagsByDate = new Map<string, any[]>();
+      tagsResult.rows.forEach((tag: any) => {
+        if (!tagsByDate.has(tag.date)) {
+          tagsByDate.set(tag.date, []);
+        }
+        tagsByDate.get(tag.date)!.push({ id: tag.id, name: tag.name, color: tag.color });
+      });
+
+      // Attach tags to calendar data
+      calendarData.forEach((dayData: any) => {
+        dayData.tags = tagsByDate.get(dayData.date) || [];
+      });
     }
 
     res.json(calendarData);

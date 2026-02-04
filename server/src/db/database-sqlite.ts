@@ -388,6 +388,25 @@ function runMigrations() {
 initializeDatabase();
 runMigrations();
 
+// Whitelist of valid table names to prevent SQL injection
+const VALID_TABLES = new Set([
+  'users',
+  'trading_accounts',
+  'trades',
+  'trade_tags',
+  'trade_tag_mappings',
+  'trading_plans',
+  'daily_journals',
+  'user_settings',
+  'token_blacklist',
+  'trading_strategies',
+  'schema_migrations'
+]);
+
+function isValidTableName(tableName: string): boolean {
+  return VALID_TABLES.has(tableName);
+}
+
 // Helper function to convert PostgreSQL-style queries to SQLite
 export const query = async (text: string, params: any[] = []) => {
   try {
@@ -402,10 +421,6 @@ export const query = async (text: string, params: any[] = []) => {
     const hasReturning = /RETURNING\s+\*/i.test(text);
     sqliteQuery = sqliteQuery.replace(/RETURNING\s+\*/i, '');
 
-    if (text.includes('UPDATE') && text.includes('RETURNING')) {
-      console.log('🔍 Original query has RETURNING:', text.includes('RETURNING'));
-      console.log('🔍 hasReturning detected:', hasReturning);
-    }
 
     if (sqliteQuery.trim().toUpperCase().startsWith('SELECT')) {
       const stmt = db.prepare(sqliteQuery);
@@ -418,7 +433,7 @@ export const query = async (text: string, params: any[] = []) => {
       if (hasReturning) {
         // Get the inserted row
         const table = sqliteQuery.match(/INSERT INTO (\w+)/i)?.[1];
-        if (table) {
+        if (table && isValidTableName(table)) {
           const selectStmt = db.prepare(`SELECT * FROM ${table} WHERE id = ?`);
           const row = selectStmt.get(info.lastInsertRowid);
           return { rows: [row] };
@@ -430,19 +445,20 @@ export const query = async (text: string, params: any[] = []) => {
       const stmt = db.prepare(sqliteQuery);
       const info = stmt.run(...sqliteParams);
 
-      console.log('🔄 UPDATE executed, changes:', info.changes);
-
       if (hasReturning) {
         // Extract table name and WHERE clause to get the updated row
         const tableMatch = sqliteQuery.match(/UPDATE (\w+)/i);
         // Use [\s\S]+? to match any character including newlines (non-greedy)
         const whereMatch = text.match(/WHERE\s+([\s\S]+?)\s+RETURNING/i);
 
-        console.log('🔍 tableMatch:', tableMatch?.[1]);
-        console.log('🔍 whereMatch:', whereMatch?.[1]);
-
         if (tableMatch && whereMatch) {
           const table = tableMatch[1];
+
+          // Validate table name to prevent SQL injection
+          if (!isValidTableName(table)) {
+            throw new Error(`Invalid table name: ${table}`);
+          }
+
           const whereClause = whereMatch[1];
 
           // Count how many placeholders are in the WHERE clause
@@ -455,21 +471,8 @@ export const query = async (text: string, params: any[] = []) => {
           // Get the params used in the WHERE clause (last N params)
           const whereParams = sqliteParams.slice(-placeholderCount);
 
-          console.log('🔍 SELECT query:', selectQuery);
-          console.log('🔍 WHERE params:', whereParams);
-          console.log('🔍 Total params count:', sqliteParams.length, 'WHERE params count:', placeholderCount);
-
           const selectStmt = db.prepare(selectQuery);
           const rows = selectStmt.all(...whereParams);
-
-          console.log('🔍 Rows returned:', rows.length);
-          if (rows.length === 0) {
-            // Check if the record exists at all
-            const checkQuery = `SELECT id, user_id FROM ${table} WHERE id = ?`;
-            const checkStmt = db.prepare(checkQuery);
-            const checkRow = checkStmt.get(whereParams[0]);
-            console.log('🔍 Record check (by id only):', checkRow);
-          }
 
           return { rows };
         }
