@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS trades (
     stop_loss DECIMAL(15, 5),
     take_profit DECIMAL(15, 5),
     pnl DECIMAL(15, 2),
-    pnl_percentage DECIMAL(10, 2),
+    mfe DECIMAL(15, 2),
     fees DECIMAL(15, 2) DEFAULT 0,
     status VARCHAR(20) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
     strategy VARCHAR(100),

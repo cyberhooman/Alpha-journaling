@@ -1,5 +1,5 @@
 // Database module - currently using SQLite
-// Note: SQLite data is lost on Railway redeploys (ephemeral filesystem)
-// TODO: Refactor all routes to use query() instead of db.prepare() for PostgreSQL
+// Use PostgreSQL by setting DATABASE_URL environment variable
+// Note: Some routes use db.prepare() which is SQLite-specific
 export { query, db } from './database-sqlite.js';
 export { default } from './database-sqlite.js';
