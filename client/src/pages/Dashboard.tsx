@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   TrendingUp,
@@ -28,6 +28,7 @@ import CountingNumber from '../components/CountingNumber';
 
 export default function Dashboard() {
   const [selectedAccountId, setSelectedAccountId] = useState<string>('all');
+  const [showSlowLoadHint, setShowSlowLoadHint] = useState(false);
 
   const { data: accounts } = useQuery({
     queryKey: ['accounts'],
@@ -37,7 +38,13 @@ export default function Dashboard() {
     },
   });
 
-  const { data: stats, isLoading } = useQuery<{ data: DashboardStats }>({
+  const {
+    data: stats,
+    isLoading,
+    isFetching,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useQuery<{ data: DashboardStats }>({
     queryKey: ['dashboard', selectedAccountId],
     queryFn: () => analyticsAPI.getDashboard(
       selectedAccountId === 'all' ? {} : { accountId: selectedAccountId }
@@ -52,16 +59,15 @@ export default function Dashboard() {
     }),
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="relative">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary-200"></div>
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-600 absolute top-0"></div>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isLoading && !isFetching) {
+      setShowSlowLoadHint(false);
+      return;
+    }
+
+    const t = window.setTimeout(() => setShowSlowLoadHint(true), 8000);
+    return () => window.clearTimeout(t);
+  }, [isLoading, isFetching]);
 
   const overview = stats?.data.overview || {
     totalPnl: 0,
@@ -154,6 +160,47 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {(isLoading || isFetching) && showSlowLoadHint && (
+        <div className="card bg-amber-50 border-amber-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-amber-900">
+              <p className="font-semibold">Still loading your dashboard…</p>
+              <p className="text-sm text-amber-800">
+                If you’re on a free hosting tier, the server may be waking up. If this keeps happening, we should check which API call is slow.
+              </p>
+            </div>
+            <button
+              onClick={() => refetchDashboard()}
+              className="btn btn-secondary w-full sm:w-auto"
+              type="button"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
+      {dashboardError && (
+        <div className="card bg-red-50 border-red-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="text-red-900">
+              <p className="font-semibold">Dashboard failed to load.</p>
+              <p className="text-sm text-red-800">
+                {(dashboardError as any)?.message || 'Request failed'}{' '}
+                {(dashboardError as any)?.code ? `(${(dashboardError as any).code})` : ''}
+              </p>
+            </div>
+            <button
+              onClick={() => refetchDashboard()}
+              className="btn btn-secondary w-full sm:w-auto"
+              type="button"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header with gradient */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-blue-600 dark:from-primary-800 dark:to-blue-800 rounded-xl sm:rounded-2xl p-5 sm:p-8 text-white shadow-xl">
         <div className="relative z-10">
@@ -194,6 +241,11 @@ export default function Dashboard() {
             className={`relative bg-gradient-to-br ${stat.bgGradient} rounded-xl sm:rounded-2xl shadow-lg border border-white/50 p-4 sm:p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 hover:${stat.glowColor} overflow-hidden group`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
+            {(isLoading || isFetching) && (
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-600"></div>
+              </div>
+            )}
             {/* Animated background gradient */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 

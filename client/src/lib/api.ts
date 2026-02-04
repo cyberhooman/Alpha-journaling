@@ -12,6 +12,8 @@ const USE_MOCK_DATA = false; // Demo mode - set to false to use real API
 
 const api = axios.create({
   baseURL: API_URL,
+  // Prevent the UI from hanging indefinitely on slow/wedged network requests.
+  timeout: 45000,
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
