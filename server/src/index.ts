@@ -2,10 +2,12 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
+import session from 'express-session';
 import dotenv from 'dotenv';
 import { validateSecurityConfig } from './config/security.js';
 import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { startCleanupTasks } from './utils/cleanup.js';
+import passport from './config/passport.js';
 import authRoutes from './routes/auth.js';
 import tradesRoutes from './routes/trades.js';
 import analyticsRoutes from './routes/analytics.js';
@@ -83,6 +85,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Input sanitization middleware (must be after body parsers)
 app.use(sanitizeRequestBody);
+
+// Session middleware (required for Passport)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Health check
 app.get('/health', (_req, res) => {

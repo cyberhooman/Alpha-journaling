@@ -5,11 +5,12 @@ import { z } from 'zod';
 import { query } from '../db/database.js';
 import { getJWTSecret } from '../config/security.js';
 import { authenticateToken, blacklistToken, type AuthRequest } from '../middleware/auth.js';
+import passport from '../config/passport.js';
 
 const router = express.Router();
 
 // Helper function to create a sample trade for new users
-async function createSampleTrade(userId: number) {
+export async function createSampleTrade(userId: number) {
   try {
     const sampleTrade = {
       userId,
@@ -196,6 +197,93 @@ router.post('/logout', authenticateToken, async (req: AuthRequest, res) => {
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error('Logout error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Google OAuth - Initiate authentication
+router.get('/google',
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    session: false
+  })
+);
+
+// Google OAuth - Callback handler
+router.get('/google/callback',
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=oauth_failed`
+  }),
+  async (req: any, res) => {
+    try {
+      const user = req.user;
+
+      if (!user) {
+        return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=no_user`);
+      }
+
+      // Check if this is a new user (created in the last 5 seconds)
+      const isNewUser = user.created_at &&
+        (new Date().getTime() - new Date(user.created_at).getTime() < 5000);
+
+      if (isNewUser) {
+        await createSampleTrade(user.id);
+      }
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        getJWTSecret(),
+        { expiresIn: '7d' }
+      );
+
+      // Redirect to frontend with token in URL
+      const userJson = JSON.stringify({
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        profilePicture: user.profile_picture_url
+      });
+
+      res.redirect(
+        `${process.env.FRONTEND_URL || 'http://localhost:5173'}/auth/callback?token=${token}&user=${encodeURIComponent(userJson)}`
+      );
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=oauth_callback_failed`);
+    }
+  }
+);
+
+// Get current user info
+router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const result = await query(
+      'SELECT id, email, first_name, last_name, auth_provider, profile_picture_url, email_verified FROM users WHERE id = $1',
+      [req.user!.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0] as any;
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        authProvider: user.auth_provider,
+        profilePicture: user.profile_picture_url,
+        emailVerified: user.email_verified
+      }
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

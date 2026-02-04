@@ -382,6 +382,73 @@ function runMigrations() {
     // Record migration as applied
     db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('003_add_screenshot_url_2');
   }
+
+  // Migration 004: Add OAuth support columns
+  const migration004Applied = db.prepare(
+    'SELECT * FROM schema_migrations WHERE name = ?'
+  ).get('004_add_oauth_support');
+
+  if (!migration004Applied) {
+    console.log('🔄 Running migration: Add OAuth support columns...');
+
+    const tableInfo = db.pragma('table_info(users)') as Array<{ name: string; notnull: number }>;
+    const hasGoogleId = tableInfo.some(col => col.name === 'google_id');
+    const hasAuthProvider = tableInfo.some(col => col.name === 'auth_provider');
+    const hasProfilePicture = tableInfo.some(col => col.name === 'profile_picture_url');
+    const hasEmailVerified = tableInfo.some(col => col.name === 'email_verified');
+    const passwordHashCol = tableInfo.find(col => col.name === 'password_hash');
+
+    // Check if we need to make password_hash nullable
+    const needsPasswordHashNullable = passwordHashCol && passwordHashCol.notnull === 1;
+
+    if (!hasGoogleId || !hasAuthProvider || !hasProfilePicture || !hasEmailVerified || needsPasswordHashNullable) {
+      // SQLite doesn't support ALTER COLUMN, so we need to recreate the table
+      db.exec(`
+        -- Create new users table with OAuth support
+        CREATE TABLE users_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT UNIQUE NOT NULL,
+          password_hash TEXT,
+          google_id TEXT UNIQUE,
+          auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google', 'both')),
+          profile_picture_url TEXT,
+          email_verified INTEGER DEFAULT 0,
+          first_name TEXT,
+          last_name TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Copy data from old table
+        INSERT INTO users_new (
+          id, email, password_hash, first_name, last_name, created_at, updated_at
+        )
+        SELECT
+          id, email, password_hash, first_name, last_name, created_at, updated_at
+        FROM users;
+
+        -- Update existing users to use 'local' auth provider and mark as verified
+        UPDATE users_new SET auth_provider = 'local', email_verified = 1 WHERE password_hash IS NOT NULL;
+
+        -- Drop old table
+        DROP TABLE users;
+
+        -- Rename new table
+        ALTER TABLE users_new RENAME TO users;
+
+        -- Create indexes for OAuth columns
+        CREATE UNIQUE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
+        CREATE INDEX idx_users_auth_provider ON users(auth_provider);
+      `);
+
+      console.log('✅ Migration completed: Added OAuth support columns');
+    } else {
+      console.log('✅ Migration skipped: OAuth columns already exist');
+    }
+
+    // Record migration as applied
+    db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('004_add_oauth_support');
+  }
 }
 
 // Initialize on startup

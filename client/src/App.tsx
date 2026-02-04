@@ -5,6 +5,7 @@ import { useThemeStore } from './store/themeStore';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
 import Trades from './pages/Trades';
 import TradeDetail from './pages/TradeDetail';
@@ -40,6 +41,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
 
         <Route path="/" element={
           <PrivateRoute>

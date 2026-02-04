@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { TrendingUp } from 'lucide-react';
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
+import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -72,6 +73,17 @@ export default function Register() {
               {error}
             </div>
           )}
+
+          <GoogleSignInButton text="Sign up with Google" />
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or sign up with email</span>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">

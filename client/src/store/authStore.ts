@@ -5,6 +5,8 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  profilePicture?: string;
+  authProvider?: 'local' | 'google' | 'both';
 }
 
 interface AuthState {
