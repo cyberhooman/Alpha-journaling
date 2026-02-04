@@ -154,7 +154,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
     // Optimize: Get all tags for all trades in one query instead of N+1
     if (trades.length > 0) {
       const tradeIds = trades.map((t: any) => t.id);
-      const placeholders = tradeIds.map((_, i) => `$${i + 1}`).join(',');
+      const placeholders = tradeIds.map((_id: number, i: number) => `$${i + 1}`).join(',');
 
       const tagsResult = await query(
         `SELECT ttm.trade_id, tt.id, tt.name, tt.color
