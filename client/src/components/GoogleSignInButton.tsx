@@ -13,9 +13,12 @@ export default function GoogleSignInButton({
 
   const handleGoogleSignIn = () => {
     setLoading(true);
-    // Redirect to backend OAuth endpoint
-    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    window.location.href = `${backendUrl}/api/auth/google`;
+    // Redirect to backend OAuth endpoint using backend origin (not /api)
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const backendOrigin = apiUrl
+      ? apiUrl.replace(/\/api\/?$/, '')
+      : (import.meta.env.PROD ? window.location.origin : 'http://localhost:5000');
+    window.location.href = `${backendOrigin}/api/auth/google`;
   };
 
   return (
