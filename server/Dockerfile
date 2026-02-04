@@ -14,8 +14,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY server/package*.json ./server/
 
-# Install only server dependencies
-RUN npm ci --workspace=server --omit=dev || npm install --workspace=server --omit=dev
+# Install only server dependencies (use npm install to avoid lock file sync issues)
+RUN npm install --workspace=server --omit=dev
 
 # Copy server source
 COPY server/ ./server/
