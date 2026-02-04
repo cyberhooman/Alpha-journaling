@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { db } from '../db/database.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, type AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -27,7 +27,7 @@ const updateAccountSchema = z.object({
 });
 
 // GET /api/accounts - Get all trading accounts for user
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const accounts = db.prepare(`
       SELECT * FROM trading_accounts
@@ -43,7 +43,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // GET /api/accounts/:id - Get single account
-router.get('/:id', authenticateToken, async (req, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const account = db.prepare(`
       SELECT * FROM trading_accounts
@@ -62,7 +62,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // POST /api/accounts - Create new trading account
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const data = createAccountSchema.parse(req.body);
 
@@ -115,7 +115,7 @@ const ALLOWED_ACCOUNT_FIELDS = new Set([
 ]);
 
 // PUT /api/accounts/:id - Update account
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const data = updateAccountSchema.parse(req.body);
 
@@ -198,7 +198,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/accounts/:id - Delete account
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const account = db.prepare(`
       SELECT * FROM trading_accounts WHERE id = ? AND user_id = ?
@@ -218,7 +218,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // GET /api/accounts/:id/stats - Get account statistics
-router.get('/:id/stats', authenticateToken, async (req, res) => {
+router.get('/:id/stats', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const account = db.prepare(`
       SELECT * FROM trading_accounts WHERE id = ? AND user_id = ?

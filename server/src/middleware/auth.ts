@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, type RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { getJWTSecret } from '../config/security.js';
@@ -32,11 +32,12 @@ async function isTokenBlacklisted(token: string): Promise<boolean> {
   }
 }
 
-export const authenticateToken = async (
-  req: AuthRequest,
+export const authenticateToken: RequestHandler = async (
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  const authRequest = req as AuthRequest;
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -54,7 +55,7 @@ export const authenticateToken = async (
       id: number;
       email: string;
     };
-    req.user = decoded;
+    authRequest.user = decoded;
     next();
   } catch (error) {
     return res.status(403).json({ error: 'Invalid or expired token' });
