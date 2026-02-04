@@ -11,7 +11,7 @@ passport.use(
       callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback',
       scope: ['profile', 'email'],
     },
-    async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
+    async (_accessToken: string, _refreshToken: string, profile: Profile, done: VerifyCallback) => {
       try {
         const email = profile.emails?.[0]?.value;
         const googleId = profile.id;
@@ -29,7 +29,7 @@ passport.use(
         if (result.rows.length > 0) {
           // User exists with this Google ID - return user
           console.log(`✅ User logged in via Google: ${normalizedEmail}`);
-          return done(null, result.rows[0]);
+          return done(null, result.rows[0] as Express.User);
         }
 
         // Check if user exists by email (for account linking)
@@ -55,7 +55,7 @@ passport.use(
           );
 
           console.log(`✅ Linked Google account to existing user: ${normalizedEmail}`);
-          return done(null, updateResult.rows[0]);
+          return done(null, updateResult.rows[0] as Express.User);
         }
 
         // Create new user with Google OAuth
@@ -79,7 +79,7 @@ passport.use(
         await query('INSERT INTO user_settings (user_id) VALUES ($1)', [newUser.id]);
 
         console.log(`✅ Created new user via Google OAuth: ${normalizedEmail}`);
-        return done(null, newUser);
+        return done(null, newUser as Express.User);
       } catch (error) {
         console.error('Google OAuth error:', error);
         return done(error as Error, undefined);
@@ -97,9 +97,9 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (id: number, done) => {
   try {
     const result = await query('SELECT * FROM users WHERE id = $1', [id]);
-    done(null, result.rows[0]);
+    done(null, result.rows[0] as Express.User);
   } catch (error) {
-    done(error, null);
+    done(error as Error, null);
   }
 });
 
