@@ -1,14 +1,12 @@
 import axios from 'axios';
-import {
-  mockTrades,
-  mockPerformance,
-  mockCalendarData,
-  mockTags,
-} from './mockData';
 
 // Use production API URL with HTTPS, fallback to relative path for production builds
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:5000/api');
 const USE_MOCK_DATA = false; // Demo mode - set to false to use real API
+const isDev = import.meta.env.DEV;
+
+// Lazy-load mock data only when needed to keep the production bundle lean
+const loadMockData = async () => import('./mockData');
 
 const api = axios.create({
   baseURL: API_URL,
@@ -29,7 +27,9 @@ api.interceptors.request.use((config) => {
   }
   // Log request start time for performance monitoring
   (config as any).metadata = { startTime: Date.now() };
-  console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+  if (isDev) {
+    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+  }
   return config;
 });
 
@@ -41,9 +41,11 @@ api.interceptors.response.use(
     if (startTime) {
       const duration = Date.now() - startTime;
       const url = response.config.url;
-      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${url} - ${duration}ms`);
-      if (duration > 1000) {
-        console.warn(`⚠️ SLOW API CALL: ${url} took ${duration}ms`);
+      if (isDev) {
+        console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${url} - ${duration}ms`);
+        if (duration > 1000) {
+          console.warn(`⚠️ SLOW API CALL: ${url} took ${duration}ms`);
+        }
       }
     }
     return response;
@@ -53,7 +55,9 @@ api.interceptors.response.use(
     const startTime = (error.config as any)?.metadata?.startTime;
     if (startTime) {
       const duration = Date.now() - startTime;
-      console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${duration}ms`);
+      if (isDev) {
+        console.error(`❌ API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url} - ${duration}ms`);
+      }
     }
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
@@ -78,55 +82,67 @@ export const authAPI = {
 const mockResponse = (data: any) => Promise.resolve({ data });
 
 export const tradesAPI = {
-  getAll: (params?: any) => USE_MOCK_DATA ? mockResponse(mockTrades) : api.get('/trades', { params }),
-  getOne: (id: number) => USE_MOCK_DATA ? mockResponse(mockTrades.find(t => t.id === id)) : api.get(`/trades/${id}`),
+  getAll: (params?: any) =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockTrades }) => mockResponse(mockTrades))
+      : api.get('/trades', { params }),
+  getOne: (id: number) =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockTrades }) => mockResponse(mockTrades.find(t => t.id === id)))
+      : api.get(`/trades/${id}`),
   create: (data: any) => {
     if (USE_MOCK_DATA) {
-      const newTrade = {
-        ...data,
-        screenshot_url: data.screenshotUrl || null,
-        id: mockTrades.length + 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      delete (newTrade as any).screenshotUrl;
-      mockTrades.push(newTrade);
-      return mockResponse(newTrade);
+      return loadMockData().then(({ mockTrades }) => {
+        const newTrade = {
+          ...data,
+          screenshot_url: data.screenshotUrl || null,
+          id: mockTrades.length + 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        delete (newTrade as any).screenshotUrl;
+        mockTrades.push(newTrade);
+        return mockResponse(newTrade);
+      });
     }
     return api.post('/trades', data);
   },
   update: (id: number, data: any) => {
     if (USE_MOCK_DATA) {
-      const index = mockTrades.findIndex(t => t.id === id);
-      if (index !== -1) {
-        mockTrades[index] = { ...mockTrades[index], ...data };
-        if (data.screenshotUrl !== undefined) {
-          mockTrades[index].screenshot_url = data.screenshotUrl;
-          delete (mockTrades[index] as any).screenshotUrl;
+      return loadMockData().then(({ mockTrades }) => {
+        const index = mockTrades.findIndex(t => t.id === id);
+        if (index !== -1) {
+          mockTrades[index] = { ...mockTrades[index], ...data };
+          if (data.screenshotUrl !== undefined) {
+            mockTrades[index].screenshot_url = data.screenshotUrl;
+            delete (mockTrades[index] as any).screenshotUrl;
+          }
+          return mockResponse(mockTrades[index]);
         }
-        return mockResponse(mockTrades[index]);
-      }
-      return mockResponse(null);
+        return mockResponse(null);
+      });
     }
     return api.put(`/trades/${id}`, data);
   },
   delete: (id: number) => {
     if (USE_MOCK_DATA) {
-      const index = mockTrades.findIndex(t => t.id === id);
-      if (index !== -1) {
-        mockTrades.splice(index, 1);
-      }
-      return mockResponse({ message: 'Trade deleted successfully' });
+      return loadMockData().then(({ mockTrades }) => {
+        const index = mockTrades.findIndex(t => t.id === id);
+        if (index !== -1) {
+          mockTrades.splice(index, 1);
+        }
+        return mockResponse({ message: 'Trade deleted successfully' });
+      });
     }
     return api.delete(`/trades/${id}`);
   },
 };
 
 // Calculate dashboard stats dynamically from current trades
-const calculateDashboardStats = () => {
-  const totalTrades = mockTrades.length;
-  const closedTrades = mockTrades.filter(t => t.status === 'CLOSED' && t.pnl !== null);
-  const openTrades = mockTrades.filter(t => t.status === 'OPEN');
+const calculateDashboardStats = (trades: any[]) => {
+  const totalTrades = trades.length;
+  const closedTrades = trades.filter(t => t.status === 'CLOSED' && t.pnl !== null);
+  const openTrades = trades.filter(t => t.status === 'OPEN');
 
   if (totalTrades === 0) {
     return {
@@ -190,7 +206,7 @@ const calculateDashboardStats = () => {
 
   // Calculate P&L by symbol
   const pnlBySymbolMap = new Map();
-  mockTrades.forEach(trade => {
+  trades.forEach(trade => {
     const existing = pnlBySymbolMap.get(trade.symbol) || { total_pnl: 0, trades: 0, wins: 0, losses: 0 };
     const pnl = Number(trade.pnl) || 0;
     pnlBySymbolMap.set(trade.symbol, {
@@ -291,23 +307,43 @@ const calculateDashboardStats = () => {
 };
 
 export const analyticsAPI = {
-  getDashboard: (params?: any) => USE_MOCK_DATA ? mockResponse(calculateDashboardStats()) : api.get('/analytics/dashboard', { params }),
-  getCalendar: (params?: any) => USE_MOCK_DATA ? mockResponse(mockCalendarData) : api.get('/analytics/calendar', { params }),
-  getPerformance: () => USE_MOCK_DATA ? mockResponse(mockPerformance) : api.get('/analytics/performance'),
+  getDashboard: (params?: any) =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockTrades }) => mockResponse(calculateDashboardStats(mockTrades)))
+      : api.get('/analytics/dashboard', { params }),
+  getCalendar: (params?: any) =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockCalendarData }) => mockResponse(mockCalendarData))
+      : api.get('/analytics/calendar', { params }),
+  getPerformance: () =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockPerformance }) => mockResponse(mockPerformance))
+      : api.get('/analytics/performance'),
 };
 
 export const tagsAPI = {
-  getAll: () => USE_MOCK_DATA ? mockResponse(mockTags) : api.get('/tags'),
+  getAll: () =>
+    USE_MOCK_DATA
+      ? loadMockData().then(({ mockTags }) => mockResponse(mockTags))
+      : api.get('/tags'),
   create: (data: { name: string; color: string }) => {
     if (USE_MOCK_DATA) {
-      const newTag = { ...data, id: mockTags.length + 1 };
-      mockTags.push(newTag);
-      return mockResponse(newTag);
+      return loadMockData().then(({ mockTags }) => {
+        const newTag = { ...data, id: mockTags.length + 1 };
+        mockTags.push(newTag);
+        return mockResponse(newTag);
+      });
     }
     return api.post('/tags', data);
   },
-  update: (id: number, data: any) => USE_MOCK_DATA ? mockResponse({ id, ...data }) : api.put(`/tags/${id}`, data),
-  delete: (id: number) => USE_MOCK_DATA ? mockResponse({ message: 'Tag deleted successfully' }) : api.delete(`/tags/${id}`),
+  update: (id: number, data: any) =>
+    USE_MOCK_DATA
+      ? mockResponse({ id, ...data })
+      : api.put(`/tags/${id}`, data),
+  delete: (id: number) =>
+    USE_MOCK_DATA
+      ? mockResponse({ message: 'Tag deleted successfully' })
+      : api.delete(`/tags/${id}`),
 };
 
 export const importAPI = {

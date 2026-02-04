@@ -5,6 +5,8 @@ import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
+const isDev = import.meta.env.DEV;
+
 // Global error handler for uncaught errors
 window.addEventListener('error', (event) => {
   console.error('Global error caught:', event.error);
@@ -14,10 +16,12 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled promise rejection:', event.reason);
 });
 
-// Log app initialization
-console.log('Trading Journal App initializing...');
-console.log('User Agent:', navigator.userAgent);
-console.log('Platform:', navigator.platform);
+// Log app initialization (dev only)
+if (isDev) {
+  console.log('Trading Journal App initializing...');
+  console.log('User Agent:', navigator.userAgent);
+  console.log('Platform:', navigator.platform);
+}
 
 // Check if localStorage is available (iOS Safari private mode blocks it)
 let isLocalStorageAvailable = false;
@@ -26,7 +30,9 @@ try {
   localStorage.setItem(test, test);
   localStorage.removeItem(test);
   isLocalStorageAvailable = true;
-  console.log('localStorage is available');
+  if (isDev) {
+    console.log('localStorage is available');
+  }
 } catch (e) {
   console.warn('localStorage not available, using memory storage fallback', e);
 }
@@ -81,7 +87,9 @@ const queryClient = new QueryClient({
   },
 });
 
-console.log('Rendering React app...');
+if (isDev) {
+  console.log('Rendering React app...');
+}
 
 try {
   const rootElement = document.getElementById('root');
@@ -99,7 +107,9 @@ try {
     </React.StrictMode>
   );
 
-  console.log('React app rendered successfully');
+  if (isDev) {
+    console.log('React app rendered successfully');
+  }
 } catch (error) {
   console.error('Failed to render React app:', error);
 
