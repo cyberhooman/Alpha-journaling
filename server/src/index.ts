@@ -42,17 +42,46 @@ app.use(helmet({
 }));
 
 // CORS Configuration - Secure origin whitelist
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:3000'];
+const normalizeOrigin = (value: string): string => {
+  const trimmed = value.trim().replace(/\/+$/, '');
+  if (!trimmed) return '';
+  try {
+    const url = new URL(trimmed);
+    return `${url.protocol}//${url.host}`;
+  } catch {
+    return trimmed;
+  }
+};
+
+const rawAllowedOrigins: string[] = [];
+
+if (process.env.ALLOWED_ORIGINS) {
+  rawAllowedOrigins.push(...process.env.ALLOWED_ORIGINS.split(','));
+}
+
+// FRONTEND_URL is already required for OAuth redirects; use it as an allowed origin too.
+if (process.env.FRONTEND_URL) {
+  rawAllowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+// Local development fallbacks
+if (process.env.NODE_ENV !== 'production') {
+  rawAllowedOrigins.push('http://localhost:5173', 'http://localhost:3000');
+}
+
+const allowedOrigins = new Set(
+  rawAllowedOrigins
+    .map(normalizeOrigin)
+    .filter(Boolean)
+);
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Electron, curl)
-    if (!origin) return callback(null, true);
+    if (!origin || origin === 'null') return callback(null, true);
 
     // Check if origin is in whitelist
-    if (allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin))) {
+    if (allowedOrigins.has(normalizeOrigin(origin))) {
       return callback(null, true);
     }
 
