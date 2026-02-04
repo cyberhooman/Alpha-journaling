@@ -14,14 +14,17 @@ WORKDIR /app
 COPY package*.json ./
 COPY server/package*.json ./server/
 
-# Install only server dependencies (use npm install to avoid lock file sync issues)
-RUN npm install --workspace=server --omit=dev
+# Install all dependencies including dev (needed for TypeScript build)
+RUN npm install --workspace=server
 
 # Copy server source
 COPY server/ ./server/
 
 # Build TypeScript
 RUN npm run build --workspace=server
+
+# Remove dev dependencies after build to reduce image size
+RUN npm prune --workspace=server --omit=dev
 
 # Expose port
 EXPOSE 5000
