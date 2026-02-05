@@ -193,6 +193,12 @@ export default function TradeDetail() {
                 {tradeData.take_profit ? `$${Number(tradeData.take_profit).toFixed(2)}` : '-'}
               </dd>
             </div>
+            <div className="flex justify-between">
+              <dt className="text-slate-600">Reward:Risk</dt>
+              <dd className="font-semibold">
+                {tradeData.reward_risk_ratio ? Number(tradeData.reward_risk_ratio).toFixed(2) : '-'}
+              </dd>
+            </div>
           </dl>
         </div>
 

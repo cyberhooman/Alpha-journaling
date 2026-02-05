@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { tradesAPI, tagsAPI, accountsAPI, strategiesAPI } from '../lib/api';
+import ScreenshotExtractorPanel from '../components/ScreenshotExtractorPanel';
+import type { ExtractionResult } from '../lib/ocr/tradingviewExtractor';
 
 export default function EditTrade() {
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ export default function EditTrade() {
     quantity: '',
     stopLoss: '',
     takeProfit: '',
+    rewardRiskRatio: '',
     fees: '0',
     pnl: '',
     mfe: '',
@@ -68,6 +71,66 @@ export default function EditTrade() {
     tagIds: [] as number[],
   });
 
+  const calculateRewardRisk = (entry?: number, stopLoss?: number, takeProfit?: number) => {
+    if (entry === undefined || stopLoss === undefined || takeProfit === undefined) return '';
+    const risk = Math.abs(entry - stopLoss);
+    const reward = Math.abs(takeProfit - entry);
+    if (!Number.isFinite(risk) || risk === 0) return '';
+    return (reward / risk).toFixed(2);
+  };
+
+  const applyExtraction = (extraction: ExtractionResult, options?: { onlyEmpty?: boolean }) => {
+    const onlyEmpty = options?.onlyEmpty ?? false;
+    setFormData((prev) => {
+      const next = { ...prev };
+
+      if ((!onlyEmpty || !next.symbol) && extraction.symbol) {
+        next.symbol = extraction.symbol;
+      }
+
+      if ((!onlyEmpty || !next.side) && extraction.side) {
+        next.side = extraction.side;
+      }
+
+      if ((!onlyEmpty || !next.entryPrice) && extraction.entry !== undefined) {
+        next.entryPrice = String(extraction.entry);
+      }
+
+      if ((!onlyEmpty || !next.stopLoss) && extraction.stopLoss !== undefined) {
+        next.stopLoss = String(extraction.stopLoss);
+      }
+
+      if ((!onlyEmpty || !next.takeProfit) && extraction.takeProfit !== undefined) {
+        next.takeProfit = String(extraction.takeProfit);
+      }
+
+      if (extraction.rewardRiskRatio !== undefined) {
+        const rr = extraction.rewardRiskRatio.toFixed(2);
+        if (!onlyEmpty || !next.rewardRiskRatio) {
+          next.rewardRiskRatio = rr;
+        }
+      }
+
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const entry = Number.parseFloat(formData.entryPrice);
+    const stopLoss = Number.parseFloat(formData.stopLoss);
+    const takeProfit = Number.parseFloat(formData.takeProfit);
+
+    const rr = calculateRewardRisk(
+      Number.isFinite(entry) ? entry : undefined,
+      Number.isFinite(stopLoss) ? stopLoss : undefined,
+      Number.isFinite(takeProfit) ? takeProfit : undefined
+    );
+
+    if (rr !== formData.rewardRiskRatio) {
+      setFormData((prev) => ({ ...prev, rewardRiskRatio: rr }));
+    }
+  }, [formData.entryPrice, formData.stopLoss, formData.takeProfit]);
+
   // Load existing trade data into form
   useEffect(() => {
     if (tradeData) {
@@ -82,6 +145,7 @@ export default function EditTrade() {
         quantity: tradeData.quantity ? String(tradeData.quantity) : '',
         stopLoss: tradeData.stop_loss ? String(tradeData.stop_loss) : '',
         takeProfit: tradeData.take_profit ? String(tradeData.take_profit) : '',
+        rewardRiskRatio: tradeData.reward_risk_ratio ? String(tradeData.reward_risk_ratio) : '',
         fees: tradeData.fees ? String(tradeData.fees) : '0',
         pnl: tradeData.pnl ? String(tradeData.pnl) : '',
         mfe: tradeData.mfe ? String(tradeData.mfe) : '',
@@ -142,6 +206,7 @@ export default function EditTrade() {
       fees: safeParseFloat(formData.fees) || 0,
       pnl: safeParseFloat(formData.pnl),
       mfe: safeParseFloat(formData.mfe),
+      rewardRiskRatio: safeParseFloat(formData.rewardRiskRatio),
       status: formData.status,
       strategy: formData.strategy || undefined,
       setup: formData.setup || undefined,
@@ -452,6 +517,21 @@ export default function EditTrade() {
                 onChange={handleChange}
               />
             </div>
+
+            <div>
+              <label className="label">Reward:Risk</label>
+              <input
+                type="text"
+                name="rewardRiskRatio"
+                className="input bg-slate-50"
+                value={formData.rewardRiskRatio}
+                readOnly
+                placeholder="Auto-calculated"
+              />
+              <p className="text-xs text-slate-500 mt-1">
+                Calculated from entry, stop loss, and take profit.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -624,6 +704,11 @@ export default function EditTrade() {
               />
             </label>
           )}
+
+          <ScreenshotExtractorPanel
+            screenshotUrl={formData.screenshotUrl}
+            onApply={applyExtraction}
+          />
         </div>
 
         {/* Notes */}
