@@ -157,7 +157,7 @@ const median = (values: number[]) => {
 };
 
 const toNumber = (text: string) => {
-  const cleaned = text.replace(/[^0-9.]/g, '');
+  const cleaned = text.replace(/[^0-9.,]/g, '').replace(/,/g, '');
   if (!cleaned) return undefined;
   const parsed = Number.parseFloat(cleaned);
   return Number.isFinite(parsed) ? parsed : undefined;
@@ -213,7 +213,7 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
 
     const recognizeWords = async (source: HTMLCanvasElement, psm: PSM) => {
       await worker.setParameters({
-        tessedit_char_whitelist: '0123456789.',
+        tessedit_char_whitelist: '0123456789.,',
         tessedit_pageseg_mode: psm,
         user_defined_dpi: '200',
       });
@@ -268,6 +268,150 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
           color,
         });
       });
+    }
+
+    const detectColorRegions = (targetColor: CandidateColor) => {
+      const downscale = 3;
+      const dw = Math.floor(image.width / downscale);
+      const dh = Math.floor(image.height / downscale);
+      const small = document.createElement('canvas');
+      small.width = dw;
+      small.height = dh;
+      const smallCtx = small.getContext('2d');
+      if (!smallCtx) return [];
+      smallCtx.drawImage(image, 0, 0, dw, dh);
+      const data = smallCtx.getImageData(0, 0, dw, dh).data;
+
+      const mask = new Uint8Array(dw * dh);
+      for (let y = 0; y < dh; y++) {
+        for (let x = 0; x < dw; x++) {
+          const idx = (y * dw + x) * 4;
+          const r = data[idx];
+          const g = data[idx + 1];
+          const b = data[idx + 2];
+          const { h, s, v } = rgbToHsv(r, g, b);
+          const isGreen = h >= 80 && h <= 160 && s > 0.25 && v > 0.2;
+          const isRed = (h <= 20 || h >= 340) && s > 0.25 && v > 0.2;
+          if ((targetColor === 'green' && isGreen) || (targetColor === 'red' && isRed)) {
+            mask[y * dw + x] = 1;
+          }
+        }
+      }
+
+      const visited = new Uint8Array(dw * dh);
+      const boxes: { x0: number; y0: number; x1: number; y1: number }[] = [];
+      const stack: number[] = [];
+
+      for (let y = 0; y < dh; y++) {
+        for (let x = 0; x < dw; x++) {
+          const idx = y * dw + x;
+          if (!mask[idx] || visited[idx]) continue;
+
+          let minX = x;
+          let maxX = x;
+          let minY = y;
+          let maxY = y;
+          visited[idx] = 1;
+          stack.push(idx);
+
+          while (stack.length) {
+            const current = stack.pop()!;
+            const cx = current % dw;
+            const cy = Math.floor(current / dw);
+            minX = Math.min(minX, cx);
+            maxX = Math.max(maxX, cx);
+            minY = Math.min(minY, cy);
+            maxY = Math.max(maxY, cy);
+
+            const neighbors = [
+              current - 1,
+              current + 1,
+              current - dw,
+              current + dw,
+            ];
+            neighbors.forEach((n) => {
+              if (n < 0 || n >= mask.length) return;
+              if (visited[n] || !mask[n]) return;
+              visited[n] = 1;
+              stack.push(n);
+            });
+          }
+
+          const w = maxX - minX + 1;
+          const h = maxY - minY + 1;
+          if (w < 8 || h < 8) continue;
+          boxes.push({
+            x0: minX * downscale,
+            y0: minY * downscale,
+            x1: (maxX + 1) * downscale,
+            y1: (maxY + 1) * downscale,
+          });
+        }
+      }
+
+      return boxes;
+    };
+
+    if (candidates.length === 0) {
+      const redBoxes = detectColorRegions('red');
+      const greenBoxes = detectColorRegions('green');
+      const coloredBoxes = [...redBoxes.map((b) => ({ ...b, color: 'red' as CandidateColor })), ...greenBoxes.map((b) => ({ ...b, color: 'green' as CandidateColor }))];
+
+      for (const box of coloredBoxes) {
+        if ((box.x0 + box.x1) / 2 < image.width * 0.55) continue;
+        const padding = 6;
+        const left = clamp(box.x0 - padding, 0, image.width);
+        const top = clamp(box.y0 - padding, 0, image.height);
+        const right = clamp(box.x1 + padding, 0, image.width);
+        const bottom = clamp(box.y1 + padding, 0, image.height);
+
+        const cropW = right - left;
+        const cropH = bottom - top;
+        if (cropW <= 0 || cropH <= 0) continue;
+
+        const cropCanvas = document.createElement('canvas');
+        cropCanvas.width = cropW * scale;
+        cropCanvas.height = cropH * scale;
+        const cropCtx = cropCanvas.getContext('2d');
+        if (!cropCtx) continue;
+        cropCtx.drawImage(
+          image,
+          left,
+          top,
+          cropW,
+          cropH,
+          0,
+          0,
+          cropCanvas.width,
+          cropCanvas.height
+        );
+
+        await worker.setParameters({
+          tessedit_char_whitelist: '0123456789.,',
+          tessedit_pageseg_mode: PSM.SINGLE_LINE,
+          user_defined_dpi: '240',
+        });
+        const cropData = await worker.recognize(cropCanvas);
+        const words = collectWords(cropData.data);
+        const best = words
+          .map((word) => ({ value: toNumber(word.text), confidence: word.confidence }))
+          .filter((entry) => entry.value !== undefined)
+          .sort((a, b) => (b.confidence ?? 0) - (a.confidence ?? 0))[0];
+
+        if (best?.value !== undefined) {
+          candidates.push({
+            value: best.value,
+            confidence: best.confidence ?? 0,
+            bbox: {
+              x0: left * scale,
+              y0: top * scale,
+              x1: right * scale,
+              y1: bottom * scale,
+            },
+            color: box.color,
+          });
+        }
+      }
     }
 
     if (candidates.length === 0) {
