@@ -28,10 +28,13 @@ let workerQueue: Promise<unknown> = Promise.resolve();
 const getWorker = async (): Promise<Worker> => {
   if (!workerPromise) {
     workerPromise = (async () => {
+      const basePath = import.meta.env.BASE_URL.endsWith('/')
+        ? import.meta.env.BASE_URL
+        : `${import.meta.env.BASE_URL}/`;
       const worker = await createWorker('eng', 1, {
-        workerPath: new URL('tesseract.js/dist/worker.min.js', import.meta.url).toString(),
-        corePath: new URL('tesseract.js-core/tesseract-core.wasm.js', import.meta.url).toString(),
-        langPath: `${import.meta.env.BASE_URL}ocr`,
+        workerPath: `${basePath}ocr/worker.min.js`,
+        corePath: `${basePath}ocr/tesseract-core.wasm.js`,
+        langPath: `${basePath}ocr`,
         gzip: true,
         logger: () => undefined,
       });
