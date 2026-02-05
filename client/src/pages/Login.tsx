@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { TrendingUp, ArrowRight, BarChart3, LineChart } from 'lucide-react';
 import { authAPI } from '../lib/api';
@@ -12,26 +12,6 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [tickerData, setTickerData] = useState([
-    { symbol: 'AAPL', price: 178.45, change: 2.34 },
-    { symbol: 'MSFT', price: 412.89, change: -1.23 },
-    { symbol: 'GOOGL', price: 142.67, change: 0.89 },
-    { symbol: 'AMZN', price: 181.23, change: 3.45 },
-    { symbol: 'TSLA', price: 248.91, change: -2.67 },
-    { symbol: 'NVDA', price: 875.34, change: 5.12 },
-  ]);
-
-  useEffect(() => {
-    // Animate ticker prices
-    const interval = setInterval(() => {
-      setTickerData(prev => prev.map(item => ({
-        ...item,
-        price: item.price + (Math.random() - 0.5) * 2,
-        change: item.change + (Math.random() - 0.5) * 0.5,
-      })));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,261 +30,224 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-500 flex overflow-hidden relative">
+    <div className="min-h-screen bg-neutral-100 text-dark-500 flex overflow-hidden relative">
       {/* Google Fonts */}
-      <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-      {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(rgba(255,117,34,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,117,34,0.3) 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
-          animation: 'gridPulse 4s ease-in-out infinite'
-        }}></div>
+      {/* Atmospheric background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-48 -left-40 h-[520px] w-[520px] rounded-full bg-primary-200/60 blur-3xl"></div>
+        <div className="absolute -bottom-56 -right-40 h-[520px] w-[520px] rounded-full bg-accent-200/50 blur-3xl"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.65),transparent_60%)]"></div>
       </div>
 
-      {/* Left side - Market data / Brand */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden border-r-4 border-primary-500 bg-gradient-to-br from-dark-400 via-dark-500 to-dark-600">
-        {/* Animated accent lines */}
-        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary-500 via-accent-400 to-primary-500 animate-shimmer"></div>
-        <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-accent-400 via-primary-500 to-accent-400 animate-shimmer" style={{ animationDelay: '1s' }}></div>
-
-        <div className="relative z-10 flex flex-col justify-between p-16 w-full">
-          {/* Header */}
-          <div>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="relative">
-                <TrendingUp className="w-16 h-16 text-primary-500" strokeWidth={3} />
-                <div className="absolute -inset-2 bg-primary-500 opacity-20 blur-xl animate-pulse"></div>
+      {/* Left side - Brand story */}
+      <div className="hidden lg:flex lg:w-1/2 relative">
+        <div className="relative z-10 w-full px-16 py-20 flex items-center">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-3 text-primary-600 fade-up" style={{ animationDelay: '80ms' }}>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md">
+                <TrendingUp className="w-6 h-6 text-primary-600" strokeWidth={2.5} />
               </div>
-              <div>
-                <h1 className="text-5xl font-black text-white tracking-tighter" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                  TRADING
-                </h1>
-                <div className="text-2xl font-bold text-primary-500" style={{ fontFamily: 'Orbitron, sans-serif', letterSpacing: '0.3em' }}>
-                  JOURNAL
+              <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
+                Trading Journal
+              </div>
+            </div>
+
+            <h1
+              className="mt-8 text-5xl leading-tight text-dark-500 fade-up"
+              style={{ fontFamily: 'Gloock, serif', animationDelay: '140ms' }}
+            >
+              Clarity, every trade.
+            </h1>
+            <p
+              className="mt-6 text-lg text-dark-400 leading-relaxed fade-up"
+              style={{ fontFamily: 'Manrope, sans-serif', animationDelay: '200ms' }}
+            >
+              A calm, precise journal that turns today&apos;s trades into tomorrow&apos;s edge. Capture fast,
+              review deeper, improve without noise.
+            </p>
+
+            <div className="mt-10 grid gap-4">
+              <div className="flex items-start gap-4 rounded-2xl bg-white/70 border border-neutral-200 p-5 shadow-sm fade-up" style={{ animationDelay: '260ms' }}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+                  <BarChart3 className="w-5 h-5" />
                 </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 mb-12">
-              <div className="flex items-center gap-3 text-neutral-200">
-                <BarChart3 className="w-5 h-5 text-accent-400" />
-                <span className="font-mono text-sm">PRECISION TRACKING</span>
-              </div>
-              <div className="flex items-center gap-3 text-neutral-200">
-                <LineChart className="w-5 h-5 text-accent-400" />
-                <span className="font-mono text-sm">REAL-TIME ANALYTICS</span>
-              </div>
-              <div className="flex items-center gap-3 text-neutral-200">
-                <TrendingUp className="w-5 h-5 text-accent-400" />
-                <span className="font-mono text-sm">PERFORMANCE OPTIMIZATION</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Live Ticker */}
-          <div className="space-y-4">
-            <div className="text-xs font-mono text-neutral-400 tracking-widest mb-4">
-              LIVE MARKET DATA
-            </div>
-            <div className="space-y-2">
-              {tickerData.map((item, idx) => (
-                <div
-                  key={item.symbol}
-                  className="flex items-center justify-between p-4 bg-dark-600 border-l-4 transition-all duration-500 hover:bg-dark-500 group"
-                  style={{
-                    borderLeftColor: item.change > 0 ? '#10b981' : '#ef4444',
-                    animationDelay: `${idx * 100}ms`
-                  }}
-                >
-                  <div className="font-mono font-bold text-white text-lg tracking-wider">
-                    {item.symbol}
+                <div>
+                  <div className="text-base font-semibold text-dark-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    Patterns you can act on
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="font-mono text-2xl text-white tabular-nums">
-                      ${item.price.toFixed(2)}
-                    </div>
-                    <div className={`font-mono font-semibold text-sm px-3 py-1 rounded ${
-                      item.change > 0 ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'
-                    }`}>
-                      {item.change > 0 ? '+' : ''}{item.change.toFixed(2)}%
-                    </div>
+                  <div className="text-sm text-dark-400">
+                    See wins, losses, and behaviors with zero spreadsheet work.
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="flex items-start gap-4 rounded-2xl bg-white/70 border border-neutral-200 p-5 shadow-sm fade-up" style={{ animationDelay: '320ms' }}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-100 text-accent-700">
+                  <LineChart className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-dark-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    Momentum without chaos
+                  </div>
+                  <div className="text-sm text-dark-400">
+                    Daily reflection that keeps you consistent, not reactive.
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 rounded-2xl bg-white/70 border border-neutral-200 p-5 shadow-sm fade-up" style={{ animationDelay: '380ms' }}>
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-dark-500">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-base font-semibold text-dark-500" style={{ fontFamily: 'Manrope, sans-serif' }}>
+                    Built for serious focus
+                  </div>
+                  <div className="text-sm text-dark-400">
+                    A clean, premium workspace that respects your attention.
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Footer stat */}
-          <div className="mt-12 pt-8 border-t border-neutral-700">
-            <div className="font-mono text-xs text-neutral-400 tracking-widest mb-2">
-              SYSTEM STATUS
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-              <span className="font-mono text-neutral-300">ALL SYSTEMS OPERATIONAL</span>
+            <div className="mt-10 flex items-center gap-3 text-sm text-dark-400 fade-up" style={{ animationDelay: '440ms' }}>
+              <div className="h-2 w-2 rounded-full bg-success"></div>
+              Secure by design. Your data stays yours.
             </div>
           </div>
         </div>
       </div>
 
       {/* Right side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-8 relative">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-10 relative">
         {/* Mobile logo */}
-        <div className="lg:hidden absolute top-8 left-8 flex items-center gap-3">
-          <TrendingUp className="w-10 h-10 text-primary-500" strokeWidth={3} />
-          <div>
-            <div className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-              TRADING
-            </div>
-            <div className="text-xs font-bold text-primary-500" style={{ fontFamily: 'Orbitron, sans-serif', letterSpacing: '0.2em' }}>
-              JOURNAL
-            </div>
+        <div className="lg:hidden absolute top-8 left-6 flex items-center gap-3 fade-up">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-md">
+            <TrendingUp className="w-5 h-5 text-primary-600" strokeWidth={2.5} />
+          </div>
+          <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
+            Trading Journal
           </div>
         </div>
 
         <div className="w-full max-w-md pt-24 lg:pt-0">
-          {/* Form card */}
-          <div className="relative">
-            {/* Glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary-500 to-accent-400 rounded-2xl opacity-20 blur-xl"></div>
+          <div className="mb-8 text-center lg:text-left fade-up" style={{ animationDelay: '120ms' }}>
+            <div className="text-xs uppercase tracking-[0.4em] text-dark-300">Welcome back</div>
+            <h2 className="mt-3 text-4xl text-dark-500" style={{ fontFamily: 'Gloock, serif' }}>
+              Sign in to your journal.
+            </h2>
+            <p className="mt-3 text-base text-dark-400" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              Simple, focused, premium. Keep your edge where it belongs.
+            </p>
+          </div>
 
-            <div className="relative bg-dark-400 border-2 border-neutral-700 rounded-2xl p-8 shadow-2xl">
-              {/* Header */}
-              <div className="mb-8">
-                <h2 className="text-4xl font-black text-white mb-2 tracking-tight" style={{ fontFamily: 'Orbitron, sans-serif' }}>
-                  ACCESS
-                </h2>
-                <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-accent-400 mb-4"></div>
-                <p className="font-mono text-sm text-neutral-400 tracking-wide">
-                  Enter credentials to continue
-                </p>
-              </div>
+          <div className="relative fade-up" style={{ animationDelay: '200ms' }}>
+            <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary-200/60 via-white to-accent-200/60 blur-xl opacity-80"></div>
 
+            <div className="relative rounded-3xl border border-neutral-200 bg-white/85 p-8 shadow-[0_24px_60px_-28px_rgba(31,31,31,0.6)] backdrop-blur">
               {error && (
-                <div className="bg-danger/10 border-l-4 border-danger text-danger px-4 py-3 mb-6 font-mono text-sm animate-shake">
-                  <div className="font-bold mb-1">ACCESS DENIED</div>
+                <div className="bg-danger/10 border border-danger/30 text-danger px-4 py-3 mb-6 rounded-xl text-sm">
+                  <div className="font-semibold mb-1">We couldn&apos;t sign you in.</div>
                   {error}
                 </div>
               )}
 
-              <GoogleSignInButton />
+              <GoogleSignInButton className="rounded-xl border-neutral-200 bg-white hover:bg-neutral-50" text="Continue with Google" />
 
-              {/* Divider */}
-              <div className="relative my-8">
+              <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t-2 border-neutral-700 border-dashed"></div>
+                  <div className="w-full border-t border-neutral-200"></div>
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-4 bg-dark-400 font-mono text-xs text-neutral-500 tracking-widest">
-                    OR USE EMAIL
+                  <span className="px-4 bg-white/90 text-xs tracking-[0.3em] uppercase text-dark-300">
+                    Or continue with email
                   </span>
                 </div>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
-                  <label className="block font-mono text-xs text-neutral-400 tracking-widest uppercase">
-                    Email Address
+                  <label className="block text-xs uppercase tracking-[0.3em] text-dark-300">
+                    Email
                   </label>
                   <input
                     type="email"
-                    className="w-full px-4 py-4 bg-dark-600 border-2 border-neutral-700 rounded-lg font-mono text-white placeholder-neutral-600 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all duration-200"
-                    placeholder="user@example.com"
+                    className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-dark-500 placeholder-dark-300 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-200/40 transition-all duration-200"
+                    placeholder="you@domain.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     autoFocus
+                    style={{ fontFamily: 'Manrope, sans-serif' }}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block font-mono text-xs text-neutral-400 tracking-widest uppercase">
+                  <label className="block text-xs uppercase tracking-[0.3em] text-dark-300">
                     Password
                   </label>
                   <input
                     type="password"
-                    className="w-full px-4 py-4 bg-dark-600 border-2 border-neutral-700 rounded-lg font-mono text-white placeholder-neutral-600 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all duration-200"
-                    placeholder="••••••••"
+                    className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-dark-500 placeholder-dark-300 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-200/40 transition-all duration-200"
+                    placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    style={{ fontFamily: 'Manrope, sans-serif' }}
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full relative group overflow-hidden bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="w-full relative group overflow-hidden bg-dark-500 hover:bg-dark-600 text-neutral-100 font-semibold py-3.5 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={loading}
-                  style={{ fontFamily: 'Orbitron, sans-serif' }}
+                  style={{ fontFamily: 'Manrope, sans-serif' }}
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-3 tracking-wider">
+                  <span className="relative z-10 flex items-center justify-center gap-3">
                     {loading ? (
                       <>
-                        <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                        AUTHENTICATING...
+                        <div className="w-5 h-5 border-2 border-neutral-100 border-t-transparent rounded-full animate-spin"></div>
+                        Signing in...
                       </>
                     ) : (
                       <>
-                        SIGN IN
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        Continue
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-accent-400 to-primary-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-accent-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
               </form>
 
-              {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-neutral-700">
-                <p className="text-center font-mono text-sm text-neutral-400">
-                  New user?{' '}
-                  <Link
-                    to="/register"
-                    className="text-primary-500 hover:text-primary-400 font-bold transition-colors duration-200 group"
-                  >
-                    CREATE ACCOUNT
-                    <span className="inline-block ml-1 group-hover:translate-x-1 transition-transform">→</span>
-                  </Link>
-                </p>
+              <div className="mt-6 pt-5 border-t border-neutral-200 text-center text-sm text-dark-400">
+                New here?{' '}
+                <Link
+                  to="/register"
+                  className="text-primary-700 hover:text-primary-800 font-semibold transition-colors duration-200"
+                >
+                  Create an account
+                </Link>
               </div>
             </div>
           </div>
 
-          {/* Bottom decoration */}
-          <div className="mt-6 flex items-center justify-center gap-2 font-mono text-xs text-neutral-600">
-            <div className="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></div>
-            SECURE CONNECTION
+          <div className="mt-6 flex items-center justify-center lg:justify-start gap-2 text-xs text-dark-300">
+            <div className="w-2 h-2 rounded-full bg-success"></div>
+            Secure connection
           </div>
         </div>
       </div>
 
       {/* Inline animations */}
       <style>{`
-        @keyframes gridPulse {
-          0%, 100% { opacity: 0.05; }
-          50% { opacity: 0.15; }
+        @keyframes fadeUp {
+          0% { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes shimmer {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.8; }
-        }
-
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-          20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-
-        .animate-shimmer {
-          animation: shimmer 3s ease-in-out infinite;
-        }
-
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
+        .fade-up {
+          animation: fadeUp 0.8s ease-out both;
         }
       `}</style>
     </div>
