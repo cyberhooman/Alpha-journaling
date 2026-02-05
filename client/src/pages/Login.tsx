@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, ArrowRight, BarChart3, LineChart } from 'lucide-react';
+import { ArrowRight, BarChart3, LineChart, TrendingUp } from 'lucide-react';
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import GoogleSignInButton from '../components/GoogleSignInButton';
@@ -47,10 +47,14 @@ export default function Login() {
           <div className="max-w-xl">
             <div className="flex items-center gap-3 text-primary-600 fade-up" style={{ animationDelay: '80ms' }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md">
-                <TrendingUp className="w-6 h-6 text-primary-600" strokeWidth={2.5} />
+                <img
+                  src="/icon.png"
+                  alt="Alphalabs icon"
+                  className="h-7 w-7 object-contain"
+                />
               </div>
               <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
-                Trading Journal
+                Alphalabs Trading Journal
               </div>
             </div>
 
@@ -123,10 +127,14 @@ export default function Login() {
         {/* Mobile logo */}
         <div className="lg:hidden absolute top-8 left-6 flex items-center gap-3 fade-up">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-md">
-            <TrendingUp className="w-5 h-5 text-primary-600" strokeWidth={2.5} />
+            <img
+              src="/icon.png"
+              alt="Alphalabs icon"
+              className="h-6 w-6 object-contain"
+            />
           </div>
           <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
-            Trading Journal
+            Alphalabs Trading Journal
           </div>
         </div>
 

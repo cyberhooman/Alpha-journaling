@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { extractTradingViewPosition, type ExtractionResult } from '../lib/ocr/tradingviewExtractor';
+import { extractTradingViewPosition, type ExtractionResult } from '../lib/ai/aiExtractor';
 
 type ExtractionStatus = 'idle' | 'running' | 'success' | 'error';
 

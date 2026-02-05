@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { tradesAPI, tagsAPI, accountsAPI, strategiesAPI } from '../lib/api';
 import ScreenshotExtractorPanel from '../components/ScreenshotExtractorPanel';
-import type { ExtractionResult } from '../lib/ocr/tradingviewExtractor';
+import type { ExtractionResult } from '../lib/ai/aiExtractor';
 
 export default function NewTrade() {
   const navigate = useNavigate();
