@@ -24,6 +24,20 @@ validateSecurityConfig();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy in production (Railway/Render/etc.) so rate limiting reads X-Forwarded-For correctly
+const trustProxyEnv = (process.env.TRUST_PROXY ?? '').trim().toLowerCase();
+if (trustProxyEnv) {
+  if (trustProxyEnv === 'true') {
+    app.set('trust proxy', 1);
+  } else if (trustProxyEnv === 'false') {
+    app.set('trust proxy', false);
+  } else {
+    app.set('trust proxy', trustProxyEnv);
+  }
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security middleware - helmet for security headers
 app.use(helmet({
   contentSecurityPolicy: {
