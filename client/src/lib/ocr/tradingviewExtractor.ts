@@ -176,7 +176,7 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
     const warnings: string[] = [];
     const image = await loadImage(dataUrl);
 
-    const scale = image.width < 1600 ? 1600 / image.width : 1;
+    const scale = image.width < 2000 ? 2000 / image.width : 1;
     const width = Math.round(image.width * scale);
     const height = Math.round(image.height * scale);
 
@@ -199,8 +199,8 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
     }
     colorCtx.drawImage(image, 0, 0, image.width, image.height);
 
-    const roiX = Math.floor(width * 0.75);
-    const roiW = Math.floor(width * 0.25);
+    const roiX = Math.floor(width * 0.65);
+    const roiW = Math.floor(width * 0.35);
     const roiH = height;
     const roiCanvas = document.createElement('canvas');
     roiCanvas.width = roiW;
@@ -211,14 +211,23 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
     }
     roiCtx.drawImage(canvas, roiX, 0, roiW, roiH, 0, 0, roiW, roiH);
 
-    await worker.setParameters({
-      tessedit_char_whitelist: '0123456789.',
-      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-    });
-    const numericData = await worker.recognize(roiCanvas);
+    const recognizeWords = async (source: HTMLCanvasElement, psm: PSM) => {
+      await worker.setParameters({
+        tessedit_char_whitelist: '0123456789.',
+        tessedit_pageseg_mode: psm,
+        user_defined_dpi: '200',
+      });
+      const data = await worker.recognize(source);
+      return collectWords(data.data);
+    };
+
+    let numericWords = await recognizeWords(roiCanvas, PSM.SINGLE_BLOCK);
+    if (numericWords.length === 0) {
+      numericWords = await recognizeWords(roiCanvas, PSM.SPARSE_TEXT);
+    }
 
     const candidates: NumericCandidate[] = [];
-    collectWords(numericData.data).forEach((word) => {
+    numericWords.forEach((word) => {
       const value = toNumber(word.text);
       if (value === undefined) return;
       const bbox = {
@@ -241,6 +250,27 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
     });
 
     if (candidates.length === 0) {
+      const fullWords = await recognizeWords(canvas, PSM.SPARSE_TEXT);
+      fullWords.forEach((word) => {
+        const value = toNumber(word.text);
+        if (value === undefined) return;
+        const bbox = word.bbox;
+        if ((bbox.x0 + bbox.x1) / 2 < width * 0.6) return;
+        const centerX = (bbox.x0 + bbox.x1) / 2;
+        const centerY = (bbox.y0 + bbox.y1) / 2;
+        const origX = centerX / scale;
+        const origY = centerY / scale;
+        const color = classifyColor(colorCtx, origX, origY);
+        candidates.push({
+          value,
+          confidence: word.confidence,
+          bbox,
+          color,
+        });
+      });
+    }
+
+    if (candidates.length === 0) {
       throw new Error('No price labels detected. Make sure the TradingView position tool is visible.');
     }
 
@@ -258,12 +288,21 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
     }
     bandCtx.drawImage(canvas, 0, bandY, width, bandHeight, 0, 0, width, bandHeight);
 
-    await worker.setParameters({
-      tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/',
-      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
-    });
-    const symbolData = await worker.recognize(bandCanvas);
-    const symbolText = collectWords(symbolData.data).map((w) => w.text).join(' ');
+    const recognizeSymbolWords = async (psm: PSM) => {
+      await worker.setParameters({
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/',
+        tessedit_pageseg_mode: psm,
+        user_defined_dpi: '200',
+      });
+      const data = await worker.recognize(bandCanvas);
+      return collectWords(data.data);
+    };
+
+    let symbolWords = await recognizeSymbolWords(PSM.SINGLE_BLOCK);
+    if (symbolWords.length === 0) {
+      symbolWords = await recognizeSymbolWords(PSM.SPARSE_TEXT);
+    }
+    const symbolText = symbolWords.map((w) => w.text).join(' ');
     const symbolMatch = symbolText.match(/[A-Z]{3,8}\/?[A-Z]{3,8}/);
     const symbol = symbolMatch ? symbolMatch[0].replace('/', '') : undefined;
 
