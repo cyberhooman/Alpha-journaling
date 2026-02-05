@@ -20,9 +20,9 @@
     "start": "npm run start --workspace=server",
     "electron": "wait-on http://localhost:5173 && electron .",
     "electron:dev": "concurrently \"npm run dev:client\" \"npm run dev:server\" \"npm run electron\"",
-    "electron:build": "npm run build && electron-builder",
-    "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "electron:build": "cross-env VITE_BASE_PATH=./ npm run build && electron-builder",
+    "pack": "cross-env VITE_BASE_PATH=./ npm run build && electron-builder --dir",
+    "dist": "cross-env VITE_BASE_PATH=./ npm run build && electron-builder"
   },
   "build": {
     "appId": "com.tradingjournalpro.app",
