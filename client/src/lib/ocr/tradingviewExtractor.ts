@@ -1,4 +1,4 @@
-import { createWorker, type Worker } from 'tesseract.js';
+import { createWorker, PSM, type Worker } from 'tesseract.js';
 
 export type TradeSide = 'LONG' | 'SHORT';
 
@@ -21,6 +21,33 @@ interface NumericCandidate {
   bbox: { x0: number; y0: number; x1: number; y1: number };
   color: CandidateColor;
 }
+
+interface TesseractWord {
+  text: string;
+  confidence: number;
+  bbox: { x0: number; y0: number; x1: number; y1: number };
+}
+
+const collectWords = (page: any): TesseractWord[] => {
+  if (page?.words && Array.isArray(page.words)) {
+    return page.words as TesseractWord[];
+  }
+
+  const words: TesseractWord[] = [];
+  page?.blocks?.forEach((block: any) => {
+    block?.paragraphs?.forEach((paragraph: any) => {
+      paragraph?.lines?.forEach((line: any) => {
+        line?.words?.forEach((word: any) => {
+          if (word?.text && word?.bbox) {
+            words.push(word as TesseractWord);
+          }
+        });
+      });
+    });
+  });
+
+  return words;
+};
 
 let workerPromise: Promise<Worker> | null = null;
 let workerQueue: Promise<unknown> = Promise.resolve();
@@ -186,12 +213,12 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
 
     await worker.setParameters({
       tessedit_char_whitelist: '0123456789.',
-      tessedit_pageseg_mode: '6',
+      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
     });
     const numericData = await worker.recognize(roiCanvas);
 
     const candidates: NumericCandidate[] = [];
-    numericData.data.words.forEach((word) => {
+    collectWords(numericData.data).forEach((word) => {
       const value = toNumber(word.text);
       if (value === undefined) return;
       const bbox = {
@@ -233,10 +260,10 @@ export const extractTradingViewPosition = async (dataUrl: string): Promise<Extra
 
     await worker.setParameters({
       tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/',
-      tessedit_pageseg_mode: '6',
+      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
     });
     const symbolData = await worker.recognize(bandCanvas);
-    const symbolText = symbolData.data.words.map((w) => w.text).join(' ');
+    const symbolText = collectWords(symbolData.data).map((w) => w.text).join(' ');
     const symbolMatch = symbolText.match(/[A-Z]{3,8}\/?[A-Z]{3,8}/);
     const symbol = symbolMatch ? symbolMatch[0].replace('/', '') : undefined;
 
