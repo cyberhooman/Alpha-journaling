@@ -3,8 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft } from 'lucide-react';
 import { tradesAPI, tagsAPI, accountsAPI, strategiesAPI } from '../lib/api';
-import ScreenshotExtractorPanel from '../components/ScreenshotExtractorPanel';
-import type { ExtractionResult } from '../lib/ai/aiExtractor';
 
 export default function EditTrade() {
   const navigate = useNavigate();
@@ -77,42 +75,6 @@ export default function EditTrade() {
     const reward = Math.abs(takeProfit - entry);
     if (!Number.isFinite(risk) || risk === 0) return '';
     return (reward / risk).toFixed(2);
-  };
-
-  const applyExtraction = (extraction: ExtractionResult, options?: { onlyEmpty?: boolean }) => {
-    const onlyEmpty = options?.onlyEmpty ?? false;
-    setFormData((prev) => {
-      const next = { ...prev };
-
-      if ((!onlyEmpty || !next.symbol) && extraction.symbol) {
-        next.symbol = extraction.symbol;
-      }
-
-      if ((!onlyEmpty || !next.side) && extraction.side) {
-        next.side = extraction.side;
-      }
-
-      if ((!onlyEmpty || !next.entryPrice) && extraction.entry !== undefined) {
-        next.entryPrice = String(extraction.entry);
-      }
-
-      if ((!onlyEmpty || !next.stopLoss) && extraction.stopLoss !== undefined) {
-        next.stopLoss = String(extraction.stopLoss);
-      }
-
-      if ((!onlyEmpty || !next.takeProfit) && extraction.takeProfit !== undefined) {
-        next.takeProfit = String(extraction.takeProfit);
-      }
-
-      if (extraction.rewardRiskRatio !== undefined) {
-        const rr = extraction.rewardRiskRatio.toFixed(2);
-        if (!onlyEmpty || !next.rewardRiskRatio) {
-          next.rewardRiskRatio = rr;
-        }
-      }
-
-      return next;
-    });
   };
 
   useEffect(() => {
@@ -705,10 +667,6 @@ export default function EditTrade() {
             </label>
           )}
 
-          <ScreenshotExtractorPanel
-            screenshotUrl={formData.screenshotUrl}
-            onApply={applyExtraction}
-          />
         </div>
 
         {/* Notes */}
