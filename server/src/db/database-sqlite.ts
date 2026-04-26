@@ -413,7 +413,7 @@ function runMigrations() {
           email TEXT UNIQUE NOT NULL,
           password_hash TEXT,
           google_id TEXT UNIQUE,
-          auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google', 'both')),
+          auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google', 'both', 'alphalabs_sso')),
           profile_picture_url TEXT,
           email_verified INTEGER DEFAULT 0,
           first_name TEXT,
@@ -473,6 +473,42 @@ function runMigrations() {
 
     // Record migration as applied
     db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('005_add_mae');
+  }
+
+  // Migration 006: Add 'alphalabs_sso' to auth_provider CHECK constraint
+  const migration006Applied = db.prepare(
+    'SELECT * FROM schema_migrations WHERE name = ?'
+  ).get('006_add_alphalabs_sso_provider');
+
+  if (!migration006Applied) {
+    console.log('🔄 Running migration: Add alphalabs_sso auth provider...');
+
+    db.exec(`
+      CREATE TABLE users_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        google_id TEXT UNIQUE,
+        auth_provider TEXT DEFAULT 'local' CHECK (auth_provider IN ('local', 'google', 'both', 'alphalabs_sso')),
+        profile_picture_url TEXT,
+        email_verified INTEGER DEFAULT 0,
+        first_name TEXT,
+        last_name TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      INSERT INTO users_new SELECT id, email, password_hash, google_id, auth_provider, profile_picture_url, email_verified, first_name, last_name, created_at, updated_at FROM users;
+
+      DROP TABLE users;
+      ALTER TABLE users_new RENAME TO users;
+
+      CREATE UNIQUE INDEX idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
+      CREATE INDEX idx_users_auth_provider ON users(auth_provider);
+    `);
+
+    console.log('✅ Migration completed: Added alphalabs_sso auth provider');
+    db.prepare('INSERT INTO schema_migrations (name) VALUES (?)').run('006_add_alphalabs_sso_provider');
   }
 }
 
