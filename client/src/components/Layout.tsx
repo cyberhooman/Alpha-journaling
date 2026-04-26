@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   SquaresFour,
@@ -7,7 +7,7 @@ import {
   ChartBar,
   CalendarBlank,
   UploadSimple,
-  SignOut,
+  ArrowLeft,
   TrendUp,
   Gear,
   List,
@@ -29,13 +29,11 @@ const navigation = [
 ];
 
 export default function Layout() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    window.location.href = 'https://app.alphalabs.live/logout';
+  const handleBackToApp = () => {
+    window.location.href = 'https://app.alphalabs.live';
   };
 
   const initials = (user?.firstName || user?.email || 'U').slice(0, 2).toUpperCase();
@@ -101,12 +99,12 @@ export default function Layout() {
               <p className="text-[10px] truncate" style={{ color: 'rgb(var(--text-muted))' }}>{user?.email}</p>
             </div>
             <button
-              onClick={handleLogout}
-              title="Sign out"
+              onClick={handleBackToApp}
+              title="Back to AlphaLabs"
               className="p-1 rounded-lg transition-colors"
               style={{ color: 'rgb(var(--text-muted))' }}
             >
-              <SignOut className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

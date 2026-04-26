@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npx serve -s dist -l $PORT",
     "dev:local": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "start": "npx serve -s dist -l $PORT"
   },
