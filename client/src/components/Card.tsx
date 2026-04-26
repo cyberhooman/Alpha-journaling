@@ -1,12 +1,12 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
   title?: string;
   subtitle?: string;
-  icon?: LucideIcon;
+  icon?: React.ElementType;
   badge?: React.ReactNode;
 }
 
@@ -16,30 +16,30 @@ export const Card: React.FC<CardProps> = ({
   title,
   subtitle,
   icon: Icon,
-  badge
+  badge,
 }) => {
   return (
-    <div className={`bg-white rounded-3xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 ${className}`}>
+    <div className={`card ${className}`}>
       {(title || subtitle || Icon) && (
-        <div className="mb-6">
+        <div className="mb-5">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {title && (
-                <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                <h3 className="text-base font-semibold mb-0.5" style={{ color: '#f2f2f2' }}>
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs" style={{ color: '#555' }}>
                   {subtitle}
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {badge}
               {Icon && (
-                <div className="bg-purple-50 p-2.5 rounded-xl">
-                  <Icon className="w-5 h-5 text-purple-600" />
+                <div className="p-2 rounded-xl" style={{ background: 'rgba(255,117,34,0.1)' }}>
+                  <Icon className="w-4 h-4" style={{ color: '#FF7522' }} />
                 </div>
               )}
             </div>

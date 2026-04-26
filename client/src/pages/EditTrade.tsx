@@ -1,8 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, UploadSimple, X, Check } from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
 import { tradesAPI, tagsAPI, accountsAPI, strategiesAPI } from '../lib/api';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.35, ease: 'easeOut' },
+  }),
+};
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h3
+      className="text-xs uppercase tracking-widest font-semibold mb-4 pb-3 border-b"
+      style={{ color: 'var(--color-accent)', borderColor: 'var(--color-border)' }}
+    >
+      {children}
+    </h3>
+  );
+}
+
+function FieldHint({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+      {children}
+    </p>
+  );
+}
 
 export default function EditTrade() {
   const navigate = useNavigate();
@@ -56,6 +85,7 @@ export default function EditTrade() {
     fees: '0',
     pnl: '',
     mfe: '',
+    mae: '',
     status: 'OPEN' as 'OPEN' | 'CLOSED' | 'CANCELLED',
     strategy: '',
     setup: '',
@@ -93,7 +123,6 @@ export default function EditTrade() {
     }
   }, [formData.entryPrice, formData.stopLoss, formData.takeProfit]);
 
-  // Load existing trade data into form
   useEffect(() => {
     if (tradeData) {
       setFormData({
@@ -111,6 +140,7 @@ export default function EditTrade() {
         fees: tradeData.fees ? String(tradeData.fees) : '0',
         pnl: tradeData.pnl ? String(tradeData.pnl) : '',
         mfe: tradeData.mfe ? String(tradeData.mfe) : '',
+        mae: tradeData.mae ? String(tradeData.mae) : '',
         status: tradeData.status || 'OPEN',
         strategy: tradeData.strategy || '',
         setup: tradeData.setup || '',
@@ -129,8 +159,6 @@ export default function EditTrade() {
   const updateMutation = useMutation({
     mutationFn: (data: any) => tradesAPI.update(Number(id), data),
     onSuccess: () => {
-      // Invalidate queries (marks them stale) instead of awaiting refetch
-      // They will refresh when the user navigates to those pages
       queryClient.invalidateQueries({ queryKey: ['trades'] });
       queryClient.invalidateQueries({ queryKey: ['trade', id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
@@ -141,7 +169,6 @@ export default function EditTrade() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Helper function to safely parse numbers
     const safeParseFloat = (value: string): number | undefined => {
       if (!value || value.trim() === '') return undefined;
       const parsed = parseFloat(value);
@@ -168,6 +195,7 @@ export default function EditTrade() {
       fees: safeParseFloat(formData.fees) || 0,
       pnl: safeParseFloat(formData.pnl),
       mfe: safeParseFloat(formData.mfe),
+      mae: safeParseFloat(formData.mae),
       rewardRiskRatio: safeParseFloat(formData.rewardRiskRatio),
       status: formData.status,
       strategy: formData.strategy || undefined,
@@ -192,27 +220,12 @@ export default function EditTrade() {
 
   const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file.');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Please choose an image smaller than 5MB.');
-      return;
-    }
-
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { alert('Please select an image file.'); return; }
+    if (file.size > 5 * 1024 * 1024) { alert('Please choose an image smaller than 5MB.'); return; }
     const reader = new FileReader();
-    reader.onload = () => {
-      setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
-    };
-    reader.onerror = () => {
-      alert('Failed to read the image file. Please try again.');
-    };
+    reader.onload = () => setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
+    reader.onerror = () => alert('Failed to read the image file. Please try again.');
     reader.readAsDataURL(file);
   };
 
@@ -220,37 +233,24 @@ export default function EditTrade() {
     setFormData(prev => ({ ...prev, screenshotUrl: '' }));
   };
 
-  // Handle paste from clipboard (Ctrl+V)
   useEffect(() => {
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
       if (!items) return;
-
       for (let i = 0; i < items.length; i++) {
         if (items[i].type.startsWith('image/')) {
           const file = items[i].getAsFile();
           if (!file) continue;
-
-          if (file.size > 5 * 1024 * 1024) {
-            alert('Please choose an image smaller than 5MB.');
-            return;
-          }
-
+          if (file.size > 5 * 1024 * 1024) { alert('Please choose an image smaller than 5MB.'); return; }
           const reader = new FileReader();
-          reader.onload = () => {
-            setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
-          };
-          reader.onerror = () => {
-            alert('Failed to read the pasted image. Please try again.');
-          };
+          reader.onload = () => setFormData(prev => ({ ...prev, screenshotUrl: reader.result as string }));
+          reader.onerror = () => alert('Failed to read the pasted image. Please try again.');
           reader.readAsDataURL(file);
-
           e.preventDefault();
           break;
         }
       }
     };
-
     document.addEventListener('paste', handlePaste);
     return () => document.removeEventListener('paste', handlePaste);
   }, []);
@@ -258,37 +258,58 @@ export default function EditTrade() {
   if (isLoadingTrade) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div
+          className="w-10 h-10 rounded-full border-2 animate-spin"
+          style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl space-y-4 sm:space-y-6">
-      <div className="flex items-center gap-3 sm:gap-4">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg flex-shrink-0">
-          <ArrowLeft className="w-5 h-5" />
+    <div className="max-w-4xl space-y-6">
+      {/* Page Header */}
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex items-center gap-3">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 rounded-lg transition-colors flex-shrink-0"
+          style={{ background: 'var(--color-surface-2)', color: 'var(--color-text-secondary)' }}
+          onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+          onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+        >
+          <ArrowLeft weight="bold" size={18} />
         </button>
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Edit Trade</h1>
-          <p className="text-slate-600 mt-1 text-sm sm:text-base">Update trade details in your journal</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-0.5" style={{ color: 'var(--color-text-secondary)' }}>
+            Journal
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+            Edit Trade
+            {tradeData?.symbol && (
+              <span className="ml-2 text-2xl" style={{ color: 'var(--color-accent)' }}>
+                — {tradeData.symbol}
+              </span>
+            )}
+          </h1>
         </div>
-      </div>
+      </motion.div>
 
-      <form onSubmit={handleSubmit} className="card space-y-4 sm:space-y-6">
+      <motion.form
+        custom={1}
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        onSubmit={handleSubmit}
+        className="rounded-xl p-5 sm:p-6 space-y-8"
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+      >
         {/* Basic Information */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <SectionHeader>Basic Information</SectionHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="label">Trading Account *</label>
-              <select
-                name="accountId"
-                className="input"
-                value={formData.accountId}
-                onChange={handleChange}
-                required
-              >
+              <select name="accountId" className="input" value={formData.accountId} onChange={handleChange} required>
                 <option value="">Select an account...</option>
                 {accounts?.data?.map((account: any) => (
                   <option key={account.id} value={account.id}>
@@ -297,7 +318,7 @@ export default function EditTrade() {
                 ))}
               </select>
               {(!accounts?.data || accounts.data.length === 0) && (
-                <p className="text-sm text-red-600 mt-1">
+                <p className="text-xs mt-1" style={{ color: 'var(--color-red)' }}>
                   No accounts found. Please create an account in Settings first.
                 </p>
               )}
@@ -305,15 +326,7 @@ export default function EditTrade() {
 
             <div>
               <label className="label">Symbol *</label>
-              <input
-                type="text"
-                name="symbol"
-                className="input"
-                value={formData.symbol}
-                onChange={handleChange}
-                required
-                placeholder="AAPL"
-              />
+              <input type="text" name="symbol" className="input" value={formData.symbol} onChange={handleChange} required placeholder="AAPL" />
             </div>
 
             <div>
@@ -326,25 +339,12 @@ export default function EditTrade() {
 
             <div>
               <label className="label">Entry Date *</label>
-              <input
-                type="datetime-local"
-                name="entryDate"
-                className="input"
-                value={formData.entryDate}
-                onChange={handleChange}
-                required
-              />
+              <input type="datetime-local" name="entryDate" className="input" value={formData.entryDate} onChange={handleChange} required />
             </div>
 
             <div>
               <label className="label">Exit Date</label>
-              <input
-                type="datetime-local"
-                name="exitDate"
-                className="input"
-                value={formData.exitDate}
-                onChange={handleChange}
-              />
+              <input type="datetime-local" name="exitDate" className="input" value={formData.exitDate} onChange={handleChange} />
             </div>
 
             <div>
@@ -372,135 +372,66 @@ export default function EditTrade() {
 
         {/* Trade Details */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Trade Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <SectionHeader>Trade Details</SectionHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="label">Entry Price *</label>
-              <input
-                type="number"
-                step="0.01"
-                name="entryPrice"
-                className="input"
-                value={formData.entryPrice}
-                onChange={handleChange}
-                required
-              />
+              <input type="number" step="0.01" name="entryPrice" className="input" value={formData.entryPrice} onChange={handleChange} required />
             </div>
-
             <div>
               <label className="label">Exit Price</label>
-              <input
-                type="number"
-                step="0.01"
-                name="exitPrice"
-                className="input"
-                value={formData.exitPrice}
-                onChange={handleChange}
-              />
+              <input type="number" step="0.01" name="exitPrice" className="input" value={formData.exitPrice} onChange={handleChange} />
             </div>
-
             <div>
               <label className="label">Quantity *</label>
-              <input
-                type="number"
-                step="0.01"
-                name="quantity"
-                className="input"
-                value={formData.quantity}
-                onChange={handleChange}
-                required
-              />
+              <input type="number" step="0.01" name="quantity" className="input" value={formData.quantity} onChange={handleChange} required />
             </div>
-
             <div>
               <label className="label">Fees</label>
-              <input
-                type="number"
-                step="0.01"
-                name="fees"
-                className="input"
-                value={formData.fees}
-                onChange={handleChange}
-              />
+              <input type="number" step="0.01" name="fees" className="input" value={formData.fees} onChange={handleChange} />
             </div>
-
             <div>
               <label className="label">P&L (Profit/Loss)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="pnl"
-                className="input"
-                value={formData.pnl}
-                onChange={handleChange}
-                placeholder="Enter profit or loss amount"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Optional: Manually enter P&L or leave blank to calculate automatically
-              </p>
+              <input type="number" step="0.01" name="pnl" className="input" value={formData.pnl} onChange={handleChange} placeholder="Enter profit or loss amount" />
+              <FieldHint>Optional: Manually enter P&L or leave blank to calculate automatically</FieldHint>
             </div>
-
             <div>
               <label className="label">MFE (Max Favorable Excursion)</label>
-              <input
-                type="number"
-                step="0.01"
-                name="mfe"
-                className="input"
-                value={formData.mfe}
-                onChange={handleChange}
-                placeholder="Enter MFE value"
-              />
-              <p className="text-xs text-slate-500 mt-1">
-                Optional: Maximum profit reached during trade
-              </p>
+              <input type="number" step="0.01" name="mfe" className="input" value={formData.mfe} onChange={handleChange} placeholder="Enter MFE value" />
+              <FieldHint>Optional: Maximum profit reached during trade</FieldHint>
             </div>
-
+            <div>
+              <label className="label">MAE (Max Adverse Excursion)</label>
+              <input type="number" step="0.01" name="mae" className="input" value={formData.mae} onChange={handleChange} placeholder="Enter MAE value" />
+              <FieldHint>Optional: Maximum loss reached during trade</FieldHint>
+            </div>
             <div>
               <label className="label">Stop Loss</label>
-              <input
-                type="number"
-                step="0.01"
-                name="stopLoss"
-                className="input"
-                value={formData.stopLoss}
-                onChange={handleChange}
-              />
+              <input type="number" step="0.01" name="stopLoss" className="input" value={formData.stopLoss} onChange={handleChange} />
             </div>
-
             <div>
               <label className="label">Take Profit</label>
-              <input
-                type="number"
-                step="0.01"
-                name="takeProfit"
-                className="input"
-                value={formData.takeProfit}
-                onChange={handleChange}
-              />
+              <input type="number" step="0.01" name="takeProfit" className="input" value={formData.takeProfit} onChange={handleChange} />
             </div>
-
             <div>
               <label className="label">Reward:Risk</label>
               <input
                 type="text"
                 name="rewardRiskRatio"
-                className="input bg-slate-50"
+                className="input font-mono-nums opacity-70"
                 value={formData.rewardRiskRatio}
                 readOnly
                 placeholder="Auto-calculated"
               />
-              <p className="text-xs text-slate-500 mt-1">
-                Calculated from entry, stop loss, and take profit.
-              </p>
+              <FieldHint>Calculated from entry, stop loss, and take profit.</FieldHint>
             </div>
           </div>
         </div>
 
-        {/* Strategy */}
+        {/* Strategy & Setup */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Strategy & Setup</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <SectionHeader>Strategy & Setup</SectionHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div>
               <label className="label">Strategy</label>
               <select
@@ -519,9 +450,7 @@ export default function EditTrade() {
               >
                 <option value="">Select a strategy...</option>
                 {strategies?.filter((s: any) => s.is_active === 1).map((strategy: any) => (
-                  <option key={strategy.id} value={strategy.name}>
-                    {strategy.name}
-                  </option>
+                  <option key={strategy.id} value={strategy.name}>{strategy.name}</option>
                 ))}
                 <option value="__custom__">Custom (type below)</option>
               </select>
@@ -540,43 +469,23 @@ export default function EditTrade() {
 
             <div>
               <label className="label">Setup</label>
-              <input
-                type="text"
-                name="setup"
-                className="input"
-                value={formData.setup}
-                onChange={handleChange}
-                placeholder="Bull flag, Support bounce, etc."
-              />
+              <input type="text" name="setup" className="input" value={formData.setup} onChange={handleChange} placeholder="Bull flag, Support bounce, etc." />
             </div>
 
             <div>
               <label className="label">Timeframe</label>
-              <input
-                type="text"
-                name="timeframe"
-                className="input"
-                value={formData.timeframe}
-                onChange={handleChange}
-                placeholder="5m, 1h, 1D, etc."
-              />
+              <input type="text" name="timeframe" className="input" value={formData.timeframe} onChange={handleChange} placeholder="5m, 1h, 1D, etc." />
             </div>
 
             <div>
               <label className="label">Broker</label>
-              <input
-                type="text"
-                name="broker"
-                className="input"
-                value={formData.broker}
-                onChange={handleChange}
-              />
+              <input type="text" name="broker" className="input" value={formData.broker} onChange={handleChange} />
             </div>
 
-            {/* Tags Selector */}
+            {/* Tags */}
             <div className="md:col-span-3">
               <label className="label">Tags</label>
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div className="flex flex-wrap gap-2">
                 {tags?.data && tags.data.length > 0 ? (
                   tags.data.map((tag: any) => {
                     const isSelected = formData.tagIds.includes(tag.id);
@@ -589,29 +498,24 @@ export default function EditTrade() {
                             ...prev,
                             tagIds: isSelected
                               ? prev.tagIds.filter(id => id !== tag.id)
-                              : [...prev.tagIds, tag.id]
+                              : [...prev.tagIds, tag.id],
                           }));
                         }}
-                        className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-full transition-all ${
-                          isSelected
-                            ? 'ring-2 ring-offset-1'
-                            : 'opacity-60 hover:opacity-100'
-                        }`}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-full transition-all"
                         style={{
                           backgroundColor: `${tag.color}20`,
                           color: tag.color,
-                          border: `1px solid ${tag.color}40`
-                        } as React.CSSProperties}
+                          border: `1px solid ${tag.color}40`,
+                          opacity: isSelected ? 1 : 0.55,
+                        }}
                       >
+                        {isSelected && <Check size={11} weight="bold" className="mr-1.5" />}
                         {tag.name}
-                        {isSelected && (
-                          <span className="ml-1.5 font-bold">✓</span>
-                        )}
                       </button>
                     );
                   })
                 ) : (
-                  <p className="text-sm text-slate-500">No tags available. Create tags in Settings.</p>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>No tags available. Create tags in Settings.</p>
                 )}
               </div>
             </div>
@@ -620,99 +524,60 @@ export default function EditTrade() {
 
         {/* Trade Capture */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Trade Capture</h3>
-          <p className="text-xs sm:text-sm text-slate-600 mb-3 sm:mb-4">
+          <SectionHeader>Trade Capture</SectionHeader>
+          <p className="text-xs mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             Attach a screenshot of your execution or chart for quick visual context.
           </p>
-
           {formData.screenshotUrl ? (
-            <div className="space-y-2 sm:space-y-3">
-              <div className="relative w-full overflow-hidden rounded-lg sm:rounded-xl border border-slate-200 bg-slate-50">
-                <img
-                  src={formData.screenshotUrl}
-                  alt="Uploaded trade screenshot preview"
-                  className="w-full object-contain max-h-[280px] sm:max-h-[420px] bg-slate-100"
-                />
+            <div className="space-y-3">
+              <div className="relative w-full overflow-hidden rounded-xl" style={{ border: '1px solid var(--color-border)', background: '#0a0a0a' }}>
+                <img src={formData.screenshotUrl} alt="Uploaded trade screenshot preview" className="w-full object-contain max-h-[420px]" />
               </div>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <a
-                  href={formData.screenshotUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary inline-flex items-center justify-center text-sm sm:text-base"
-                >
+              <div className="flex flex-col sm:flex-row gap-2">
+                <a href={formData.screenshotUrl} target="_blank" rel="noopener noreferrer" className="btn btn-secondary inline-flex items-center justify-center gap-2 text-sm">
                   Open Full Size
                 </a>
-                <button
-                  type="button"
-                  onClick={handleRemoveScreenshot}
-                  className="btn btn-danger inline-flex items-center justify-center text-sm sm:text-base"
-                >
-                  Remove Screenshot
+                <button type="button" onClick={handleRemoveScreenshot} className="btn btn-danger inline-flex items-center justify-center gap-2 text-sm">
+                  <X size={13} weight="bold" /> Remove Screenshot
                 </button>
               </div>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center w-full h-36 sm:h-48 border-2 border-dashed border-slate-300 rounded-lg sm:rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
-              <div className="text-center px-4">
-                <p className="font-semibold text-slate-700 text-sm sm:text-base">Click to upload or press Ctrl+V</p>
-                <p className="text-xs sm:text-sm text-slate-500 mt-1">PNG, JPG, or GIF up to 5MB</p>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleScreenshotUpload}
-              />
+            <label
+              className="flex flex-col items-center justify-center w-full h-44 rounded-xl cursor-pointer transition-colors"
+              style={{ border: '2px dashed var(--color-border)', background: 'var(--color-surface-2)' }}
+              onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-accent)')}
+              onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--color-border)')}
+            >
+              <UploadSimple size={28} style={{ color: 'var(--color-text-secondary)' }} className="mb-2" />
+              <p className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)' }}>Click to upload or press Ctrl+V</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)', opacity: 0.6 }}>PNG, JPG, or GIF up to 5MB</p>
+              <input type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
             </label>
           )}
-
         </div>
 
-        {/* Notes */}
+        {/* Notes & Analysis */}
         <div>
-          <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Notes & Analysis</h3>
-          <div className="space-y-3 sm:space-y-4">
+          <SectionHeader>Notes & Analysis</SectionHeader>
+          <div className="space-y-4">
             <div>
               <label className="label">Entry Reasoning</label>
-              <textarea
-                name="entryReasoning"
-                className="input"
-                rows={3}
-                value={formData.entryReasoning}
-                onChange={handleChange}
-                placeholder="Why did you enter this trade?"
-              />
+              <textarea name="entryReasoning" className="input" rows={3} value={formData.entryReasoning} onChange={handleChange} placeholder="Why did you enter this trade?" />
             </div>
-
             <div>
               <label className="label">Exit Reasoning</label>
-              <textarea
-                name="exitReasoning"
-                className="input"
-                rows={3}
-                value={formData.exitReasoning}
-                onChange={handleChange}
-                placeholder="Why did you exit this trade?"
-              />
+              <textarea name="exitReasoning" className="input" rows={3} value={formData.exitReasoning} onChange={handleChange} placeholder="Why did you exit this trade?" />
             </div>
-
             <div>
               <label className="label">General Notes</label>
-              <textarea
-                name="notes"
-                className="input"
-                rows={3}
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Additional notes..."
-              />
+              <textarea name="notes" className="input" rows={3} value={formData.notes} onChange={handleChange} placeholder="Additional notes..." />
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t" style={{ borderColor: 'var(--color-border)' }}>
           <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={updateMutation.isPending}>
             {updateMutation.isPending ? 'Updating...' : 'Update Trade'}
           </button>
@@ -720,7 +585,7 @@ export default function EditTrade() {
             Cancel
           </button>
         </div>
-      </form>
+      </motion.form>
     </div>
   );
 }

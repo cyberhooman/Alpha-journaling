@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { rateLimit } from 'express-rate-limit';
 import session from 'express-session';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { validateSecurityConfig } from './config/security.js';
 import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { startCleanupTasks } from './utils/cleanup.js';
@@ -15,8 +15,6 @@ import tagsRoutes from './routes/tags.js';
 import importRoutes from './routes/import.js';
 import accountsRoutes from './routes/accounts.js';
 import strategiesRoutes from './routes/strategies.js';
-
-dotenv.config();
 
 // Validate security configuration on startup
 validateSecurityConfig();
@@ -130,8 +128,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitizeRequestBody);
 
 // Session middleware (required for Passport)
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET environment variable is required. Please set it in your .env file.');
+}
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {

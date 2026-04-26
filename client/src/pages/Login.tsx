@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, LineChart, TrendingUp } from 'lucide-react';
+import { ArrowRight, ChartBar, ChartLine, TrendUp } from '@phosphor-icons/react';
+const BarChart3 = ChartBar;
+const LineChart = ChartLine;
+const TrendingUp = TrendUp;
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import GoogleSignInButton from '../components/GoogleSignInButton';

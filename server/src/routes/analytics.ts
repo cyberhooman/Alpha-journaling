@@ -8,7 +8,10 @@ const router = express.Router();
 router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const startTime = Date.now();
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { startDate, endDate, accountId } = req.query;
 
     let filters = '';
@@ -176,7 +179,10 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
 // Get calendar data
 router.get('/calendar', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { year, month } = req.query;
 
     let dateFilter = '';
@@ -244,7 +250,10 @@ router.get('/calendar', authenticateToken, async (req: AuthRequest, res) => {
 // Get performance metrics
 router.get('/performance', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     // Expectancy calculation
     const expectancyResult = await query(

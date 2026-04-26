@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from './Card';
-import { DollarSign, ChevronDown } from 'lucide-react';
+import { CurrencyDollar as DollarSign, CaretDown as ChevronDown } from '@phosphor-icons/react';
 
 const data = [
   { name: 'Recovered', value: 70 },

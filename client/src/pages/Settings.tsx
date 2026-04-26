@@ -1,9 +1,39 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit, Trash2, X, Tag, Moon, Sun } from 'lucide-react';
 import { accountsAPI, tagsAPI } from '../lib/api';
 import type { TradingAccount } from '../types';
 import { useThemeStore } from '../store/themeStore';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Plus,
+  PencilSimple,
+  Trash,
+  Tag,
+  X,
+  Moon,
+  Sun,
+  Wallet,
+  TrendUp,
+  TrendDown,
+} from '@phosphor-icons/react';
+const TrendingUp = TrendUp;
+const TrendingDown = TrendDown;
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.35, ease: 'easeOut' },
+  }),
+};
+
+const accountTypeBadge: Record<string, string> = {
+  LIVE: 'badge-green',
+  PROP_FIRM: 'badge-orange',
+  FUNDED: 'badge-orange',
+  DEMO: 'badge-neutral',
+};
 
 export default function Settings() {
   const [showNewAccountModal, setShowNewAccountModal] = useState(false);
@@ -62,7 +92,6 @@ export default function Settings() {
     },
   });
 
-  // Tags management
   const { data: tags } = useQuery({
     queryKey: ['tags'],
     queryFn: () => tagsAPI.getAll(),
@@ -92,167 +121,205 @@ export default function Settings() {
   });
 
   return (
-    <div className="max-w-6xl space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="max-w-4xl space-y-8">
+      {/* Page Header */}
+      <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-dark-500 dark:text-white">Settings</h1>
-          <p className="text-dark-400 dark:text-slate-400 mt-1 text-sm sm:text-base">Manage your trading accounts and tags</p>
+          <p className="text-xs uppercase tracking-widest font-semibold text-[#555] mb-1">Configuration</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#f2f2f2]">Settings</h1>
+          <p className="text-[#8c8c8c] mt-1 text-sm">Manage accounts, tags, and preferences</p>
         </div>
-
         <button
           onClick={() => setShowNewAccountModal(true)}
-          className="btn btn-primary inline-flex items-center justify-center gap-2 w-full sm:w-auto"
+          className="btn btn-primary inline-flex items-center gap-2 self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" />
+          <Plus size={16} weight="bold" />
           New Account
         </button>
-      </div>
+      </motion.div>
 
-      {/* Dark Mode Section */}
-      <div className="card dark:bg-slate-800 dark:border-slate-700">
+      {/* Appearance */}
+      <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="card p-5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-dark-500 dark:text-white">Appearance</h2>
-            <p className="text-sm text-dark-400 dark:text-slate-400 mt-1">Customize how the app looks</p>
+            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Preferences</p>
+            <h2 className="text-base font-semibold text-[#f2f2f2]">Appearance</h2>
+            <p className="text-xs text-[#555] mt-0.5">Toggle between light and dark mode</p>
           </div>
           <button
             onClick={toggleDarkMode}
-            className={`relative inline-flex items-center h-12 w-24 rounded-full transition-colors ${
-              isDarkMode ? 'bg-blue-600' : 'bg-slate-300'
-            }`}
+            className="relative inline-flex items-center h-8 w-16 rounded-full transition-colors"
+            style={{ background: isDarkMode ? '#FF7522' : '#282828' }}
           >
             <span
-              className={`inline-flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-lg transform transition-transform ${
-                isDarkMode ? 'translate-x-13' : 'translate-x-1'
-              }`}
+              className="inline-flex items-center justify-center w-6 h-6 rounded-full shadow transition-transform"
+              style={{
+                background: '#f2f2f2',
+                transform: isDarkMode ? 'translateX(36px)' : 'translateX(4px)',
+              }}
             >
               {isDarkMode ? (
-                <Moon className="w-5 h-5 text-blue-600" />
+                <Moon size={13} weight="fill" style={{ color: '#FF7522' }} />
               ) : (
-                <Sun className="w-5 h-5 text-amber-500" />
+                <Sun size={13} weight="fill" style={{ color: '#555' }} />
               )}
             </span>
           </button>
         </div>
-      </div>
+      </motion.div>
 
+      {/* Error */}
       {error && (
-        <div className="card bg-red-50 border-red-200 p-4">
-          <p className="text-red-700">Error loading accounts: {(error as any).message}</p>
-        </div>
+        <motion.div
+          custom={2}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="card p-4 border-[#f87171]/40"
+          style={{ borderColor: 'rgba(248,113,113,0.3)' }}
+        >
+          <p className="text-[#f87171] text-sm">Error loading accounts: {(error as any).message}</p>
+        </motion.div>
       )}
 
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      {/* Accounts Section */}
+      <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Accounts</p>
+            <h2 className="text-base font-semibold text-[#f2f2f2]">Trading Accounts</h2>
+          </div>
         </div>
-      ) : (
-        <div className="grid gap-4">
-          {accounts?.data?.map((account: TradingAccount) => (
-            <div key={account.id} className="card dark:bg-slate-800 dark:border-slate-700">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <h3 className="text-lg sm:text-xl font-semibold text-dark-500 dark:text-white break-words">
-                      {account.name}
-                    </h3>
-                    <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                      account.account_type === 'LIVE' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                      account.account_type === 'PROP_FIRM' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
-                      account.account_type === 'FUNDED' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300' :
-                      'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                    }`}>
-                      {account.account_type}
-                    </span>
-                    {!account.is_active && (
-                      <span className="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 whitespace-nowrap">
-                        Inactive
-                      </span>
-                    )}
-                  </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-sm">
-                    <div>
-                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Initial Balance</p>
-                      <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base">
-                        ${Number(account.initial_balance).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Current Balance</p>
-                      <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base">
-                        ${Number(account.current_balance).toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">P&L</p>
-                      <p className={`font-semibold text-sm sm:text-base ${
-                        account.current_balance >= account.initial_balance
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}>
-                        ${(account.current_balance - account.initial_balance).toLocaleString()}
-                      </p>
-                    </div>
-                    {account.broker && (
-                      <div>
-                        <p className="text-dark-400 dark:text-slate-400 text-xs sm:text-sm">Broker</p>
-                        <p className="font-semibold text-dark-500 dark:text-slate-200 text-sm sm:text-base break-words">{account.broker}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {account.notes && (
-                    <p className="mt-3 text-xs sm:text-sm text-dark-400 dark:text-slate-400">{account.notes}</p>
-                  )}
+        {isLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="w-8 h-8 rounded-full border-2 border-[#282828] border-t-[#FF7522] animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {accounts?.data?.length === 0 && (
+              <div className="card p-10 text-center">
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: 'rgba(255,117,34,0.08)' }}
+                >
+                  <Wallet size={24} className="text-[#FF7522]" />
                 </div>
-
-                <div className="flex sm:flex-row flex-col gap-2">
-                  <button
-                    onClick={() => setEditingAccount(account)}
-                    className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  >
-                    <Edit className="w-4 h-4 text-dark-400 dark:text-slate-400" />
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Are you sure you want to delete this account?')) {
-                        deleteMutation.mutate(account.id);
-                      }
-                    }}
-                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
-                  </button>
-                </div>
+                <p className="text-[#8c8c8c] text-sm mb-4">No trading accounts yet</p>
+                <button
+                  onClick={() => setShowNewAccountModal(true)}
+                  className="btn btn-primary inline-flex items-center gap-2"
+                >
+                  <Plus size={16} weight="bold" />
+                  Create Your First Account
+                </button>
               </div>
-            </div>
-          ))}
+            )}
 
-          {accounts?.data?.length === 0 && (
-            <div className="card dark:bg-slate-800 dark:border-slate-700 text-center py-12">
-              <p className="text-dark-400 dark:text-slate-400 mb-4">No trading accounts yet</p>
-              <button
-                onClick={() => setShowNewAccountModal(true)}
-                className="btn btn-primary inline-flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Create Your First Account
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            {accounts?.data?.map((account: TradingAccount, index: number) => {
+              const pnl = account.current_balance - account.initial_balance;
+              const isProfit = pnl >= 0;
+              return (
+                <motion.div
+                  key={account.id}
+                  custom={index + 3}
+                  variants={fadeUp}
+                  initial="hidden"
+                  animate="visible"
+                  className="card p-5"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <h3 className="text-base font-bold text-[#f2f2f2]">{account.name}</h3>
+                        <span className={`badge ${accountTypeBadge[account.account_type] || 'badge-neutral'} text-[10px]`}>
+                          {account.account_type}
+                        </span>
+                        {!account.is_active && (
+                          <span className="badge badge-red text-[10px]">Inactive</span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <p className="text-[#555] text-xs mb-0.5">Initial Balance</p>
+                          <p className="font-mono-nums font-semibold text-[#f2f2f2] text-sm">
+                            ${Number(account.initial_balance).toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[#555] text-xs mb-0.5">Current Balance</p>
+                          <p className="font-mono-nums font-semibold text-[#f2f2f2] text-sm">
+                            ${Number(account.current_balance).toLocaleString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[#555] text-xs mb-0.5">P&L</p>
+                          <p
+                            className="font-mono-nums font-semibold text-sm flex items-center gap-1"
+                            style={{ color: isProfit ? '#34d399' : '#f87171' }}
+                          >
+                            {isProfit ? (
+                              <TrendingUp size={12} weight="bold" />
+                            ) : (
+                              <TrendingDown size={12} weight="bold" />
+                            )}
+                            ${pnl.toLocaleString()}
+                          </p>
+                        </div>
+                        {account.broker && (
+                          <div>
+                            <p className="text-[#555] text-xs mb-0.5">Broker</p>
+                            <p className="font-semibold text-[#f2f2f2] text-sm truncate">
+                              {account.broker}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {account.notes && (
+                        <p className="mt-3 text-xs text-[#555] leading-relaxed">{account.notes}</p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button
+                        onClick={() => setEditingAccount(account)}
+                        className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+                      >
+                        <PencilSimple size={15} className="text-[#8c8c8c]" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this account?')) {
+                            deleteMutation.mutate(account.id);
+                          }
+                        }}
+                        className="p-2 rounded-lg hover:bg-[#f87171]/10 transition-colors"
+                      >
+                        <Trash size={15} className="text-[#f87171]" />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
 
       {/* Tags Section */}
-      <div className="card dark:bg-slate-800 dark:border-slate-700">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-dark-500 dark:text-white">Trade Tags</h2>
+      <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible" className="card p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Labels</p>
+            <h2 className="text-base font-semibold text-[#f2f2f2]">Trade Tags</h2>
+          </div>
           <button
             onClick={() => setShowNewTagModal(true)}
-            className="btn btn-secondary inline-flex items-center gap-2"
+            className="btn btn-secondary inline-flex items-center gap-2 text-sm"
           >
-            <Tag className="w-4 h-4" />
+            <Tag size={14} weight="bold" />
             New Tag
           </button>
         </div>
@@ -262,24 +329,21 @@ export default function Settings() {
             {tags.data.map((tag: any) => (
               <div
                 key={tag.id}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg"
                 style={{
-                  backgroundColor: `${tag.color}10`,
-                  borderColor: `${tag.color}40`,
+                  background: `${tag.color}12`,
+                  border: `1px solid ${tag.color}30`,
                 }}
               >
-                <span
-                  className="font-medium text-sm"
-                  style={{ color: tag.color }}
-                >
+                <span className="text-sm font-semibold" style={{ color: tag.color }}>
                   {tag.name}
                 </span>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => setEditingTag(tag)}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 rounded"
+                    className="p-1 rounded hover:bg-white/5 transition-colors"
                   >
-                    <Edit className="w-3 h-3" style={{ color: tag.color }} />
+                    <PencilSimple size={11} style={{ color: tag.color }} />
                   </button>
                   <button
                     onClick={() => {
@@ -287,55 +351,61 @@ export default function Settings() {
                         deleteTagMutation.mutate(tag.id);
                       }
                     }}
-                    className="p-1 hover:bg-black hover:bg-opacity-10 dark:hover:bg-white dark:hover:bg-opacity-10 rounded"
+                    className="p-1 rounded hover:bg-white/5 transition-colors"
                   >
-                    <Trash2 className="w-3 h-3" style={{ color: tag.color }} />
+                    <Trash size={11} style={{ color: tag.color }} />
                   </button>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-dark-400 dark:text-slate-400 text-sm">No tags yet. Create your first tag to categorize trades.</p>
+          <p className="text-[#555] text-sm">
+            No tags yet. Create your first tag to categorize trades.
+          </p>
         )}
-      </div>
+      </motion.div>
 
-      {/* New/Edit Tag Modal */}
-      {(showNewTagModal || editingTag) && (
-        <TagFormModal
-          tag={editingTag}
-          onClose={() => {
-            setShowNewTagModal(false);
-            setEditingTag(null);
-          }}
-          onSubmit={(data) => {
-            if (editingTag) {
-              updateTagMutation.mutate({ id: editingTag.id, data });
-            } else {
-              createTagMutation.mutate(data);
-            }
-          }}
-        />
-      )}
+      {/* Tag Modal */}
+      <AnimatePresence>
+        {(showNewTagModal || editingTag) && (
+          <TagFormModal
+            tag={editingTag}
+            onClose={() => {
+              setShowNewTagModal(false);
+              setEditingTag(null);
+            }}
+            onSubmit={(data) => {
+              if (editingTag) {
+                updateTagMutation.mutate({ id: editingTag.id, data });
+              } else {
+                createTagMutation.mutate(data);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* New/Edit Account Modal */}
-      {(showNewAccountModal || editingAccount) && (
-        <AccountFormModal
-          account={editingAccount}
-          isLoading={createMutation.isPending || updateMutation.isPending}
-          onClose={() => {
-            setShowNewAccountModal(false);
-            setEditingAccount(null);
-          }}
-          onSubmit={(data) => {
-            if (editingAccount) {
-              updateMutation.mutate({ id: editingAccount.id, data });
-            } else {
-              createMutation.mutate(data);
-            }
-          }}
-        />
-      )}
+      {/* Account Modal */}
+      <AnimatePresence>
+        {(showNewAccountModal || editingAccount) && (
+          <AccountFormModal
+            account={editingAccount}
+            isLoading={createMutation.isPending || updateMutation.isPending}
+            onClose={() => {
+              setShowNewAccountModal(false);
+              setEditingAccount(null);
+            }}
+            onSubmit={(data) => {
+              if (editingAccount) {
+                updateMutation.mutate({ id: editingAccount.id, data });
+              } else {
+                createMutation.mutate(data);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -364,35 +434,47 @@ function AccountFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate required fields
     if (!formData.name) {
       alert('Please enter an account name');
       return;
     }
-
     if (!formData.initial_balance || formData.initial_balance <= 0) {
       alert('Please enter a valid initial balance greater than 0');
       return;
     }
-
-    const submitData: any = { ...formData };
-
-    // Allow current_balance to be updated manually
-    // Users can adjust balance directly in Settings
-
-    onSubmit(submitData);
+    onSubmit({ ...formData });
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-neutral-300 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500 dark:text-white">
-            {account ? 'Edit Account' : 'New Trading Account'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg">
-            <X className="w-5 h-5 dark:text-slate-300" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.97 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
+        style={{ background: '#161616', border: '1px solid #282828' }}
+      >
+        <div
+          className="sticky top-0 px-6 py-4 flex items-center justify-between"
+          style={{ background: '#161616', borderBottom: '1px solid #282828' }}
+        >
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Accounts</p>
+            <h2 className="text-lg font-bold text-[#f2f2f2]">
+              {account ? 'Edit Account' : 'New Trading Account'}
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+          >
+            <X size={18} className="text-[#8c8c8c]" />
           </button>
         </div>
 
@@ -451,7 +533,6 @@ function AccountFormModal({
                 required
               />
             </div>
-
             <div>
               <label className="label">Current Balance</label>
               <input
@@ -485,7 +566,7 @@ function AccountFormModal({
           <div>
             <label className="label">Notes</label>
             <textarea
-              className="input"
+              className="input resize-none"
               rows={3}
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
@@ -494,21 +575,25 @@ function AccountFormModal({
           </div>
 
           {account && (
-            <div className="flex items-center gap-2">
+            <label
+              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-[#FF7522]/30 transition-colors"
+              style={{ background: '#1e1e1e', border: '1px solid #282828' }}
+            >
               <input
                 type="checkbox"
                 id="is_active"
                 checked={formData.is_active}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="w-4 h-4 text-primary-600 rounded"
+                className="w-4 h-4 accent-[#FF7522] rounded"
               />
-              <label htmlFor="is_active" className="text-sm text-dark-500 dark:text-slate-300">
-                Account is active
-              </label>
-            </div>
+              <div>
+                <span className="text-sm font-semibold text-[#f2f2f2]">Account is active</span>
+                <p className="text-xs text-[#555]">Inactive accounts are hidden from trade creation</p>
+              </div>
+            </label>
           )}
 
-          <div className="flex gap-3 pt-4 border-t border-neutral-300 dark:border-slate-700">
+          <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid #282828' }}>
             <button
               type="button"
               onClick={onClose}
@@ -524,17 +609,19 @@ function AccountFormModal({
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
                   {account ? 'Updating...' : 'Creating...'}
                 </span>
+              ) : account ? (
+                'Update Account'
               ) : (
-                account ? 'Update Account' : 'Create Account'
+                'Create Account'
               )}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -549,18 +636,18 @@ function TagFormModal({
 }) {
   const [formData, setFormData] = useState({
     name: tag?.name || '',
-    color: tag?.color || '#3B82F6',
+    color: tag?.color || '#FF7522',
   });
 
   const presetColors = [
-    '#EF4444', // Red
-    '#F59E0B', // Orange
-    '#10B981', // Green
-    '#3B82F6', // Blue
-    '#8B5CF6', // Purple
-    '#EC4899', // Pink
-    '#6366F1', // Indigo
-    '#14B8A6', // Teal
+    '#f87171',
+    '#FF7522',
+    '#34d399',
+    '#60a5fa',
+    '#a78bfa',
+    '#f472b6',
+    '#fbbf24',
+    '#14b8a6',
   ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -573,18 +660,37 @@ function TagFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-xl max-w-md w-full">
-        <div className="border-b border-neutral-300 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-dark-500 dark:text-white">
-            {tag ? 'Edit Tag' : 'New Tag'}
-          </h2>
-          <button onClick={onClose} className="p-2 hover:bg-neutral-200 dark:hover:bg-slate-700 rounded-lg">
-            <X className="w-5 h-5 dark:text-slate-300" />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.97 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="w-full max-w-md rounded-2xl overflow-hidden"
+        style={{ background: '#161616', border: '1px solid #282828' }}
+      >
+        <div
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid #282828' }}
+        >
+          <div>
+            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Tags</p>
+            <h2 className="text-lg font-bold text-[#f2f2f2]">{tag ? 'Edit Tag' : 'New Tag'}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+          >
+            <X size={18} className="text-[#8c8c8c]" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           <div>
             <label className="label">Tag Name *</label>
             <input
@@ -599,62 +705,62 @@ function TagFormModal({
           </div>
 
           <div>
-            <label className="label">Color</label>
-            <div className="grid grid-cols-4 gap-2 mt-2">
+            <label className="label mb-2">Color</label>
+            <div className="grid grid-cols-8 gap-2 mb-3">
               {presetColors.map((color) => (
                 <button
                   key={color}
                   type="button"
                   onClick={() => setFormData({ ...formData, color })}
-                  className={`w-full h-10 rounded-lg border-2 transition-all ${
-                    formData.color === color ? 'border-dark-500 scale-110' : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: color }}
+                  className="w-full aspect-square rounded-lg border-2 transition-all"
+                  style={{
+                    backgroundColor: color,
+                    borderColor: formData.color === color ? '#f2f2f2' : 'transparent',
+                    transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
+                  }}
                 />
               ))}
             </div>
-            <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <input
                 type="color"
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                className="w-12 h-10 rounded border border-neutral-300 dark:border-slate-600 cursor-pointer"
+                className="w-10 h-9 rounded-lg cursor-pointer border-0 p-0.5"
+                style={{ background: '#1e1e1e', border: '1px solid #282828' }}
               />
-              <span className="text-sm text-dark-400 dark:text-slate-400">Or pick a custom color</span>
+              <span className="text-xs text-[#555]">Custom color</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-3 bg-neutral-100 dark:bg-slate-700 rounded-lg">
-            <span className="text-sm text-dark-400 dark:text-slate-300">Preview:</span>
+          {/* Preview */}
+          <div
+            className="p-3 rounded-xl flex items-center gap-2"
+            style={{ background: '#1e1e1e', border: '1px solid #282828' }}
+          >
+            <span className="text-xs text-[#555]">Preview:</span>
             <span
-              className="px-3 py-1 rounded-full text-sm font-medium"
+              className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
-                backgroundColor: `${formData.color}20`,
+                background: `${formData.color}18`,
                 color: formData.color,
-                border: `1px solid ${formData.color}40`
+                border: `1px solid ${formData.color}35`,
               }}
             >
               {formData.name || 'Tag Name'}
             </span>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary flex-1"
-            >
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn btn-secondary flex-1">
               Cancel
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary flex-1"
-            >
+            <button type="submit" className="btn btn-primary flex-1">
               {tag ? 'Update Tag' : 'Create Tag'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -4,56 +4,222 @@
 
 @layer base {
   * {
-    @apply border-neutral-300 dark:border-slate-700;
+    border-color: rgb(var(--border));
+  }
+  /* Light mode (default) */
+  :root {
+    --background: 250 249 247;
+    --surface: 255 255 255;
+    --surface-2: 245 244 242;
+    --border: 228 225 220;
+    --border-subtle: 238 236 232;
+    --text-primary: 18 18 18;
+    --text-secondary: 100 98 95;
+    --text-muted: 160 157 153;
+    --accent: 255 117 34;
+    --green: 16 185 129;
+    --red: 239 68 68;
+  }
+
+  /* Dark mode */
+  .dark {
+    --background: 15 15 15;
+    --surface: 22 22 22;
+    --surface-2: 30 30 30;
+    --border: 40 40 40;
+    --border-subtle: 32 32 32;
+    --text-primary: 242 242 242;
+    --text-secondary: 140 140 140;
+    --text-muted: 80 80 80;
+    --accent: 255 117 34;
+    --green: 52 211 153;
+    --red: 248 113 113;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
-    @apply bg-neutral-100 dark:bg-slate-900 text-dark-500 dark:text-slate-100 transition-colors duration-200;
+    font-family: 'Outfit', sans-serif;
+    background-color: rgb(var(--background));
+    color: rgb(var(--text-primary));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+  /* Tabular numbers for all data */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
 @layer components {
+  /* ── Buttons ── */
   .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-105 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-medium text-sm
+           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2
+           active:scale-[0.97] select-none;
+    ring-offset-color: rgb(var(--background));
+    transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
   }
-
   .btn-primary {
-    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 hover:shadow-lg;
+    background-color: rgb(var(--accent));
+    color: #fff;
+    @apply focus:ring-orange-500 hover:brightness-110;
+    box-shadow: 0 0 0 0 rgba(255,117,34,0);
   }
-
+  .btn-primary:hover {
+    box-shadow: 0 4px 24px -4px rgba(255,117,34,0.4);
+  }
   .btn-secondary {
-    @apply bg-neutral-400 dark:bg-slate-700 text-dark-500 dark:text-slate-200 hover:bg-neutral-500 dark:hover:bg-slate-600 focus:ring-neutral-600;
+    background-color: rgb(var(--surface-2));
+    color: rgb(var(--text-primary));
+    border: 1px solid rgb(var(--border));
+    @apply focus:ring-zinc-600 hover:border-zinc-500;
   }
-
   .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 hover:shadow-lg;
+    @apply bg-red-600 text-white focus:ring-red-500 hover:bg-red-500;
   }
 
+  /* ── Inputs ── */
   .label {
-    @apply block text-sm font-medium text-dark-400 dark:text-slate-300 mb-1;
+    @apply block text-xs font-medium mb-1.5 tracking-wide uppercase;
+    color: rgb(var(--text-muted));
   }
-
   .input {
-    @apply w-full px-3 py-2 border border-neutral-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-white dark:bg-slate-800 dark:text-slate-100;
+    @apply w-full px-3 py-2.5 rounded-xl text-sm
+           focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50
+           transition-all duration-200 placeholder:text-zinc-600;
+    background-color: rgb(var(--surface-2));
+    border: 1px solid rgb(var(--border));
+    color: rgb(var(--text-primary));
+  }
+  .input:hover {
+    border-color: rgb(var(--text-muted));
   }
 
+  /* ── Cards ── */
   .card {
-    @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-neutral-300 dark:border-slate-700 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  .dark .card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .dark .card:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   }
 
+  /* stat card – outer shell + inner bezel */
   .stat-card {
-    @apply bg-gradient-to-br from-white to-neutral-100 dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-md border border-neutral-300 dark:border-slate-700 p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-2 relative overflow-hidden;
+    @apply relative overflow-hidden rounded-2xl p-[1px] transition-all duration-300;
+    background: rgb(var(--border));
   }
-
-  .stat-card::before {
-    content: '';
-    @apply absolute inset-0 bg-gradient-to-br from-transparent to-primary-100 opacity-0 transition-opacity duration-300;
+  .stat-card-inner {
+    @apply rounded-[calc(1rem-1px)] p-5 relative overflow-hidden;
+    background: rgb(var(--surface));
+    box-shadow: inset 0 1px 1px rgba(255,255,255,0.04);
   }
-
-  .stat-card:hover::before {
-    @apply opacity-100;
+  .stat-card:hover {
+    background: linear-gradient(135deg, rgba(255,117,34,0.3), rgb(var(--border)));
   }
 
   .chart-card {
-    @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-neutral-300 dark:border-slate-700 p-6 transition-all duration-300 hover:shadow-lg;
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background-color: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
   }
+
+  /* ── Badges ── */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium;
+  }
+  .badge-green {
+    background-color: rgba(52,211,153,0.12);
+    color: rgb(52,211,153);
+  }
+  .badge-red {
+    background-color: rgba(248,113,113,0.12);
+    color: rgb(248,113,113);
+  }
+  .badge-orange {
+    background-color: rgba(255,117,34,0.12);
+    color: rgb(255,117,34);
+  }
+  .badge-neutral {
+    background-color: rgb(var(--surface-2));
+    color: rgb(var(--text-secondary));
+    border: 1px solid rgb(var(--border));
+  }
+
+  /* ── Table ── */
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table thead tr {
+    border-bottom: 1px solid rgb(var(--border));
+  }
+  .data-table thead th {
+    @apply py-3 px-4 text-left font-medium text-xs uppercase tracking-wider;
+    color: rgb(var(--text-muted));
+  }
+  .data-table tbody tr {
+    border-bottom: 1px solid rgb(var(--border-subtle));
+    transition: background-color 0.15s;
+  }
+  .data-table tbody tr:hover {
+    background-color: rgb(var(--surface-2));
+  }
+  .data-table tbody td {
+    @apply py-3.5 px-4;
+    color: rgb(var(--text-primary));
+  }
+
+  /* ── Nav active state ── */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200;
+    color: rgb(var(--text-secondary));
+  }
+  .nav-link:hover {
+    background-color: rgb(var(--surface-2));
+    color: rgb(var(--text-primary));
+  }
+  .nav-link.active {
+    background-color: rgba(255, 117, 34, 0.12);
+    color: rgb(var(--accent));
+    border: 1px solid rgba(255, 117, 34, 0.2);
+  }
+
+  /* ── Profit/Loss colors ── */
+  .profit { color: rgb(var(--green)); }
+  .loss   { color: rgb(var(--red)); }
+}
+
+@layer utilities {
+  .font-mono-nums {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-accent { color: rgb(var(--accent)); }
+  .bg-accent { background-color: rgb(var(--accent)); }
+  .border-accent { border-color: rgb(var(--accent)); }
+  .text-muted { color: rgb(var(--text-muted)); }
+  .text-secondary { color: rgb(var(--text-secondary)); }
+  .surface { background-color: rgb(var(--surface)); }
+  .surface-2 { background-color: rgb(var(--surface-2)); }
 }

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Upload, Download, CheckCircle, XCircle } from 'lucide-react';
+import { UploadSimple, DownloadSimple, CheckCircle, XCircle } from '@phosphor-icons/react';
+const Upload = UploadSimple;
+const Download = DownloadSimple;
 import { importAPI } from '../lib/api';
 
 export default function Import() {

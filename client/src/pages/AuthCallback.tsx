@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { TrendingUp } from 'lucide-react';
+import { TrendUp as TrendingUp } from '@phosphor-icons/react';
 
 export default function AuthCallback() {
   const navigate = useNavigate();

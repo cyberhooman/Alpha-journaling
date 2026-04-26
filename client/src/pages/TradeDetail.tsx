@@ -1,9 +1,38 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import {
+  ArrowLeft,
+  PencilSimple,
+  Trash,
+  TrendUp,
+  TrendDown,
+  ArrowSquareOut,
+  ChartLine,
+} from '@phosphor-icons/react';
+import { motion } from 'framer-motion';
 import { tradesAPI } from '../lib/api';
 import { formatToWIB, TIMEZONE_LABEL } from '../lib/dateUtils';
 import TradingViewChart from '../components/TradingViewChart';
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.35, ease: 'easeOut' },
+  }),
+};
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-[#282828] last:border-0">
+      <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+      <span className="text-sm font-medium font-mono-nums" style={{ color: 'var(--color-text-primary)' }}>
+        {value ?? <span style={{ color: 'var(--color-text-secondary)' }}>—</span>}
+      </span>
+    </div>
+  );
+}
 
 export default function TradeDetail() {
   const { id } = useParams();
@@ -18,8 +47,6 @@ export default function TradeDetail() {
   const deleteMutation = useMutation({
     mutationFn: () => tradesAPI.delete(Number(id)),
     onSuccess: () => {
-      // Invalidate queries (marks them stale) instead of awaiting refetch
-      // They will refresh when the user navigates to those pages
       queryClient.invalidateQueries({ queryKey: ['trades'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       navigate('/trades');
@@ -27,40 +54,80 @@ export default function TradeDetail() {
   });
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-96">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div
+          className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+          style={{ borderColor: 'var(--color-accent)', borderTopColor: 'transparent' }}
+        />
+      </div>
+    );
   }
 
   const tradeData = trade?.data;
 
   if (!tradeData) {
-    return <div className="flex items-center justify-center h-96">
-      <p className="text-slate-500">Trade not found</p>
-    </div>;
+    return (
+      <div className="flex items-center justify-center h-96">
+        <p style={{ color: 'var(--color-text-secondary)' }}>Trade not found</p>
+      </div>
+    );
   }
+
+  const pnl = tradeData.pnl ? Number(tradeData.pnl) : null;
+  const mfe = tradeData.mfe ? Number(tradeData.mfe) : null;
+  const mae = tradeData.mae ? Number(tradeData.mae) : null;
+  const isLong = tradeData.side === 'LONG';
+  const screenshot = (tradeData as any).screenshot_url || (tradeData as any).screenshotUrl;
+
+  const statusBadge: Record<string, string> = {
+    OPEN: 'badge badge-orange',
+    CLOSED: 'badge badge-neutral',
+    CANCELLED: 'badge badge-neutral',
+  };
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg">
-            <ArrowLeft className="w-5 h-5" />
+      {/* Header */}
+      <motion.div
+        custom={0}
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="flex items-start justify-between gap-4"
+      >
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-lg transition-colors flex-shrink-0"
+            style={{ background: 'var(--color-surface-2)', color: 'var(--color-text-secondary)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--color-text-primary)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--color-text-secondary)')}
+          >
+            <ArrowLeft weight="bold" size={18} />
           </button>
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">{tradeData.symbol}</h1>
-            <p className="text-slate-600 mt-1">
+            <p
+              className="text-xs font-semibold uppercase tracking-widest mb-0.5"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Trade Detail
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--color-text-primary)' }}>
+              {tradeData.symbol}
+            </h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-secondary)' }}>
               {formatToWIB(tradeData.entry_date, 'MMMM dd, yyyy HH:mm')} {TIMEZONE_LABEL}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0 mt-1">
           <button
             onClick={() => navigate(`/trades/${id}/edit`)}
-            className="btn btn-secondary inline-flex items-center gap-2"
+            className="btn btn-secondary inline-flex items-center gap-2 text-sm"
           >
-            <Edit className="w-4 h-4" />
+            <PencilSimple size={15} weight="bold" />
             Edit
           </button>
           <button
@@ -69,214 +136,272 @@ export default function TradeDetail() {
                 deleteMutation.mutate();
               }
             }}
-            className="btn btn-danger inline-flex items-center gap-2"
+            className="btn btn-danger inline-flex items-center gap-2 text-sm"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash size={15} weight="bold" />
             Delete
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* P&L Summary */}
-      <div className="card bg-gradient-to-r from-primary-50 to-blue-50">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div>
-            <p className="text-sm text-slate-600 mb-1">P&L</p>
-            <p className={`text-3xl font-bold ${(tradeData.pnl || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {tradeData.pnl ? `$${Number(tradeData.pnl).toFixed(2)}` : '-'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">MFE</p>
-            <p className={`text-3xl font-bold ${(tradeData.mfe || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {tradeData.mfe ? `$${Number(tradeData.mfe).toFixed(2)}` : '-'}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">Status</p>
-            <span className={`inline-block px-3 py-1 text-sm rounded-full mt-1 ${
-              tradeData.status === 'CLOSED' ? 'bg-slate-100 text-slate-700' :
-              tradeData.status === 'OPEN' ? 'bg-blue-100 text-blue-700' :
-              'bg-gray-100 text-gray-700'
-            }`}>
-              {tradeData.status}
-            </span>
-          </div>
-          <div>
-            <p className="text-sm text-slate-600 mb-1">Side</p>
-            <span className={`inline-flex items-center gap-1 text-lg font-bold mt-1 ${
-              tradeData.side === 'LONG' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {tradeData.side === 'LONG' ? <TrendingUp /> : <TrendingDown />}
-              {tradeData.side}
-            </span>
-          </div>
+      {/* P&L Summary bar */}
+      <motion.div
+        custom={1}
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="rounded-xl p-5 grid grid-cols-2 md:grid-cols-5 gap-4"
+        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+      >
+        {/* P&L */}
+        <div className="md:col-span-1">
+          <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>P&L</p>
+          <p
+            className="text-2xl font-bold font-mono-nums"
+            style={{ color: pnl === null ? 'var(--color-text-secondary)' : pnl >= 0 ? 'var(--color-green)' : 'var(--color-red)' }}
+          >
+            {pnl !== null ? `$${pnl.toFixed(2)}` : '—'}
+          </p>
         </div>
-      </div>
 
-      {/* Price Chart */}
+        {/* MFE */}
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>MFE</p>
+          <p
+            className="text-2xl font-bold font-mono-nums"
+            style={{ color: mfe === null ? 'var(--color-text-secondary)' : mfe >= 0 ? 'var(--color-green)' : 'var(--color-red)' }}
+          >
+            {mfe !== null ? `$${mfe.toFixed(2)}` : '—'}
+          </p>
+        </div>
+
+        {/* MAE */}
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>MAE</p>
+          <p
+            className="text-2xl font-bold font-mono-nums"
+            style={{ color: mae === null ? 'var(--color-text-secondary)' : mae >= 0 ? 'var(--color-green)' : 'var(--color-red)' }}
+          >
+            {mae !== null ? `$${mae.toFixed(2)}` : '—'}
+          </p>
+        </div>
+
+        {/* Side */}
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold mb-1" style={{ color: 'var(--color-text-secondary)' }}>Side</p>
+          <span
+            className="inline-flex items-center gap-1.5 text-base font-bold font-mono-nums mt-0.5"
+            style={{ color: isLong ? 'var(--color-green)' : 'var(--color-red)' }}
+          >
+            {isLong ? <TrendUp weight="bold" size={18} /> : <TrendDown weight="bold" size={18} />}
+            {tradeData.side}
+          </span>
+        </div>
+
+        {/* Status */}
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Status</p>
+          <span className={statusBadge[tradeData.status] ?? 'badge badge-neutral'}>
+            {tradeData.status}
+          </span>
+        </div>
+      </motion.div>
+
+      {/* Chart */}
       {tradeData.entry_price && (
-        <TradingViewChart
-          symbol={tradeData.symbol}
-          entryPrice={Number(tradeData.entry_price)}
-          exitPrice={tradeData.exit_price ? Number(tradeData.exit_price) : undefined}
-          entryDate={tradeData.entry_date}
-          exitDate={tradeData.exit_date || undefined}
-          side={tradeData.side}
-          stopLoss={tradeData.stop_loss ? Number(tradeData.stop_loss) : undefined}
-          takeProfit={tradeData.take_profit ? Number(tradeData.take_profit) : undefined}
-        />
+        <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
+          <TradingViewChart
+            symbol={tradeData.symbol}
+            entryPrice={Number(tradeData.entry_price)}
+            exitPrice={tradeData.exit_price ? Number(tradeData.exit_price) : undefined}
+            entryDate={tradeData.entry_date}
+            exitDate={tradeData.exit_date || undefined}
+            side={tradeData.side}
+            stopLoss={tradeData.stop_loss ? Number(tradeData.stop_loss) : undefined}
+            takeProfit={tradeData.take_profit ? Number(tradeData.take_profit) : undefined}
+          />
+        </motion.div>
       )}
 
-      {(() => {
-        const screenshot =
-          (tradeData as any).screenshot_url || (tradeData as any).screenshotUrl;
-        if (!screenshot) {
-          return null;
-        }
-        return (
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-900">Trade Screenshot</h3>
-              <a
-                href={screenshot}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Open in new tab
-              </a>
+      {/* Screenshot */}
+      {screenshot && (
+        <motion.div
+          custom={3}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="rounded-xl overflow-hidden"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <div className="flex items-center justify-between px-5 py-3.5 border-b" style={{ borderColor: 'var(--color-border)' }}>
+            <div className="flex items-center gap-2">
+              <ChartLine size={16} style={{ color: 'var(--color-accent)' }} />
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Trade Screenshot</h3>
             </div>
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
-              <img
-                src={screenshot}
-                alt={`Screenshot for ${tradeData.symbol}`}
-                className="w-full object-contain max-h-[540px] bg-slate-100"
-              />
-            </div>
+            <a
+              href={screenshot}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors"
+              style={{ color: 'var(--color-accent)' }}
+            >
+              <ArrowSquareOut size={13} weight="bold" />
+              Open in new tab
+            </a>
           </div>
-        );
-      })()}
+          <div style={{ background: '#0a0a0a' }}>
+            <img
+              src={screenshot}
+              alt={`Screenshot for ${tradeData.symbol}`}
+              className="w-full object-contain max-h-[540px]"
+            />
+          </div>
+        </motion.div>
+      )}
 
-      {/* Trade Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Entry Details</h3>
-          <dl className="space-y-3">
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Entry Price</dt>
-              <dd className="font-semibold">
-                {tradeData.entry_price ? `$${Number(tradeData.entry_price).toFixed(2)}` : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Entry Date</dt>
-              <dd className="font-semibold">
-                {formatToWIB(tradeData.entry_date, 'MMM dd, yyyy HH:mm')} {TIMEZONE_LABEL}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Quantity</dt>
-              <dd className="font-semibold">
-                {tradeData.quantity ? Number(tradeData.quantity) : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Stop Loss</dt>
-              <dd className="font-semibold">
-                {tradeData.stop_loss ? `$${Number(tradeData.stop_loss).toFixed(2)}` : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Take Profit</dt>
-              <dd className="font-semibold">
-                {tradeData.take_profit ? `$${Number(tradeData.take_profit).toFixed(2)}` : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Reward:Risk</dt>
-              <dd className="font-semibold">
-                {tradeData.reward_risk_ratio ? Number(tradeData.reward_risk_ratio).toFixed(2) : '-'}
-              </dd>
-            </div>
-          </dl>
+      {/* Entry / Exit Details */}
+      <motion.div
+        custom={4}
+        variants={fadeUp}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div
+          className="rounded-xl p-5"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <h3 className="text-xs uppercase tracking-widest font-semibold mb-4" style={{ color: 'var(--color-accent)' }}>
+            Entry Details
+          </h3>
+          <DetailRow
+            label="Entry Price"
+            value={tradeData.entry_price ? `$${Number(tradeData.entry_price).toFixed(2)}` : null}
+          />
+          <DetailRow
+            label="Entry Date"
+            value={tradeData.entry_date ? `${formatToWIB(tradeData.entry_date, 'MMM dd, yyyy HH:mm')} ${TIMEZONE_LABEL}` : null}
+          />
+          <DetailRow
+            label="Quantity"
+            value={tradeData.quantity ? Number(tradeData.quantity) : null}
+          />
+          <DetailRow
+            label="Stop Loss"
+            value={tradeData.stop_loss ? `$${Number(tradeData.stop_loss).toFixed(2)}` : null}
+          />
+          <DetailRow
+            label="Take Profit"
+            value={tradeData.take_profit ? `$${Number(tradeData.take_profit).toFixed(2)}` : null}
+          />
+          <DetailRow
+            label="Reward:Risk"
+            value={tradeData.reward_risk_ratio ? Number(tradeData.reward_risk_ratio).toFixed(2) : null}
+          />
         </div>
 
-        <div className="card">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Exit Details</h3>
-          <dl className="space-y-3">
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Exit Price</dt>
-              <dd className="font-semibold">
-                {tradeData.exit_price ? `$${Number(tradeData.exit_price).toFixed(2)}` : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Exit Date</dt>
-              <dd className="font-semibold">
-                {tradeData.exit_date ? `${formatToWIB(tradeData.exit_date, 'MMM dd, yyyy HH:mm')} ${TIMEZONE_LABEL}` : '-'}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-slate-600">Fees</dt>
-              <dd className="font-semibold">${Number(tradeData.fees).toFixed(2)}</dd>
-            </div>
-          </dl>
+        <div
+          className="rounded-xl p-5"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <h3 className="text-xs uppercase tracking-widest font-semibold mb-4" style={{ color: 'var(--color-accent)' }}>
+            Exit Details
+          </h3>
+          <DetailRow
+            label="Exit Price"
+            value={tradeData.exit_price ? `$${Number(tradeData.exit_price).toFixed(2)}` : null}
+          />
+          <DetailRow
+            label="Exit Date"
+            value={tradeData.exit_date ? `${formatToWIB(tradeData.exit_date, 'MMM dd, yyyy HH:mm')} ${TIMEZONE_LABEL}` : null}
+          />
+          <DetailRow
+            label="Fees"
+            value={`$${Number(tradeData.fees).toFixed(2)}`}
+          />
         </div>
-      </div>
+      </motion.div>
 
-      {/* Strategy Info */}
+      {/* Strategy & Setup */}
       {(tradeData.strategy || tradeData.setup || tradeData.timeframe) && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Strategy & Setup</h3>
+        <motion.div
+          custom={5}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="rounded-xl p-5"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <h3 className="text-xs uppercase tracking-widest font-semibold mb-4" style={{ color: 'var(--color-accent)' }}>
+            Strategy & Setup
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {tradeData.strategy && (
               <div>
-                <p className="text-sm text-slate-600">Strategy</p>
-                <p className="font-semibold mt-1">{tradeData.strategy}</p>
+                <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Strategy</p>
+                <p className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>{tradeData.strategy}</p>
               </div>
             )}
             {tradeData.setup && (
               <div>
-                <p className="text-sm text-slate-600">Setup</p>
-                <p className="font-semibold mt-1">{tradeData.setup}</p>
+                <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Setup</p>
+                <p className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>{tradeData.setup}</p>
               </div>
             )}
             {tradeData.timeframe && (
               <div>
-                <p className="text-sm text-slate-600">Timeframe</p>
-                <p className="font-semibold mt-1">{tradeData.timeframe}</p>
+                <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'var(--color-text-secondary)' }}>Timeframe</p>
+                <p className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>{tradeData.timeframe}</p>
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* Notes */}
+      {/* Notes & Analysis */}
       {(tradeData.entry_reasoning || tradeData.exit_reasoning || tradeData.notes) && (
-        <div className="card">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">Notes & Analysis</h3>
-          <div className="space-y-4">
-            {tradeData.entry_reasoning && (
-              <div>
-                <h4 className="font-medium text-slate-900 mb-2">Entry Reasoning</h4>
-                <p className="text-slate-700 whitespace-pre-wrap">{tradeData.entry_reasoning}</p>
-              </div>
-            )}
-            {tradeData.exit_reasoning && (
-              <div>
-                <h4 className="font-medium text-slate-900 mb-2">Exit Reasoning</h4>
-                <p className="text-slate-700 whitespace-pre-wrap">{tradeData.exit_reasoning}</p>
-              </div>
-            )}
-            {tradeData.notes && (
-              <div>
-                <h4 className="font-medium text-slate-900 mb-2">General Notes</h4>
-                <p className="text-slate-700 whitespace-pre-wrap">{tradeData.notes}</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <motion.div
+          custom={6}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          className="rounded-xl p-5 space-y-5"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+        >
+          <h3 className="text-xs uppercase tracking-widest font-semibold" style={{ color: 'var(--color-accent)' }}>
+            Notes & Analysis
+          </h3>
+          {tradeData.entry_reasoning && (
+            <div>
+              <h4 className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                Entry Reasoning
+              </h4>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>
+                {tradeData.entry_reasoning}
+              </p>
+            </div>
+          )}
+          {tradeData.exit_reasoning && (
+            <div>
+              <h4 className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                Exit Reasoning
+              </h4>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>
+                {tradeData.exit_reasoning}
+              </p>
+            </div>
+          )}
+          {tradeData.notes && (
+            <div>
+              <h4 className="text-xs uppercase tracking-wider font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                General Notes
+              </h4>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>
+                {tradeData.notes}
+              </p>
+            </div>
+          )}
+        </motion.div>
       )}
     </div>
   );

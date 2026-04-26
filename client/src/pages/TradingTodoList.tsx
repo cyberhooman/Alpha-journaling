@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { strategiesAPI } from '../lib/api';
-import { CheckSquare, Square, Target, TrendingUp, Shield, AlertCircle, Clock, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckSquare, Square, Target, TrendUp, Shield, WarningCircle, Clock, Sparkle, CaretDown, CaretUp } from '@phosphor-icons/react';
+const TrendingUp = TrendUp;
+const AlertCircle = WarningCircle;
+const Sparkles = Sparkle;
+const ChevronDown = CaretDown;
+const ChevronUp = CaretUp;
 
 interface TodoItem {
   id: string;

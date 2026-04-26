@@ -38,7 +38,14 @@
       "Bash(powershell -ExecutionPolicy Bypass -File test-security.ps1)",
       "Bash(git -C \"d:\\\\code\\\\Michael riddering design journaling trade\" log --oneline -15)",
       "Bash(tree:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git status:*)",
+      "WebFetch(domain:api-docs.deepseek.com)",
+      "WebFetch(domain:deepinfra.com)",
+      "Bash(git log:*)",
+      "WebFetch(domain:rollcall.com)",
+      "Bash(cd d:/code/Michael riddering design journaling trade/client)",
+      "Read(//c/Users/aaidi/AppData/Local/Temp/claude/D--code-Michael-riddering-design-journaling-trade/c2aa727b-da58-466f-a115-772987e965a8/tasks/**)"
     ],
     "deny": [],
     "ask": []

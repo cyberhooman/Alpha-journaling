@@ -29,11 +29,16 @@ const updateAccountSchema = z.object({
 // GET /api/accounts - Get all trading accounts for user
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const accounts = db.prepare(`
       SELECT * FROM trading_accounts
       WHERE user_id = ?
       ORDER BY is_active DESC, created_at DESC
-    `).all(req.user!.id);
+    `).all(userId);
 
     res.json({ data: accounts });
   } catch (error) {
@@ -45,10 +50,15 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 // GET /api/accounts/:id - Get single account
 router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const account = db.prepare(`
       SELECT * FROM trading_accounts
       WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user!.id);
+    `).get(req.params.id, userId);
 
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
@@ -118,11 +128,15 @@ const ALLOWED_ACCOUNT_FIELDS = new Set([
 router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const data = updateAccountSchema.parse(req.body);
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     // Check if account exists and belongs to user
     const existing = db.prepare(`
       SELECT * FROM trading_accounts WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user!.id);
+    `).get(req.params.id, userId);
 
     if (!existing) {
       return res.status(404).json({ error: 'Account not found' });
@@ -198,11 +212,16 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 });
 
 // DELETE /api/accounts/:id - Delete account
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const account = db.prepare(`
       SELECT * FROM trading_accounts WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user!.id);
+    `).get(req.params.id, userId);
 
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
@@ -218,11 +237,16 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // GET /api/accounts/:id/stats - Get account statistics
-router.get('/:id/stats', authenticateToken, async (req, res) => {
+router.get('/:id/stats', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
     const account = db.prepare(`
       SELECT * FROM trading_accounts WHERE id = ? AND user_id = ?
-    `).get(req.params.id, req.user!.id);
+    `).get(req.params.id, userId);
 
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
@@ -239,7 +263,7 @@ router.get('/:id/stats', authenticateToken, async (req, res) => {
         COALESCE(AVG(CASE WHEN pnl < 0 THEN pnl END), 0) as avg_loss
       FROM trades
       WHERE account_id = ? AND user_id = ?
-    `).get(req.params.id, req.user!.id);
+    `).get(req.params.id, userId);
 
     res.json({
       account,

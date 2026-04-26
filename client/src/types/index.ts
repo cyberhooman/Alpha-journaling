@@ -27,6 +27,7 @@ export interface Trade {
   take_profit?: number;
   pnl?: number;
   mfe?: number;
+  mae?: number;
   fees: number;
   status: 'OPEN' | 'CLOSED' | 'CANCELLED';
   strategy?: string;

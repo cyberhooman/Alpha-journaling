@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp } from 'lucide-react';
+import { TrendUp as TrendingUp } from '@phosphor-icons/react';
 import { authAPI } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import GoogleSignInButton from '../components/GoogleSignInButton';

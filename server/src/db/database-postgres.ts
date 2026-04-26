@@ -75,6 +75,7 @@ async function initializeDatabase() {
         take_profit DECIMAL(15, 8),
         pnl DECIMAL(15, 2),
         mfe DECIMAL(15, 2),
+        mae DECIMAL(15, 2),
         fees DECIMAL(15, 2) DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED')),
         strategy TEXT,

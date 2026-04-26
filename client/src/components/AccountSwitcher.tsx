@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronDown, Plus, Wallet } from 'lucide-react';
+import { CaretDown, Plus, Wallet } from '@phosphor-icons/react';
+const ChevronDown = CaretDown;
 import { accountsAPI } from '../lib/api';
 import { useAccountStore } from '../store/accountStore';
 import type { TradingAccount } from '../types';

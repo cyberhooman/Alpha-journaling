@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { Card } from './Card';
-import { UserX } from 'lucide-react';
+import { UserMinus as UserX } from '@phosphor-icons/react';
 
 const cancellationReasons = [
   { reason: 'Too expensive', percentage: 47.1, color: '#6366f1' },

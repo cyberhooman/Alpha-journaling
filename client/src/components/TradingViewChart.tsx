@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendUp, TrendDown } from '@phosphor-icons/react';
+const TrendingUp = TrendUp;
+const TrendingDown = TrendDown;
 
 interface TradingViewChartProps {
   symbol: string;

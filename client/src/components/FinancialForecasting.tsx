@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Card } from './Card';
-import { TrendingUp, FileText, ArrowUpDown, PieChart as PieChartIcon } from 'lucide-react';
+import { TrendUp as TrendingUp, FileDoc as FileText, ArrowsDownUp as ArrowUpDown, ChartPie as PieChartIcon } from '@phosphor-icons/react';
 
 const data = [
   { name: 'Revenue', value: 65 },

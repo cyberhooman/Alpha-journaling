@@ -38,6 +38,7 @@ const createTradeSchema = z.object({
   fees: z.number().finite().nonnegative().default(0),
   pnl: z.number().finite().optional(),
   mfe: z.number().finite().optional(),
+  mae: z.number().finite().optional(),
   status: z.enum(['OPEN', 'CLOSED', 'CANCELLED']).default('OPEN'),
   strategy: z.string().optional(),
   setup: z.string().optional(),
@@ -99,7 +100,10 @@ function calculatePnL(
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
     const startTime = Date.now();
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { status, symbol, startDate, endDate, accountId, limit = 100, offset = 0 } = req.query;
 
     // Simple query for SQLite - get trades first
@@ -191,7 +195,10 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Get single trade
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const tradeId = req.params.id;
 
     const result = await query(
@@ -225,12 +232,16 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Create trade
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const data = createTradeSchema.parse(req.body);
 
     // Use manual PNL if provided, otherwise calculate it
     let pnl = data.pnl !== undefined ? data.pnl : null;
     let mfe = data.mfe !== undefined ? data.mfe : null;
+    let mae = data.mae !== undefined ? data.mae : null;
 
     // Only calculate PnL if we have the required fields (entryPrice and quantity)
     if (pnl === null && data.entryPrice !== undefined && data.quantity !== undefined) {
@@ -247,17 +258,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
     const result = await query(
       `INSERT INTO trades (
         user_id, account_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
-        quantity, stop_loss, take_profit, pnl, mfe, fees, status,
+        quantity, stop_loss, take_profit, pnl, mfe, mae, fees, status,
         strategy, setup, timeframe, market_type, notes, entry_reasoning,
         exit_reasoning, mistakes, lessons_learned, emotional_state,
         confidence_level, screenshot_url, screenshot_url_2, broker, account_balance, risk_amount,
         risk_percentage, reward_risk_ratio
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34)
       RETURNING *`,
       [
         userId, data.accountId || null, data.symbol, data.side, data.entryDate, data.exitDate || null,
         data.entryPrice || null, data.exitPrice || null, data.quantity || null, data.stopLoss || null,
-        data.takeProfit || null, pnl, mfe, data.fees, data.status,
+        data.takeProfit || null, pnl, mfe, mae, data.fees, data.status,
         data.strategy || null, data.setup || null, data.timeframe || null,
         data.marketType || null, data.notes || null, data.entryReasoning || null,
         data.exitReasoning || null, data.mistakes || null, data.lessonsLearned || null,
@@ -292,7 +303,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 // Update trade
 router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const tradeId = req.params.id;
     const data = createTradeSchema.partial().parse(req.body);
 
@@ -311,6 +325,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
     // Use manual PNL if provided, otherwise calculate if prices are being updated
     let pnl = data.pnl !== undefined ? data.pnl : trade.pnl;
     let mfe = data.mfe !== undefined ? data.mfe : trade.mfe;
+    let mae = data.mae !== undefined ? data.mae : trade.mae;
 
     // Only calculate PnL if manual values not provided AND prices are being updated
     if (data.pnl === undefined) {
@@ -340,7 +355,8 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
         take_profit = COALESCE($10, take_profit),
         pnl = COALESCE($11, pnl),
         mfe = COALESCE($12, mfe),
-        fees = COALESCE($13, fees),
+        mae = COALESCE($13, mae),
+        fees = COALESCE($14, fees),
         status = COALESCE($14, status),
         strategy = COALESCE($15, strategy),
         setup = COALESCE($16, setup),
@@ -365,7 +381,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
       [
         data.accountId, data.symbol, data.side, data.entryDate, data.exitDate,
         data.entryPrice, data.exitPrice, data.quantity, data.stopLoss,
-        data.takeProfit, pnl, mfe, data.fees, data.status,
+        data.takeProfit, pnl, mfe, mae, data.fees, data.status,
         data.strategy, data.setup, data.timeframe, data.marketType,
         data.notes, data.entryReasoning, data.exitReasoning, data.mistakes,
         data.lessonsLearned, data.emotionalState, data.confidenceLevel,
@@ -402,7 +418,10 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Delete trade
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const tradeId = req.params.id;
 
     const result = await query(
@@ -424,7 +443,10 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Export trades to CSV
 router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const { accountId } = req.query;
 
     // Get all trades for the user
@@ -458,20 +480,35 @@ router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
     const result = await query(queryText, params);
     const trades = result.rows;
 
-    // Get tags for each trade
-    const tradesWithTags = await Promise.all(
-      trades.map(async (trade: any) => {
-        const tagsResult = await query(
-          `SELECT tt.name, tt.color
-           FROM trade_tags tt
-           JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
-           WHERE ttm.trade_id = $1`,
-          [trade.id]
-        );
-        const tags = tagsResult.rows.map((t: any) => t.name).join('; ');
-        return { ...trade, tags };
-      })
-    );
+    // Optimize: Get all tags for all trades in one query instead of N+1
+    let tagsByTradeId = new Map<number, string>();
+    if (trades.length > 0) {
+      const tradeIds = trades.map((t: any) => t.id);
+      const placeholders = tradeIds.map((_id: number, i: number) => `$${i + 1}`).join(',');
+
+      const tagsResult = await query(
+        `SELECT ttm.trade_id, tt.name
+         FROM trade_tags tt
+         JOIN trade_tag_mappings ttm ON tt.id = ttm.tag_id
+         WHERE ttm.trade_id IN (${placeholders})`,
+        tradeIds
+      );
+
+      // Group tags by trade_id
+      tagsResult.rows.forEach((tag: any) => {
+        if (!tagsByTradeId.has(tag.trade_id)) {
+          tagsByTradeId.set(tag.trade_id, '');
+        }
+        const current = tagsByTradeId.get(tag.trade_id);
+        tagsByTradeId.set(tag.trade_id, current ? `${current}; ${tag.name}` : tag.name);
+      });
+    }
+
+    // Attach tags to trades
+    const tradesWithTags = trades.map((trade: any) => ({
+      ...trade,
+      tags: tagsByTradeId.get(trade.id) || ''
+    }));
 
     // Create CSV header
     const headers = [
@@ -488,6 +525,7 @@ router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
       'Take Profit',
       'PnL',
       'MFE',
+      'MAE',
       'Fees',
       'Status',
       'Strategy',
@@ -537,6 +575,7 @@ router.get('/export/csv', authenticateToken, async (req: AuthRequest, res) => {
           formatValue(trade.take_profit),
           formatValue(trade.pnl),
           formatValue(trade.mfe),
+          formatValue(trade.mae),
           formatValue(trade.fees),
           formatValue(trade.status),
           formatValue(trade.strategy),

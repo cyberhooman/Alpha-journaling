@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from './Card';
-import { TrendingUp } from 'lucide-react';
+import { TrendUp as TrendingUp } from '@phosphor-icons/react';
 
 export const SubscriptionAnalytics: React.FC = () => {
   return (

@@ -21,7 +21,10 @@ const createStrategySchema = z.object({
 // Get all strategies
 router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
 
     const result = await query(
       'SELECT * FROM trading_strategies WHERE user_id = $1 ORDER BY created_at DESC',
@@ -40,7 +43,10 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Get single strategy
 router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const strategyId = parseInt(req.params.id, 10);
 
     if (isNaN(strategyId)) {
@@ -66,7 +72,10 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Create strategy
 router.post('/', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const data = createStrategySchema.parse(req.body);
 
     const result = await query(
@@ -102,14 +111,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res) => {
 // Update strategy
 router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const strategyId = parseInt(req.params.id, 10);
     const data = createStrategySchema.partial().parse(req.body);
-
-    console.log('📝 Strategy update request:');
-    console.log('   User ID:', userId, typeof userId);
-    console.log('   Strategy ID:', strategyId, typeof strategyId);
-    console.log('   Data:', JSON.stringify(data));
 
     if (isNaN(strategyId)) {
       return res.status(400).json({ error: 'Invalid strategy ID' });
@@ -163,7 +170,10 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Delete strategy
 router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const strategyId = parseInt(req.params.id, 10);
 
     if (isNaN(strategyId)) {
@@ -189,7 +199,10 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Get strategy performance stats
 router.get('/:id/stats', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
     const strategyId = parseInt(req.params.id, 10);
 
     if (isNaN(strategyId)) {

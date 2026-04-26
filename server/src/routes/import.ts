@@ -16,6 +16,8 @@ const csvTradeSchema = z.object({
   Quantity: z.string().transform(Number),
   'Stop Loss': z.string().optional().transform(val => val ? Number(val) : undefined),
   'Take Profit': z.string().optional().transform(val => val ? Number(val) : undefined),
+  'MFE': z.string().optional().transform(val => val ? Number(val) : undefined),
+  'MAE': z.string().optional().transform(val => val ? Number(val) : undefined),
   Fees: z.string().optional().transform(val => val ? Number(val) : 0),
   Strategy: z.string().optional(),
   Notes: z.string().optional(),
@@ -67,15 +69,15 @@ router.post('/csv', authenticateToken, async (req: AuthRequest, res) => {
         const result = await query(
           `INSERT INTO trades (
             user_id, symbol, side, entry_date, exit_date, entry_price, exit_price,
-            quantity, stop_loss, take_profit, pnl, fees, status,
+            quantity, stop_loss, take_profit, pnl, mfe, mae, fees, status,
             strategy, notes
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
           RETURNING id`,
           [
             userId, record.Symbol, side, record['Entry Date'], record['Exit Date'] || null,
             record['Entry Price'], record['Exit Price'] || null, record.Quantity,
             record['Stop Loss'] || null, record['Take Profit'] || null, pnl,
-            record.Fees, status, record.Strategy || null, record.Notes || null
+            record['MFE'] || null, record['MAE'] || null, record.Fees, status, record.Strategy || null, record.Notes || null
           ]
         );
 
@@ -105,9 +107,9 @@ router.post('/csv', authenticateToken, async (req: AuthRequest, res) => {
 
 // Get CSV template (requires authentication)
 router.get('/csv/template', authenticateToken, (_req, res) => {
-  const template = `Symbol,Side,Entry Date,Exit Date,Entry Price,Exit Price,Quantity,Stop Loss,Take Profit,Fees,Strategy,Notes
-AAPL,LONG,2024-01-15T10:30:00Z,2024-01-15T14:30:00Z,150.50,152.75,10,149.00,153.00,2.50,Breakout,Good entry on volume spike
-TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,1.25,Momentum,Shorting resistance level`;
+  const template = `Symbol,Side,Entry Date,Exit Date,Entry Price,Exit Price,Quantity,Stop Loss,Take Profit,MFE,MAE,Fees,Strategy,Notes
+AAPL,LONG,2024-01-15T10:30:00Z,2024-01-15T14:30:00Z,150.50,152.75,10,149.00,153.00,5.00,3.50,2.50,Breakout,Good entry on volume spike
+TSLA,SHORT,2024-01-16T09:00:00Z,,245.80,,5,250.00,240.00,,,1.25,Momentum,Shorting resistance level`;
 
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=trade_import_template.csv');

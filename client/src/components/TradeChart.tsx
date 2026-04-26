@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Bar } from 'recharts';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendUp, TrendDown } from '@phosphor-icons/react';
+const TrendingUp = TrendUp;
+const TrendingDown = TrendDown;
 import { format } from 'date-fns';
 
 interface TradeChartProps {
