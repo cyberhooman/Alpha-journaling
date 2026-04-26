@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { z } from 'zod';
 import { query } from '../db/database.js';
 import { getJWTSecret } from '../config/security.js';
@@ -285,6 +286,91 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// SSO entry point — called by AlphaLabs redirect
+// AlphaLabs mints a short-lived JWT (60s) and redirects here
+router.get('/sso', async (req, res) => {
+  const { token } = req.query as { token?: string };
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const alphalabsUrl = process.env.ALPHALABS_URL || 'https://app.alphalabs.live';
+
+  if (!token) {
+    return res.redirect(alphalabsUrl);
+  }
+
+  const sharedSecret = process.env.JWT_SHARED_SECRET;
+  if (!sharedSecret) {
+    console.error('[Journal SSO] JWT_SHARED_SECRET not configured');
+    return res.redirect(`${alphalabsUrl}?message=journal_config_error`);
+  }
+
+  try {
+    const payload = jwt.verify(token, sharedSecret) as {
+      userId: string;
+      email: string;
+      displayName: string;
+      picture: string | null;
+    };
+
+    const email = payload.email.toLowerCase().trim();
+
+    // Find or create user by email (no password needed — SSO only)
+    let existingUser = await query('SELECT * FROM users WHERE email = $1', [email]);
+
+    let userId: number;
+    if (existingUser.rows.length > 0) {
+      userId = (existingUser.rows[0] as any).id;
+    } else {
+      // Create journal user linked to AlphaLabs account
+      const nameParts = (payload.displayName || email.split('@')[0]).split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // SSO users get a random unusable password hash
+      const randomPassword = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+
+      const created = await query(
+        `INSERT INTO users (email, password_hash, first_name, last_name, auth_provider, profile_picture_url, email_verified)
+         VALUES ($1, $2, $3, $4, 'alphalabs_sso', $5, true)
+         RETURNING id`,
+        [email, randomPassword, firstName, lastName, payload.picture]
+      );
+      userId = (created.rows[0] as any).id;
+
+      // Create default settings and sample trade for new users
+      await query('INSERT INTO user_settings (user_id) VALUES ($1)', [userId]);
+      await createSampleTrade(userId);
+    }
+
+    // Issue a journal JWT (same as normal login)
+    const journalToken = jwt.sign(
+      { id: userId, email },
+      getJWTSecret(),
+      { expiresIn: '7d' }
+    );
+
+    // Get user info to pass to frontend
+    const userResult = await query(
+      'SELECT id, email, first_name, last_name, profile_picture_url FROM users WHERE id = $1',
+      [userId]
+    );
+    const user = userResult.rows[0] as any;
+
+    const userJson = encodeURIComponent(JSON.stringify({
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      profilePicture: user.profile_picture_url,
+    }));
+
+    // Reuse the existing AuthCallback page — same pattern as Google OAuth
+    res.redirect(`${frontendUrl}/auth/callback?token=${journalToken}&user=${userJson}`);
+  } catch (err) {
+    console.error('[Journal SSO] Token verification failed:', err);
+    res.redirect(`${alphalabsUrl}?message=journal_auth_failed`);
   }
 });
 

@@ -1,31 +1,31 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard,
-  BookOpen,
-  BarChart3,
-  Calendar,
-  Upload,
-  LogOut,
-  TrendingUp,
-  Settings as SettingsIcon,
-  Menu,
+  SquaresFour,
+  Notebook,
+  ChartBar,
+  CalendarBlank,
+  UploadSimple,
+  SignOut,
+  TrendUp,
+  Gear,
+  List,
   X,
   Target,
-  CheckSquare
-} from 'lucide-react';
+  CheckSquare,
+} from '@phosphor-icons/react';
 import { useAuthStore } from '../store/authStore';
-// import AccountSwitcher from './AccountSwitcher';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Trades', href: '/trades', icon: BookOpen },
+  { name: 'Dashboard', href: '/', icon: SquaresFour },
+  { name: 'Trades', href: '/trades', icon: Notebook },
   { name: 'Strategies', href: '/strategies', icon: Target },
   { name: 'Checklist', href: '/checklist', icon: CheckSquare },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Calendar', href: '/calendar', icon: Calendar },
-  { name: 'Import', href: '/import', icon: Upload },
-  { name: 'Settings', href: '/settings', icon: SettingsIcon },
+  { name: 'Analytics', href: '/analytics', icon: ChartBar },
+  { name: 'Calendar', href: '/calendar', icon: CalendarBlank },
+  { name: 'Import', href: '/import', icon: UploadSimple },
+  { name: 'Settings', href: '/settings', icon: Gear },
 ];
 
 export default function Layout() {
@@ -35,100 +35,162 @@ export default function Layout() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    window.location.href = 'https://app.alphalabs.live/logout';
   };
 
+  const initials = (user?.firstName || user?.email || 'U').slice(0, 2).toUpperCase();
+
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-slate-900">
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-dark-500 dark:bg-slate-950 border-b border-dark-600 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen flex" style={{ background: 'rgb(var(--background))' }}>
+      {/* ── Desktop Sidebar ── */}
+      <aside
+        className="hidden lg:flex flex-col w-60 flex-shrink-0 fixed inset-y-0 left-0 z-30"
+        style={{
+          background: 'rgb(var(--surface))',
+          borderRight: '1px solid rgb(var(--border))',
+        }}
+      >
+        {/* Logo */}
+        <div className="px-5 py-5 flex items-center gap-2.5" style={{ borderBottom: '1px solid rgb(var(--border))' }}>
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: 'rgba(255,117,34,0.12)', border: '1px solid rgba(255,117,34,0.2)' }}
+          >
+            <TrendUp weight="bold" className="w-4 h-4" style={{ color: '#FF7522' }} />
+          </div>
+          <div>
+            <p className="text-sm font-semibold leading-none" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</p>
+            <p className="text-[10px] mt-0.5 uppercase tracking-widest" style={{ color: 'rgb(var(--text-muted))' }}>Pro</p>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
+          {navigation.map((item, i) => (
+            <motion.div
+              key={item.name}
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
+            >
+              <NavLink
+                to={item.href}
+                end={item.href === '/'}
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">{item.name}</span>
+              </NavLink>
+            </motion.div>
+          ))}
+        </nav>
+
+        {/* User */}
+        <div className="p-3" style={{ borderTop: '1px solid rgb(var(--border))' }}>
+          <div className="flex items-center gap-3 px-2 py-2 rounded-xl" style={{ background: 'rgb(var(--surface-2))' }}>
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0"
+              style={{ background: 'rgba(255,117,34,0.12)', color: '#FF7522' }}
+            >
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate" style={{ color: 'rgb(var(--text-primary))' }}>
+                {user?.firstName || user?.email || 'Trader'}
+              </p>
+              <p className="text-[10px] truncate" style={{ color: 'rgb(var(--text-muted))' }}>{user?.email}</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="p-1 rounded-lg transition-colors"
+              style={{ color: 'rgb(var(--text-muted))' }}
+            >
+              <SignOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Mobile Header ── */}
+      <div
+        className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3"
+        style={{ background: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--border))' }}
+      >
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-6 h-6 text-primary-500" />
-          <h1 className="text-lg font-bold text-white">Trading Journal</h1>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,117,34,0.12)' }}>
+            <TrendUp weight="bold" className="w-3.5 h-3.5" style={{ color: '#FF7522' }} />
+          </div>
+          <span className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg"
+          className="p-1.5 rounded-xl transition-colors"
+          style={{ color: 'rgb(var(--text-primary))', background: 'rgb(var(--surface-2))' }}
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <List className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 w-64 bg-dark-500 dark:bg-slate-950 border-r border-dark-600 dark:border-slate-800 transform transition-transform duration-300 ease-in-out z-40 ${
-        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 lg:top-0 top-14`}>
-        <div className="flex flex-col h-full">
-          {/* Logo - Hidden on mobile since it's in the top bar */}
-          <div className="hidden lg:block px-6 py-6 border-b border-dark-600 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-8 h-8 text-primary-500" />
-              <div>
-                <h1 className="text-xl font-bold text-white">Trading Journal</h1>
-                <p className="text-xs text-neutral-400 dark:text-slate-500">Pro Edition</p>
+      {/* ── Mobile Menu ── */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="lg:hidden fixed inset-0 z-40"
+              style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="lg:hidden fixed left-0 top-0 bottom-0 z-50 w-64 flex flex-col"
+              style={{ background: 'rgb(var(--surface))', borderRight: '1px solid rgb(var(--border))' }}
+            >
+              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(var(--border))' }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,117,34,0.12)' }}>
+                    <TrendUp weight="bold" className="w-4 h-4" style={{ color: '#FF7522' }} />
+                  </div>
+                  <p className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</p>
+                </div>
+                <button onClick={() => setMobileMenuOpen(false)} style={{ color: 'rgb(var(--text-muted))' }}>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            </div>
-          </div>
+              <nav className="flex-1 px-3 py-4 space-y-0.5">
+                {navigation.map((item, i) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <NavLink
+                      to={item.href}
+                      end={item.href === '/'}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                    >
+                      <item.icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-sm">{item.name}</span>
+                    </NavLink>
+                  </motion.div>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
-          {/* Account Switcher */}
-          {/* <div className="px-4 py-4">
-            <AccountSwitcher />
-          </div> */}
-
-          {/* Navigation */}
-          <nav className="flex-1 px-4 py-2 space-y-1">
-            {navigation.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                end={item.href === '/'}
-                onClick={() => setMobileMenuOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary-600 text-white font-medium'
-                      : 'text-neutral-300 hover:bg-dark-600 dark:hover:bg-slate-900 hover:text-white'
-                  }`
-                }
-              >
-                <item.icon className="w-5 h-5" />
-                {item.name}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* User section */}
-          <div className="p-4 border-t border-dark-600 dark:border-slate-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-white">
-                  {user?.firstName || user?.email}
-                </p>
-                <p className="text-xs text-neutral-400 dark:text-slate-500">{user?.email}</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="p-2 text-neutral-400 hover:text-white hover:bg-dark-600 dark:hover:bg-slate-900 rounded-lg transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-64 pt-14 lg:pt-0">
-        <main className="p-4 sm:p-6 lg:p-8">
+      {/* ── Main content ── */}
+      <div className="flex-1 lg:ml-60 pt-12 lg:pt-0">
+        <main className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
           <Outlet />
         </main>
       </div>
