@@ -6,8 +6,8 @@
  * Sanitize HTML/text input to prevent XSS attacks
  * Removes all HTML tags and scripts
  */
-export function sanitizeText(input: string | null | undefined): string | null {
-  if (!input) return null;
+export function sanitizeText(input: string | null | undefined): string {
+  if (input == null) return '';
 
   // Remove all HTML tags, keeping only text content
   // First decode HTML entities, then strip tags
@@ -29,7 +29,7 @@ export function sanitizeText(input: string | null | undefined): string | null {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  return sanitized.trim() || null;
+  return sanitized.trim();
 }
 
 /**
