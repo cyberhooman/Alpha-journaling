@@ -37,6 +37,7 @@ const easeOutQuart = [0.25, 1, 0.5, 1] as const;
 export default function Layout() {
   const { user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
@@ -51,6 +52,13 @@ export default function Layout() {
     } catch {}
   }, [collapsed]);
 
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   const handleBackToApp = () => {
     window.location.href = 'https://app.alphalabs.live';
   };
@@ -63,9 +71,11 @@ export default function Layout() {
       {/* ── Desktop Sidebar ── */}
       <motion.aside
         className="hidden lg:flex flex-col flex-shrink-0 fixed inset-y-0 left-0 z-40 overflow-hidden"
+        initial={false}
         animate={{ width: sidebarW }}
         transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.8 }}
         style={{
+          width: sidebarW,
           background: 'rgb(var(--surface))',
           borderRight: '1px solid rgb(var(--border))',
         }}
@@ -282,10 +292,10 @@ export default function Layout() {
 
       {/* ── Main content ── */}
       <motion.div
-        className="flex-1 pt-12 lg:pt-0"
-        animate={{ marginLeft: sidebarW }}
+        className="flex-1 pt-12 lg:pt-0 min-w-0"
+        initial={false}
+        animate={{ marginLeft: isDesktop ? sidebarW : 0 }}
         transition={{ type: 'spring', stiffness: 320, damping: 32, mass: 0.8 }}
-        style={{ marginLeft: sidebarW }}
       >
         <main className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
           <Outlet />
