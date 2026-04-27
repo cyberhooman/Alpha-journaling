@@ -8,6 +8,7 @@ import { validateSecurityConfig } from './config/security.js';
 import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { startCleanupTasks } from './utils/cleanup.js';
 import passport from './config/passport.js';
+import { db } from './db/database-sqlite.js';
 import authRoutes from './routes/auth.js';
 import tradesRoutes from './routes/trades.js';
 import analyticsRoutes from './routes/analytics.js';
@@ -147,9 +148,14 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Health check
+// Health check — verifies DB is reachable, not just that the process is alive
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  try {
+    db.prepare('SELECT 1').get();
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  } catch (err: any) {
+    res.status(503).json({ status: 'error', error: err.message });
+  }
 });
 
 // Apply rate limiters
@@ -173,10 +179,28 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📊 Trading Journal API ready`);
 
   // Start periodic cleanup tasks
   startCleanupTasks();
 });
+
+function gracefulShutdown(signal: string) {
+  console.log(`[shutdown] ${signal} received — checkpointing WAL and closing DB...`);
+  server.close(() => {
+    try {
+      db.pragma('wal_checkpoint(TRUNCATE)');
+      db.close();
+      console.log('[shutdown] DB closed cleanly.');
+    } catch (e) {
+      console.error('[shutdown] DB close error:', e);
+    }
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT',  () => gracefulShutdown('SIGINT'));
