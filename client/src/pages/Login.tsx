@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChartBar, ChartLine, TrendUp } from '@phosphor-icons/react';
 const BarChart3 = ChartBar;
 const LineChart = ChartLine;
@@ -51,13 +51,13 @@ export default function Login() {
             <div className="flex items-center gap-3 text-primary-600 fade-up" style={{ animationDelay: '80ms' }}>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-md">
                 <img
-                  src="/icon.png"
-                  alt="Alphalabs icon"
+                  src="/alphalabs-icon.png"
+                  alt="AlphaLabs icon"
                   className="h-7 w-7 object-contain"
                 />
               </div>
               <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
-                Alphalabs Trading Journal
+                Alpha Journaling
               </div>
             </div>
 
@@ -137,7 +137,7 @@ export default function Login() {
             />
           </div>
           <div className="text-sm font-semibold tracking-[0.3em] text-primary-700 uppercase">
-            Alphalabs Trading Journal
+            Alpha Journaling
           </div>
         </div>
 
@@ -232,13 +232,13 @@ export default function Login() {
               </form>
 
               <div className="mt-6 pt-5 border-t border-neutral-200 text-center text-sm text-dark-400">
-                New here?{' '}
-                <Link
-                  to="/register"
+                Access via AlphaLabs?{' '}
+                <a
+                  href="https://app.alphalabs.live"
                   className="text-primary-700 hover:text-primary-800 font-semibold transition-colors duration-200"
                 >
-                  Create an account
-                </Link>
+                  Sign in with AlphaLabs
+                </a>
               </div>
             </div>
           </div>
