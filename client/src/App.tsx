@@ -22,8 +22,10 @@ const Strategies = lazy(() => import('./pages/Strategies'));
 const TradingTodoList = lazy(() => import('./pages/TradingTodoList'));
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  if (!isAuthenticated()) {
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+
+  if (!user || !token) {
     window.location.href = 'https://app.alphalabs.live';
     return null;
   }

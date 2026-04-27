@@ -8,7 +8,6 @@ import {
   CalendarBlank,
   UploadSimple,
   ArrowLeft,
-  TrendUp,
   Gear,
   List,
   X,
@@ -42,7 +41,7 @@ export default function Layout() {
     <div className="min-h-screen flex" style={{ background: 'rgb(var(--background))' }}>
       {/* ── Desktop Sidebar ── */}
       <aside
-        className="hidden lg:flex flex-col w-60 flex-shrink-0 fixed inset-y-0 left-0 z-30"
+        className="hidden lg:flex flex-col w-60 flex-shrink-0 fixed inset-y-0 left-0 z-40"
         style={{
           background: 'rgb(var(--surface))',
           borderRight: '1px solid rgb(var(--border))',
@@ -50,14 +49,9 @@ export default function Layout() {
       >
         {/* Logo */}
         <div className="px-5 py-5 flex items-center gap-2.5" style={{ borderBottom: '1px solid rgb(var(--border))' }}>
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'rgba(255,117,34,0.12)', border: '1px solid rgba(255,117,34,0.2)' }}
-          >
-            <TrendUp weight="bold" className="w-4 h-4" style={{ color: '#FF7522' }} />
-          </div>
+          <img src="/alphalabs-icon.png" alt="AlphaLabs" className="w-8 h-8 flex-shrink-0" />
           <div>
-            <p className="text-sm font-semibold leading-none" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</p>
+            <p className="text-sm font-semibold leading-none" style={{ color: 'rgb(var(--text-primary))' }}>Alpha Journaling</p>
             <p className="text-[10px] mt-0.5 uppercase tracking-widest" style={{ color: 'rgb(var(--text-muted))' }}>Pro</p>
           </div>
         </div>
@@ -116,10 +110,8 @@ export default function Layout() {
         style={{ background: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--border))' }}
       >
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'rgba(255,117,34,0.12)' }}>
-            <TrendUp weight="bold" className="w-3.5 h-3.5" style={{ color: '#FF7522' }} />
-          </div>
-          <span className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</span>
+          <img src="/alphalabs-icon.png" alt="AlphaLabs" className="w-7 h-7 flex-shrink-0" />
+          <span className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Alpha Journaling</span>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -152,10 +144,8 @@ export default function Layout() {
             >
               <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(var(--border))' }}>
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,117,34,0.12)' }}>
-                    <TrendUp weight="bold" className="w-4 h-4" style={{ color: '#FF7522' }} />
-                  </div>
-                  <p className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Trading Journal</p>
+                  <img src="/alphalabs-icon.png" alt="AlphaLabs" className="w-7 h-7 flex-shrink-0" />
+                  <p className="text-sm font-semibold" style={{ color: 'rgb(var(--text-primary))' }}>Alpha Journaling</p>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} style={{ color: 'rgb(var(--text-muted))' }}>
                   <X className="w-5 h-5" />
