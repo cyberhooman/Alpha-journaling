@@ -535,6 +535,38 @@ function isValidTableName(tableName: string): boolean {
   return VALID_TABLES.has(tableName);
 }
 
+function getReturningClause(text: string): string | null {
+  const match = text.match(/\bRETURNING\b\s+([\s\S]+)$/i);
+  return match ? match[1].trim() : null;
+}
+
+function applyReturningClause(rows: any[], returningClause: string | null) {
+  if (!returningClause) {
+    return rows;
+  }
+
+  if (returningClause === '*') {
+    return rows;
+  }
+
+  const columns = returningClause.split(',').map(col => col.trim()).filter(Boolean);
+
+  return rows.map((row: any) => {
+    const projected: Record<string, any> = {};
+
+    for (const column of columns) {
+      const aliasMatch = column.match(/^(.+?)\s+AS\s+(.+)$/i);
+      const sourceColumn = (aliasMatch ? aliasMatch[1] : column).trim().replace(/^["'`]|["'`]$/g, '');
+      const outputColumn = (aliasMatch ? aliasMatch[2] : sourceColumn).trim().replace(/^["'`]|["'`]$/g, '');
+      const normalizedSource = sourceColumn.split('.').pop()!;
+
+      projected[outputColumn] = row?.[normalizedSource];
+    }
+
+    return projected;
+  });
+}
+
 // Helper function to convert PostgreSQL-style queries to SQLite
 export const query = async (text: string, params: any[] = []) => {
   try {
@@ -546,8 +578,11 @@ export const query = async (text: string, params: any[] = []) => {
     sqliteQuery = text.replace(/\$\d+/g, () => '?');
 
     // Handle RETURNING clause - check BEFORE removing
-    const hasReturning = /RETURNING\s+\*/i.test(text);
-    sqliteQuery = sqliteQuery.replace(/RETURNING\s+\*/i, '');
+    const returningClause = getReturningClause(text);
+    const hasReturning = !!returningClause;
+    if (hasReturning) {
+      sqliteQuery = sqliteQuery.replace(/\bRETURNING\b\s+[\s\S]+$/i, '');
+    }
 
 
     if (sqliteQuery.trim().toUpperCase().startsWith('SELECT')) {
@@ -564,7 +599,7 @@ export const query = async (text: string, params: any[] = []) => {
         if (table && isValidTableName(table)) {
           const selectStmt = db.prepare(`SELECT * FROM ${table} WHERE id = ?`);
           const row = selectStmt.get(info.lastInsertRowid);
-          return { rows: [row] };
+          return { rows: applyReturningClause([row], returningClause) };
         }
       }
 
@@ -602,15 +637,40 @@ export const query = async (text: string, params: any[] = []) => {
           const selectStmt = db.prepare(selectQuery);
           const rows = selectStmt.all(...whereParams);
 
-          return { rows };
+          return { rows: applyReturningClause(rows, returningClause) };
         }
       }
 
       return { rows: [], rowCount: info.changes };
     } else if (sqliteQuery.trim().toUpperCase().startsWith('DELETE')) {
+      let returningRows: any[] = [];
+
+      if (hasReturning) {
+        const tableMatch = sqliteQuery.match(/DELETE FROM (\w+)/i);
+        const whereMatch = text.match(/WHERE\s+([\s\S]+?)\s+RETURNING/i);
+
+        if (tableMatch && whereMatch) {
+          const table = tableMatch[1];
+
+          if (!isValidTableName(table)) {
+            throw new Error(`Invalid table name: ${table}`);
+          }
+
+          const whereClause = whereMatch[1];
+          let selectQuery = `SELECT * FROM ${table} WHERE ${whereClause}`;
+          selectQuery = selectQuery.replace(/\$\d+/g, () => '?');
+
+          const placeholderCount = (whereClause.match(/\$\d+/g) || []).length;
+          const whereParams = sqliteParams.slice(-placeholderCount);
+
+          const selectStmt = db.prepare(selectQuery);
+          returningRows = selectStmt.all(...whereParams);
+        }
+      }
+
       const stmt = db.prepare(sqliteQuery);
       const info = stmt.run(...sqliteParams);
-      return { rows: [], rowCount: info.changes };
+      return { rows: applyReturningClause(returningRows, returningClause), rowCount: info.changes };
     } else {
       const stmt = db.prepare(sqliteQuery);
       stmt.run(...sqliteParams);

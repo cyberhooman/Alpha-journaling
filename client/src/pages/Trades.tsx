@@ -50,8 +50,33 @@ export default function Trades() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => tradesAPI.delete(id),
+    onMutate: async (deletedTradeId: number) => {
+      await queryClient.cancelQueries({ queryKey: ['trades'] });
+
+      const previousTrades = queryClient.getQueriesData({ queryKey: ['trades'] });
+
+      queryClient.setQueriesData({ queryKey: ['trades'] }, (oldData: any) => {
+        if (!oldData?.data || !Array.isArray(oldData.data)) {
+          return oldData;
+        }
+
+        return {
+          ...oldData,
+          data: oldData.data.filter((trade: any) => trade.id !== deletedTradeId),
+        };
+      });
+
+      return { previousTrades };
+    },
+    onError: (_error, _deletedTradeId, context) => {
+      if (!context?.previousTrades) return;
+
+      for (const [queryKey, data] of context.previousTrades) {
+        queryClient.setQueryData(queryKey, data);
+      }
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['trades'], refetchType: 'active' });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['recent-trades'] });
     },

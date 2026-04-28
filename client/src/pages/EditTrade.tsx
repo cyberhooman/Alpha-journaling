@@ -94,7 +94,6 @@ export default function EditTrade() {
     notes: '',
     entryReasoning: '',
     exitReasoning: '',
-    broker: '',
     screenshotUrl: '',
     tagIds: [] as number[],
   });
@@ -162,7 +161,6 @@ export default function EditTrade() {
         notes: tradeData.notes || '',
         entryReasoning: tradeData.entry_reasoning || '',
         exitReasoning: tradeData.exit_reasoning || '',
-        broker: tradeData.broker || '',
         screenshotUrl: tradeData.screenshot_url || '',
         tagIds: tradeData.tag_ids || [],
       });
@@ -218,7 +216,6 @@ export default function EditTrade() {
       notes: formData.notes || undefined,
       entryReasoning: formData.entryReasoning || undefined,
       exitReasoning: formData.exitReasoning || undefined,
-      broker: formData.broker || undefined,
       screenshotUrl: formData.screenshotUrl || undefined,
       tagIds: formData.tagIds,
     };
@@ -488,11 +485,6 @@ export default function EditTrade() {
             <div>
               <label className="label">Timeframe</label>
               <input type="text" name="timeframe" className="input" value={formData.timeframe} onChange={handleChange} placeholder="5m, 1h, 1D, etc." />
-            </div>
-
-            <div>
-              <label className="label">Broker</label>
-              <input type="text" name="broker" className="input" value={formData.broker} onChange={handleChange} />
             </div>
 
             {/* Tags */}

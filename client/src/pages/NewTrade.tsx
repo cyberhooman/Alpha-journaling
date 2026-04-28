@@ -85,7 +85,6 @@ export default function NewTrade() {
     notes: '',
     entryReasoning: '',
     exitReasoning: '',
-    broker: '',
     screenshotUrl: '',
     tagIds: [] as number[],
   });
@@ -496,10 +495,6 @@ export default function NewTrade() {
                 <div>
                   <label className="label">Timeframe</label>
                   <input type="text" name="timeframe" className="input" value={formData.timeframe} onChange={handleChange} placeholder="5m, 1h, 1D, etc." />
-                </div>
-                <div>
-                  <label className="label">Broker</label>
-                  <input type="text" name="broker" className="input" value={formData.broker} onChange={handleChange} />
                 </div>
               </>
             )}

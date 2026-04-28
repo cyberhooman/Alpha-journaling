@@ -6,15 +6,19 @@ echo.
 
 cd /d "%~dp0"
 
-REM Check if builds exist
-if not exist "client\dist" (
-    echo Building client...
-    call npm run build --workspace=client
+REM Always rebuild before launch so the desktop app doesn't run stale dist code
+echo Building client...
+call npm run build --workspace=client
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Failed to build client!
+    exit /b 1
 )
 
-if not exist "server\dist" (
-    echo Building server...
-    call npm run build --workspace=server
+echo Building server...
+call npm run build --workspace=server
+if %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Failed to build server!
+    exit /b 1
 )
 
 echo.
