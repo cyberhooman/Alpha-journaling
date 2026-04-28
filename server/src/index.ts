@@ -9,6 +9,7 @@ import { sanitizeRequestBody } from './middleware/sanitize.js';
 import { startCleanupTasks } from './utils/cleanup.js';
 import passport from './config/passport.js';
 import { db } from './db/database-sqlite.js';
+import { SQLiteSessionStore } from './db/session-store.js';
 import authRoutes from './routes/auth.js';
 import tradesRoutes from './routes/trades.js';
 import analyticsRoutes from './routes/analytics.js';
@@ -137,6 +138,7 @@ app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
+  store: new SQLiteSessionStore(24 * 60 * 60),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,

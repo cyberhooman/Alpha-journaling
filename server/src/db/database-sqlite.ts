@@ -15,11 +15,11 @@ const projectRoot = path.resolve(__dirname, '../../..');
 const dataDir = path.join(projectRoot, 'server', 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
-  if (isDevelopment) if (isDevelopment) console.log('📁 Created data directory at:', dataDir);
+  if (isDevelopment) console.log('📁 Created data directory at:', dataDir);
 }
 
 const dbPath = path.join(dataDir, 'trading_journal.db');
-if (isDevelopment) if (isDevelopment) console.log('💾 Database location:', dbPath);
+if (isDevelopment) console.log('💾 Database location:', dbPath);
 
 const db = new Database(dbPath);
 
@@ -223,7 +223,7 @@ function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON token_blacklist(expires_at);
   `);
 
-  if (isDevelopment) if (isDevelopment) console.log('✅ SQLite database initialized at:', dbPath);
+  if (isDevelopment) console.log('✅ SQLite database initialized at:', dbPath);
 }
 
 // Run migrations for existing databases
@@ -243,7 +243,7 @@ function runMigrations() {
   ).get('001_make_entry_price_quantity_nullable');
 
   if (!migration001Applied) {
-    if (isDevelopment) if (isDevelopment) console.log('🔄 Running migration: Make entry_price and quantity nullable...');
+    console.log('🔄 Running migration: Make entry_price and quantity nullable...');
 
     // Check if the trades table has the NOT NULL constraints
     const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string; notnull: number }>;
@@ -324,9 +324,9 @@ function runMigrations() {
         CREATE INDEX IF NOT EXISTS idx_trades_symbol ON trades(symbol);
       `);
 
-      if (isDevelopment) if (isDevelopment) console.log('✅ Migration completed: entry_price and quantity are now nullable');
+      console.log('✅ Migration completed: entry_price and quantity are now nullable');
     } else {
-      if (isDevelopment) if (isDevelopment) console.log('✅ Migration skipped: columns already nullable');
+      console.log('✅ Migration skipped: columns already nullable');
     }
 
     // Record migration as applied
@@ -339,7 +339,7 @@ function runMigrations() {
   ).get('002_rename_pnl_percentage_to_mfe');
 
   if (!migration002Applied) {
-    if (isDevelopment) console.log('🔄 Running migration: Rename pnl_percentage to mfe...');
+    console.log('🔄 Running migration: Rename pnl_percentage to mfe...');
 
     // Check if the trades table has pnl_percentage column
     const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string }>;
@@ -351,13 +351,13 @@ function runMigrations() {
       db.exec(`ALTER TABLE trades ADD COLUMN mfe REAL`);
       // Copy data from pnl_percentage to mfe (optional - only if you want to migrate existing data)
       // db.exec(`UPDATE trades SET mfe = pnl_percentage`);
-      if (isDevelopment) console.log('✅ Migration completed: Added mfe column');
+      console.log('✅ Migration completed: Added mfe column');
     } else if (!hasMfe) {
       // No pnl_percentage column, just add mfe
       db.exec(`ALTER TABLE trades ADD COLUMN mfe REAL`);
-      if (isDevelopment) console.log('✅ Migration completed: Added mfe column');
+      console.log('✅ Migration completed: Added mfe column');
     } else {
-      if (isDevelopment) console.log('✅ Migration skipped: mfe column already exists');
+      console.log('✅ Migration skipped: mfe column already exists');
     }
 
     // Record migration as applied
@@ -370,16 +370,16 @@ function runMigrations() {
   ).get('003_add_screenshot_url_2');
 
   if (!migration003Applied) {
-    if (isDevelopment) console.log('🔄 Running migration: Add screenshot_url_2...');
+    console.log('🔄 Running migration: Add screenshot_url_2...');
 
     const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string }>;
     const hasScreenshotUrl2 = tableInfo.some(col => col.name === 'screenshot_url_2');
 
     if (!hasScreenshotUrl2) {
       db.exec(`ALTER TABLE trades ADD COLUMN screenshot_url_2 TEXT`);
-      if (isDevelopment) console.log('✅ Migration completed: Added screenshot_url_2 column');
+      console.log('✅ Migration completed: Added screenshot_url_2 column');
     } else {
-      if (isDevelopment) console.log('✅ Migration skipped: screenshot_url_2 column already exists');
+      console.log('✅ Migration skipped: screenshot_url_2 column already exists');
     }
 
     // Record migration as applied
@@ -392,7 +392,7 @@ function runMigrations() {
   ).get('004_add_oauth_support');
 
   if (!migration004Applied) {
-    if (isDevelopment) console.log('🔄 Running migration: Add OAuth support columns...');
+    console.log('🔄 Running migration: Add OAuth support columns...');
 
     const tableInfo = db.pragma('table_info(users)') as Array<{ name: string; notnull: number }>;
     const hasGoogleId = tableInfo.some(col => col.name === 'google_id');
@@ -444,9 +444,9 @@ function runMigrations() {
         CREATE INDEX idx_users_auth_provider ON users(auth_provider);
       `);
 
-      if (isDevelopment) console.log('✅ Migration completed: Added OAuth support columns');
+      console.log('✅ Migration completed: Added OAuth support columns');
     } else {
-      if (isDevelopment) console.log('✅ Migration skipped: OAuth columns already exist');
+      console.log('✅ Migration skipped: OAuth columns already exist');
     }
 
     // Record migration as applied
@@ -459,16 +459,16 @@ function runMigrations() {
   ).get('005_add_mae');
 
   if (!migration005Applied) {
-    if (isDevelopment) console.log('🔄 Running migration: Add MAE column...');
+    console.log('🔄 Running migration: Add MAE column...');
 
     const tableInfo = db.pragma('table_info(trades)') as Array<{ name: string }>;
     const hasMae = tableInfo.some(col => col.name === 'mae');
 
     if (!hasMae) {
       db.exec(`ALTER TABLE trades ADD COLUMN mae REAL`);
-      if (isDevelopment) console.log('✅ Migration completed: Added mae column');
+      console.log('✅ Migration completed: Added mae column');
     } else {
-      if (isDevelopment) console.log('✅ Migration skipped: mae column already exists');
+      console.log('✅ Migration skipped: mae column already exists');
     }
 
     // Record migration as applied
