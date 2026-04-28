@@ -29,11 +29,16 @@ function sanitizeBodyRecursive(obj: any): any {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(obj)) {
       if (typeof value === 'string') {
-        // Special handling for URL fields
-        if (key.toLowerCase().includes('url') || key.toLowerCase().includes('screenshot')) {
-          sanitized[key] = sanitizeUrl(value);
+        if (!value) {
+          // Preserve empty strings — don't convert to null
+          sanitized[key] = value;
+        } else if (key.toLowerCase().includes('screenshot')) {
+          // Screenshots are base64 data URIs — pass through as-is
+          sanitized[key] = value;
+        } else if (key.toLowerCase().includes('url')) {
+          // For URL fields, sanitize but fall back to '' instead of null
+          sanitized[key] = sanitizeUrl(value) ?? '';
         } else {
-          // For text fields, sanitize but preserve line breaks
           sanitized[key] = sanitizeText(value);
         }
       } else if (typeof value === 'object') {
