@@ -322,71 +322,111 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
     const trade = existing.rows[0] as any;
 
-    // Use manual PNL if provided, otherwise calculate if prices are being updated
-    let pnl = data.pnl !== undefined ? data.pnl : trade.pnl;
-    let mfe = data.mfe !== undefined ? data.mfe : trade.mfe;
-    let mae = data.mae !== undefined ? data.mae : trade.mae;
+    const nextTrade = {
+      accountId: data.accountId !== undefined ? data.accountId : trade.account_id,
+      symbol: data.symbol !== undefined ? data.symbol : trade.symbol,
+      side: data.side !== undefined ? data.side : trade.side,
+      entryDate: data.entryDate !== undefined ? data.entryDate : trade.entry_date,
+      exitDate: data.exitDate !== undefined ? data.exitDate : trade.exit_date,
+      entryPrice: data.entryPrice !== undefined ? data.entryPrice : trade.entry_price,
+      exitPrice: data.exitPrice !== undefined ? data.exitPrice : trade.exit_price,
+      quantity: data.quantity !== undefined ? data.quantity : trade.quantity,
+      stopLoss: data.stopLoss !== undefined ? data.stopLoss : trade.stop_loss,
+      takeProfit: data.takeProfit !== undefined ? data.takeProfit : trade.take_profit,
+      fees: data.fees !== undefined ? data.fees : trade.fees,
+      status: data.status !== undefined ? data.status : trade.status,
+      strategy: data.strategy !== undefined ? data.strategy : trade.strategy,
+      setup: data.setup !== undefined ? data.setup : trade.setup,
+      timeframe: data.timeframe !== undefined ? data.timeframe : trade.timeframe,
+      marketType: data.marketType !== undefined ? data.marketType : trade.market_type,
+      notes: data.notes !== undefined ? data.notes : trade.notes,
+      entryReasoning: data.entryReasoning !== undefined ? data.entryReasoning : trade.entry_reasoning,
+      exitReasoning: data.exitReasoning !== undefined ? data.exitReasoning : trade.exit_reasoning,
+      mistakes: data.mistakes !== undefined ? data.mistakes : trade.mistakes,
+      lessonsLearned: data.lessonsLearned !== undefined ? data.lessonsLearned : trade.lessons_learned,
+      emotionalState: data.emotionalState !== undefined ? data.emotionalState : trade.emotional_state,
+      confidenceLevel: data.confidenceLevel !== undefined ? data.confidenceLevel : trade.confidence_level,
+      screenshotUrl: data.screenshotUrl !== undefined ? data.screenshotUrl : trade.screenshot_url,
+      screenshotUrl2: data.screenshotUrl2 !== undefined ? data.screenshotUrl2 : trade.screenshot_url_2,
+      broker: data.broker !== undefined ? data.broker : trade.broker,
+      accountBalance: data.accountBalance !== undefined ? data.accountBalance : trade.account_balance,
+      riskAmount: data.riskAmount !== undefined ? data.riskAmount : trade.risk_amount,
+      riskPercentage: data.riskPercentage !== undefined ? data.riskPercentage : trade.risk_percentage,
+      rewardRiskRatio: data.rewardRiskRatio !== undefined ? data.rewardRiskRatio : trade.reward_risk_ratio,
+    };
 
-    // Only calculate PnL if manual values not provided AND prices are being updated
-    if (data.pnl === undefined) {
-      if (data.exitPrice !== undefined || data.entryPrice !== undefined || data.quantity !== undefined) {
-        const calculated = calculatePnL(
-          data.side || trade.side,
-          data.entryPrice || trade.entry_price,
-          data.exitPrice !== undefined ? data.exitPrice : trade.exit_price,
-          data.quantity || trade.quantity,
-          data.fees !== undefined ? data.fees : trade.fees
-        );
-        pnl = calculated.pnl;
-      }
+    // Use manual PnL if provided, otherwise recalculate when a PnL input changed.
+    let pnl = data.pnl !== undefined ? data.pnl : trade.pnl;
+    const mfe = data.mfe !== undefined ? data.mfe : trade.mfe;
+    const mae = data.mae !== undefined ? data.mae : trade.mae;
+
+    if (
+      data.pnl === undefined &&
+      (
+        data.side !== undefined ||
+        data.entryPrice !== undefined ||
+        data.exitPrice !== undefined ||
+        data.quantity !== undefined ||
+        data.fees !== undefined
+      )
+    ) {
+      const calculated = calculatePnL(
+        nextTrade.side,
+        nextTrade.entryPrice,
+        nextTrade.exitPrice,
+        nextTrade.quantity,
+        nextTrade.fees
+      );
+      pnl = calculated.pnl;
     }
 
     const result = await query(
       `UPDATE trades SET
-        account_id = COALESCE($1, account_id),
-        symbol = COALESCE($2, symbol),
-        side = COALESCE($3, side),
-        entry_date = COALESCE($4, entry_date),
-        exit_date = COALESCE($5, exit_date),
-        entry_price = COALESCE($6, entry_price),
-        exit_price = COALESCE($7, exit_price),
-        quantity = COALESCE($8, quantity),
-        stop_loss = COALESCE($9, stop_loss),
-        take_profit = COALESCE($10, take_profit),
-        pnl = COALESCE($11, pnl),
-        mfe = COALESCE($12, mfe),
-        mae = COALESCE($13, mae),
-        fees = COALESCE($14, fees),
-        status = COALESCE($14, status),
-        strategy = COALESCE($15, strategy),
-        setup = COALESCE($16, setup),
-        timeframe = COALESCE($17, timeframe),
-        market_type = COALESCE($18, market_type),
-        notes = COALESCE($19, notes),
-        entry_reasoning = COALESCE($20, entry_reasoning),
-        exit_reasoning = COALESCE($21, exit_reasoning),
-        mistakes = COALESCE($22, mistakes),
-        lessons_learned = COALESCE($23, lessons_learned),
-        emotional_state = COALESCE($24, emotional_state),
-        confidence_level = COALESCE($25, confidence_level),
-        screenshot_url = COALESCE($26, screenshot_url),
-        screenshot_url_2 = COALESCE($27, screenshot_url_2),
-        broker = COALESCE($28, broker),
-        account_balance = COALESCE($29, account_balance),
-        risk_amount = COALESCE($30, risk_amount),
-        risk_percentage = COALESCE($31, risk_percentage),
-        reward_risk_ratio = COALESCE($32, reward_risk_ratio)
-      WHERE id = $33 AND user_id = $34
+        account_id = $1,
+        symbol = $2,
+        side = $3,
+        entry_date = $4,
+        exit_date = $5,
+        entry_price = $6,
+        exit_price = $7,
+        quantity = $8,
+        stop_loss = $9,
+        take_profit = $10,
+        pnl = $11,
+        mfe = $12,
+        mae = $13,
+        fees = $14,
+        status = $15,
+        strategy = $16,
+        setup = $17,
+        timeframe = $18,
+        market_type = $19,
+        notes = $20,
+        entry_reasoning = $21,
+        exit_reasoning = $22,
+        mistakes = $23,
+        lessons_learned = $24,
+        emotional_state = $25,
+        confidence_level = $26,
+        screenshot_url = $27,
+        screenshot_url_2 = $28,
+        broker = $29,
+        account_balance = $30,
+        risk_amount = $31,
+        risk_percentage = $32,
+        reward_risk_ratio = $33,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $34 AND user_id = $35
       RETURNING *`,
       [
-        data.accountId, data.symbol, data.side, data.entryDate, data.exitDate,
-        data.entryPrice, data.exitPrice, data.quantity, data.stopLoss,
-        data.takeProfit, pnl, mfe, mae, data.fees, data.status,
-        data.strategy, data.setup, data.timeframe, data.marketType,
-        data.notes, data.entryReasoning, data.exitReasoning, data.mistakes,
-        data.lessonsLearned, data.emotionalState, data.confidenceLevel,
-        data.screenshotUrl, data.screenshotUrl2, data.broker, data.accountBalance, data.riskAmount,
-        data.riskPercentage, data.rewardRiskRatio, tradeId, userId
+        nextTrade.accountId, nextTrade.symbol, nextTrade.side, nextTrade.entryDate, nextTrade.exitDate,
+        nextTrade.entryPrice, nextTrade.exitPrice, nextTrade.quantity, nextTrade.stopLoss,
+        nextTrade.takeProfit, pnl, mfe, mae, nextTrade.fees, nextTrade.status,
+        nextTrade.strategy, nextTrade.setup, nextTrade.timeframe, nextTrade.marketType,
+        nextTrade.notes, nextTrade.entryReasoning, nextTrade.exitReasoning, nextTrade.mistakes,
+        nextTrade.lessonsLearned, nextTrade.emotionalState, nextTrade.confidenceLevel,
+        nextTrade.screenshotUrl, nextTrade.screenshotUrl2, nextTrade.broker, nextTrade.accountBalance, nextTrade.riskAmount,
+        nextTrade.riskPercentage, nextTrade.rewardRiskRatio, tradeId, userId
       ]
     );
 

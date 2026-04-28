@@ -28,7 +28,7 @@ export function sanitizeUrl(url: string | null | undefined): string {
 
   const trimmed = url.trim();
 
-  // Block dangerous protocols
+  // Block obviously dangerous protocols before attempting to parse.
   const dangerousProtocols = ['javascript:', 'data:', 'vbscript:', 'file:'];
   const lowerUrl = trimmed.toLowerCase();
 
@@ -38,12 +38,15 @@ export function sanitizeUrl(url: string | null | undefined): string {
     }
   }
 
-  // Only allow http:// and https:// URLs
-  if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return '';
+    }
+    return parsed.toString();
+  } catch {
     return '';
   }
-
-  return trimmed;
 }
 
 /**
