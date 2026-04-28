@@ -9,25 +9,13 @@
 export function sanitizeText(input: string | null | undefined): string {
   if (input == null) return '';
 
-  // Remove all HTML tags, keeping only text content
-  // First decode HTML entities, then strip tags
-  let sanitized = input
-    // Remove script tags and their content
+  // Strip dangerous HTML — script/style tags and all other HTML tags.
+  // Do NOT re-encode the remaining text: data is stored in a database and
+  // served as JSON. React handles XSS prevention at render time via textContent.
+  const sanitized = input
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove style tags and their content
     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    // Remove all HTML tags but keep content
-    .replace(/<[^>]+>/g, '')
-    // Decode common HTML entities
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    // Re-escape potentially dangerous characters for output
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/<[^>]+>/g, '');
 
   return sanitized.trim();
 }
@@ -35,8 +23,8 @@ export function sanitizeText(input: string | null | undefined): string {
 /**
  * Sanitize URL to prevent javascript: and data: URIs
  */
-export function sanitizeUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
+export function sanitizeUrl(url: string | null | undefined): string {
+  if (!url) return '';
 
   const trimmed = url.trim();
 
@@ -52,7 +40,7 @@ export function sanitizeUrl(url: string | null | undefined): string | null {
 
   // Only allow http:// and https:// URLs
   if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
-    return null;
+    return '';
   }
 
   return trimmed;
@@ -69,8 +57,11 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
     if (value === null || value === undefined) {
       sanitized[key] = value;
     } else if (typeof value === 'string') {
-      // Special handling for URLs
-      if (key.toLowerCase().includes('url')) {
+      if (!value) {
+        sanitized[key] = value;
+      } else if (key.toLowerCase().includes('screenshot')) {
+        sanitized[key] = value;
+      } else if (key.toLowerCase().includes('url')) {
         sanitized[key] = sanitizeUrl(value);
       } else {
         sanitized[key] = sanitizeText(value);
