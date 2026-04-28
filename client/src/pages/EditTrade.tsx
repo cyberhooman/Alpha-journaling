@@ -125,22 +125,35 @@ export default function EditTrade() {
 
   useEffect(() => {
     if (tradeData) {
+      const parseDate = (val: string | null | undefined) => {
+        if (!val) return '';
+        try {
+          const d = new Date(val.replace(' ', 'T'));
+          if (isNaN(d.getTime())) return val.slice(0, 16);
+          return d.toISOString().slice(0, 16);
+        } catch {
+          return val.slice(0, 16);
+        }
+      };
+      const num = (val: number | null | undefined) =>
+        val != null ? String(val) : '';
+
       setFormData({
-        accountId: tradeData.account_id ? String(tradeData.account_id) : '',
+        accountId: tradeData.account_id != null ? String(tradeData.account_id) : '',
         symbol: tradeData.symbol || '',
         side: tradeData.side || 'LONG',
-        entryDate: tradeData.entry_date ? new Date(tradeData.entry_date).toISOString().slice(0, 16) : '',
-        exitDate: tradeData.exit_date ? new Date(tradeData.exit_date).toISOString().slice(0, 16) : '',
-        entryPrice: tradeData.entry_price ? String(tradeData.entry_price) : '',
-        exitPrice: tradeData.exit_price ? String(tradeData.exit_price) : '',
-        quantity: tradeData.quantity ? String(tradeData.quantity) : '',
-        stopLoss: tradeData.stop_loss ? String(tradeData.stop_loss) : '',
-        takeProfit: tradeData.take_profit ? String(tradeData.take_profit) : '',
-        rewardRiskRatio: tradeData.reward_risk_ratio ? String(tradeData.reward_risk_ratio) : '',
-        fees: tradeData.fees ? String(tradeData.fees) : '0',
-        pnl: tradeData.pnl ? String(tradeData.pnl) : '',
-        mfe: tradeData.mfe ? String(tradeData.mfe) : '',
-        mae: tradeData.mae ? String(tradeData.mae) : '',
+        entryDate: parseDate(tradeData.entry_date),
+        exitDate: parseDate(tradeData.exit_date),
+        entryPrice: num(tradeData.entry_price),
+        exitPrice: num(tradeData.exit_price),
+        quantity: num(tradeData.quantity),
+        stopLoss: num(tradeData.stop_loss),
+        takeProfit: num(tradeData.take_profit),
+        rewardRiskRatio: num(tradeData.reward_risk_ratio),
+        fees: tradeData.fees != null ? String(tradeData.fees) : '0',
+        pnl: num(tradeData.pnl),
+        mfe: num(tradeData.mfe),
+        mae: num(tradeData.mae),
         status: tradeData.status || 'OPEN',
         strategy: tradeData.strategy || '',
         setup: tradeData.setup || '',
