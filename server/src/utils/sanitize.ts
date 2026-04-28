@@ -34,7 +34,7 @@ export function sanitizeUrl(url: string | null | undefined): string {
 
   for (const protocol of dangerousProtocols) {
     if (lowerUrl.startsWith(protocol)) {
-      return null; // Return null for dangerous URLs
+      return '';
     }
   }
 
