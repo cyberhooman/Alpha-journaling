@@ -125,9 +125,9 @@ export default function Settings() {
       {/* Page Header */}
       <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible" className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest font-semibold text-[#555] mb-1">Configuration</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-[#f2f2f2]">Settings</h1>
-          <p className="text-[#8c8c8c] mt-1 text-sm">Manage accounts, tags, and preferences</p>
+          <p className="text-xs uppercase tracking-widest font-semibold text-muted mb-1">Configuration</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Settings</h1>
+          <p className="text-secondary mt-1 text-sm">Manage accounts, tags, and preferences</p>
         </div>
         <button
           onClick={() => setShowNewAccountModal(true)}
@@ -142,26 +142,26 @@ export default function Settings() {
       <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible" className="card p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Preferences</p>
-            <h2 className="text-base font-semibold text-[#f2f2f2]">Appearance</h2>
-            <p className="text-xs text-[#555] mt-0.5">Toggle between light and dark mode</p>
+            <p className="text-xs uppercase tracking-widest text-muted mb-0.5">Preferences</p>
+            <h2 className="text-base font-semibold text-primary">Appearance</h2>
+            <p className="text-xs text-secondary mt-0.5">Toggle between light and dark mode</p>
           </div>
           <button
             onClick={toggleDarkMode}
             className="relative inline-flex items-center h-8 w-16 rounded-full transition-colors"
-            style={{ background: isDarkMode ? '#FF7522' : '#282828' }}
+            style={{ background: isDarkMode ? 'rgb(var(--accent))' : 'rgb(var(--border))' }}
           >
             <span
               className="inline-flex items-center justify-center w-6 h-6 rounded-full shadow transition-transform"
               style={{
-                background: '#f2f2f2',
+                background: 'rgb(var(--surface))',
                 transform: isDarkMode ? 'translateX(36px)' : 'translateX(4px)',
               }}
             >
               {isDarkMode ? (
-                <Moon size={13} weight="fill" style={{ color: '#FF7522' }} />
+                <Moon size={13} weight="fill" style={{ color: 'rgb(var(--accent))' }} />
               ) : (
-                <Sun size={13} weight="fill" style={{ color: '#555' }} />
+                <Sun size={13} weight="fill" style={{ color: 'rgb(var(--text-muted))' }} />
               )}
             </span>
           </button>
@@ -175,10 +175,10 @@ export default function Settings() {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="card p-4 border-[#f87171]/40"
+          className="card p-4"
           style={{ borderColor: 'rgba(248,113,113,0.3)' }}
         >
-          <p className="text-[#f87171] text-sm">Error loading accounts: {(error as any).message}</p>
+          <p className="text-sm" style={{ color: 'rgb(var(--red))' }}>Error loading accounts: {(error as any).message}</p>
         </motion.div>
       )}
 
@@ -186,14 +186,14 @@ export default function Settings() {
       <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Accounts</p>
-            <h2 className="text-base font-semibold text-[#f2f2f2]">Trading Accounts</h2>
+            <p className="text-xs uppercase tracking-widest text-muted mb-0.5">Accounts</p>
+            <h2 className="text-base font-semibold text-primary">Trading Accounts</h2>
           </div>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="w-8 h-8 rounded-full border-2 border-[#282828] border-t-[#FF7522] animate-spin" />
+            <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: 'rgb(var(--border))', borderTopColor: 'rgb(var(--accent))' }} />
           </div>
         ) : (
           <div className="space-y-3">
@@ -203,9 +203,9 @@ export default function Settings() {
                   className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
                   style={{ background: 'rgba(255,117,34,0.08)' }}
                 >
-                  <Wallet size={24} className="text-[#FF7522]" />
+                  <Wallet size={24} style={{ color: 'rgb(var(--accent))' }} />
                 </div>
-                <p className="text-[#8c8c8c] text-sm mb-4">No trading accounts yet</p>
+                <p className="text-secondary text-sm mb-4">No trading accounts yet</p>
                 <button
                   onClick={() => setShowNewAccountModal(true)}
                   className="btn btn-primary inline-flex items-center gap-2"
@@ -231,7 +231,7 @@ export default function Settings() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <h3 className="text-base font-bold text-[#f2f2f2]">{account.name}</h3>
+                        <h3 className="text-base font-bold text-primary">{account.name}</h3>
                         <span className={`badge ${accountTypeBadge[account.account_type] || 'badge-neutral'} text-[10px]`}>
                           {account.account_type}
                         </span>
@@ -242,22 +242,22 @@ export default function Settings() {
 
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
                         <div>
-                          <p className="text-[#555] text-xs mb-0.5">Initial Balance</p>
-                          <p className="font-mono-nums font-semibold text-[#f2f2f2] text-sm">
+                          <p className="text-muted text-xs mb-0.5">Initial Balance</p>
+                          <p className="font-mono-nums font-semibold text-primary text-sm">
                             ${Number(account.initial_balance).toLocaleString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[#555] text-xs mb-0.5">Current Balance</p>
-                          <p className="font-mono-nums font-semibold text-[#f2f2f2] text-sm">
+                          <p className="text-muted text-xs mb-0.5">Current Balance</p>
+                          <p className="font-mono-nums font-semibold text-primary text-sm">
                             ${Number(account.current_balance).toLocaleString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-[#555] text-xs mb-0.5">P&L</p>
+                          <p className="text-muted text-xs mb-0.5">P&L</p>
                           <p
                             className="font-mono-nums font-semibold text-sm flex items-center gap-1"
-                            style={{ color: isProfit ? '#34d399' : '#f87171' }}
+                            style={{ color: isProfit ? 'rgb(var(--green))' : 'rgb(var(--red))' }}
                           >
                             {isProfit ? (
                               <TrendingUp size={12} weight="bold" />
@@ -269,8 +269,8 @@ export default function Settings() {
                         </div>
                         {account.broker && (
                           <div>
-                            <p className="text-[#555] text-xs mb-0.5">Broker</p>
-                            <p className="font-semibold text-[#f2f2f2] text-sm truncate">
+                            <p className="text-muted text-xs mb-0.5">Broker</p>
+                            <p className="font-semibold text-primary text-sm truncate">
                               {account.broker}
                             </p>
                           </div>
@@ -278,16 +278,19 @@ export default function Settings() {
                       </div>
 
                       {account.notes && (
-                        <p className="mt-3 text-xs text-[#555] leading-relaxed">{account.notes}</p>
+                        <p className="mt-3 text-xs text-secondary leading-relaxed">{account.notes}</p>
                       )}
                     </div>
 
                     <div className="flex flex-col gap-1 shrink-0">
                       <button
                         onClick={() => setEditingAccount(account)}
-                        className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        style={{ '--hover-bg': 'rgb(var(--surface-2))' } as any}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgb(var(--surface-2))')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <PencilSimple size={15} className="text-[#8c8c8c]" />
+                        <PencilSimple size={15} className="text-secondary" />
                       </button>
                       <button
                         onClick={() => {
@@ -295,9 +298,11 @@ export default function Settings() {
                             deleteMutation.mutate(account.id);
                           }
                         }}
-                        className="p-2 rounded-lg hover:bg-[#f87171]/10 transition-colors"
+                        className="p-2 rounded-lg transition-colors"
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(248,113,113,0.1)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                       >
-                        <Trash size={15} className="text-[#f87171]" />
+                        <Trash size={15} style={{ color: 'rgb(var(--red))' }} />
                       </button>
                     </div>
                   </div>
@@ -312,8 +317,8 @@ export default function Settings() {
       <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible" className="card p-5">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Labels</p>
-            <h2 className="text-base font-semibold text-[#f2f2f2]">Trade Tags</h2>
+            <p className="text-xs uppercase tracking-widest text-muted mb-0.5">Labels</p>
+            <h2 className="text-base font-semibold text-primary">Trade Tags</h2>
           </div>
           <button
             onClick={() => setShowNewTagModal(true)}
@@ -341,7 +346,7 @@ export default function Settings() {
                 <div className="flex items-center gap-0.5">
                   <button
                     onClick={() => setEditingTag(tag)}
-                    className="p-1 rounded hover:bg-white/5 transition-colors"
+                    className="p-1 rounded transition-colors hover:opacity-70"
                   >
                     <PencilSimple size={11} style={{ color: tag.color }} />
                   </button>
@@ -351,7 +356,7 @@ export default function Settings() {
                         deleteTagMutation.mutate(tag.id);
                       }
                     }}
-                    className="p-1 rounded hover:bg-white/5 transition-colors"
+                    className="p-1 rounded transition-colors hover:opacity-70"
                   >
                     <Trash size={11} style={{ color: tag.color }} />
                   </button>
@@ -360,7 +365,7 @@ export default function Settings() {
             ))}
           </div>
         ) : (
-          <p className="text-[#555] text-sm">
+          <p className="text-secondary text-sm">
             No tags yet. Create your first tag to categorize trades.
           </p>
         )}
@@ -458,23 +463,25 @@ function AccountFormModal({
         exit={{ opacity: 0, y: 12, scale: 0.97 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
-        style={{ background: '#161616', border: '1px solid #282828' }}
+        style={{ background: 'rgb(var(--surface))', border: '1px solid rgb(var(--border))' }}
       >
         <div
           className="sticky top-0 px-6 py-4 flex items-center justify-between"
-          style={{ background: '#161616', borderBottom: '1px solid #282828' }}
+          style={{ background: 'rgb(var(--surface))', borderBottom: '1px solid rgb(var(--border))' }}
         >
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Accounts</p>
-            <h2 className="text-lg font-bold text-[#f2f2f2]">
+            <p className="text-xs uppercase tracking-widest text-muted mb-0.5">Accounts</p>
+            <h2 className="text-lg font-bold text-primary">
               {account ? 'Edit Account' : 'New Trading Account'}
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgb(var(--surface-2))')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
-            <X size={18} className="text-[#8c8c8c]" />
+            <X size={18} className="text-secondary" />
           </button>
         </div>
 
@@ -576,24 +583,25 @@ function AccountFormModal({
 
           {account && (
             <label
-              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:border-[#FF7522]/30 transition-colors"
-              style={{ background: '#1e1e1e', border: '1px solid #282828' }}
+              className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors"
+              style={{ background: 'rgb(var(--surface-2))', border: '1px solid rgb(var(--border))' }}
             >
               <input
                 type="checkbox"
                 id="is_active"
                 checked={formData.is_active}
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="w-4 h-4 accent-[#FF7522] rounded"
+                className="w-4 h-4 rounded"
+                style={{ accentColor: 'rgb(var(--accent))' }}
               />
               <div>
-                <span className="text-sm font-semibold text-[#f2f2f2]">Account is active</span>
-                <p className="text-xs text-[#555]">Inactive accounts are hidden from trade creation</p>
+                <span className="text-sm font-semibold text-primary">Account is active</span>
+                <p className="text-xs text-muted">Inactive accounts are hidden from trade creation</p>
               </div>
             </label>
           )}
 
-          <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid #282828' }}>
+          <div className="flex gap-3 pt-4" style={{ borderTop: '1px solid rgb(var(--border))' }}>
             <button
               type="button"
               onClick={onClose}
@@ -672,21 +680,23 @@ function TagFormModal({
         exit={{ opacity: 0, y: 12, scale: 0.97 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
         className="w-full max-w-md rounded-2xl overflow-hidden"
-        style={{ background: '#161616', border: '1px solid #282828' }}
+        style={{ background: 'rgb(var(--surface))', border: '1px solid rgb(var(--border))' }}
       >
         <div
           className="px-6 py-4 flex items-center justify-between"
-          style={{ borderBottom: '1px solid #282828' }}
+          style={{ borderBottom: '1px solid rgb(var(--border))' }}
         >
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#555] mb-0.5">Tags</p>
-            <h2 className="text-lg font-bold text-[#f2f2f2]">{tag ? 'Edit Tag' : 'New Tag'}</h2>
+            <p className="text-xs uppercase tracking-widest text-muted mb-0.5">Tags</p>
+            <h2 className="text-lg font-bold text-primary">{tag ? 'Edit Tag' : 'New Tag'}</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-[#282828] transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            onMouseEnter={e => (e.currentTarget.style.background = 'rgb(var(--surface-2))')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
           >
-            <X size={18} className="text-[#8c8c8c]" />
+            <X size={18} className="text-secondary" />
           </button>
         </div>
 
@@ -715,7 +725,7 @@ function TagFormModal({
                   className="w-full aspect-square rounded-lg border-2 transition-all"
                   style={{
                     backgroundColor: color,
-                    borderColor: formData.color === color ? '#f2f2f2' : 'transparent',
+                    borderColor: formData.color === color ? 'rgb(var(--text-primary))' : 'transparent',
                     transform: formData.color === color ? 'scale(1.1)' : 'scale(1)',
                   }}
                 />
@@ -727,18 +737,18 @@ function TagFormModal({
                 value={formData.color}
                 onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                 className="w-10 h-9 rounded-lg cursor-pointer border-0 p-0.5"
-                style={{ background: '#1e1e1e', border: '1px solid #282828' }}
+                style={{ background: 'rgb(var(--surface-2))', border: '1px solid rgb(var(--border))' }}
               />
-              <span className="text-xs text-[#555]">Custom color</span>
+              <span className="text-xs text-muted">Custom color</span>
             </div>
           </div>
 
           {/* Preview */}
           <div
             className="p-3 rounded-xl flex items-center gap-2"
-            style={{ background: '#1e1e1e', border: '1px solid #282828' }}
+            style={{ background: 'rgb(var(--surface-2))', border: '1px solid rgb(var(--border))' }}
           >
-            <span className="text-xs text-[#555]">Preview:</span>
+            <span className="text-xs text-muted">Preview:</span>
             <span
               className="px-3 py-1 rounded-full text-sm font-semibold"
               style={{
