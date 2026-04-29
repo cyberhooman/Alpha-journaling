@@ -263,11 +263,11 @@ export default function NewTrade() {
             type="button"
             onClick={() => setSimpleMode(!simpleMode)}
             className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0"
-            style={{ background: simpleMode ? 'rgb(var(--accent))' : 'rgb(var(--border))' }}
+            style={{ background: !simpleMode ? 'rgb(var(--accent))' : 'rgba(128,128,128,0.35)' }}
           >
             <span
               className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow"
-              style={{ transform: simpleMode ? 'translateX(24px)' : 'translateX(4px)' }}
+              style={{ transform: !simpleMode ? 'translateX(24px)' : 'translateX(4px)' }}
             />
           </button>
         </div>

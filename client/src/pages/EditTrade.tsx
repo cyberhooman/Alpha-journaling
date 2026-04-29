@@ -123,6 +123,17 @@ export default function EditTrade() {
   }, [formData.entryPrice, formData.stopLoss, formData.takeProfit]);
 
   useEffect(() => {
+    if (tradeData && strategies !== undefined) {
+      const presetNames = (strategies || []).map((s: any) => s.name);
+      if (tradeData.strategy && !presetNames.includes(tradeData.strategy)) {
+        setIsCustomStrategy(true);
+      } else {
+        setIsCustomStrategy(false);
+      }
+    }
+  }, [tradeData, strategies]);
+
+  useEffect(() => {
     if (tradeData) {
       const parseDate = (val: string | null | undefined) => {
         if (!val) return '';
@@ -213,9 +224,9 @@ export default function EditTrade() {
       setup: formData.setup || undefined,
       timeframe: formData.timeframe || undefined,
       marketType: formData.marketType || undefined,
-      notes: formData.notes || undefined,
-      entryReasoning: formData.entryReasoning || undefined,
-      exitReasoning: formData.exitReasoning || undefined,
+      notes: formData.notes,
+      entryReasoning: formData.entryReasoning,
+      exitReasoning: formData.exitReasoning,
       screenshotUrl: formData.screenshotUrl || undefined,
       tagIds: formData.tagIds,
     };
