@@ -19,6 +19,17 @@
     --accent: 255 117 34;
     --green: 16 185 129;
     --red: 239 68 68;
+    /* Full-value aliases for direct var() usage without rgb() wrapper */
+    --color-background: rgb(250, 249, 247);
+    --color-surface: rgb(255, 255, 255);
+    --color-surface-2: rgb(245, 244, 242);
+    --color-border: rgb(228, 225, 220);
+    --color-text-primary: rgb(18, 18, 18);
+    --color-text-secondary: rgb(100, 98, 95);
+    --color-text-muted: rgb(160, 157, 153);
+    --color-accent: rgb(255, 117, 34);
+    --color-green: rgb(16, 185, 129);
+    --color-red: rgb(239, 68, 68);
   }
 
   /* Dark mode */
@@ -34,6 +45,17 @@
     --accent: 255 117 34;
     --green: 52 211 153;
     --red: 248 113 113;
+    /* Full-value aliases for direct var() usage without rgb() wrapper */
+    --color-background: rgb(15, 15, 15);
+    --color-surface: rgb(22, 22, 22);
+    --color-surface-2: rgb(30, 30, 30);
+    --color-border: rgb(40, 40, 40);
+    --color-text-primary: rgb(242, 242, 242);
+    --color-text-secondary: rgb(140, 140, 140);
+    --color-text-muted: rgb(80, 80, 80);
+    --color-accent: rgb(255, 117, 34);
+    --color-green: rgb(52, 211, 153);
+    --color-red: rgb(248, 113, 113);
   }
   html {
     scroll-behavior: smooth;
