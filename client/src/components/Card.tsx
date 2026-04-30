@@ -25,7 +25,7 @@ export const Card: React.FC<CardProps> = ({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               {title && (
-                <h3 className="text-base font-semibold mb-0.5">
+                <h3 className="text-base font-semibold mb-0.5 text-gray-900 dark:text-white">
                   {title}
                 </h3>
               )}
