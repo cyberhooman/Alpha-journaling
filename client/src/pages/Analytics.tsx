@@ -103,7 +103,7 @@ export default function Analytics() {
         <p className="text-xs uppercase tracking-widest font-semibold text-[#555] mb-1">
           Performance
         </p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#f2f2f2]">Advanced Analytics</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold" style={{ color: 'rgb(var(--text-primary))' }}>Advanced Analytics</h1>
         <p className="text-[#8c8c8c] mt-1 text-sm">Deep dive into your trading performance</p>
       </motion.div>
 
