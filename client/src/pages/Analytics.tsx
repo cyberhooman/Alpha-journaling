@@ -103,7 +103,7 @@ export default function Analytics() {
         <p className="text-xs uppercase tracking-widest font-semibold text-[#555] mb-1">
           Performance
         </p>
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary">Advanced Analytics</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold">Advanced Analytics</h1>
         <p className="text-[#8c8c8c] mt-1 text-sm">Deep dive into your trading performance</p>
       </motion.div>
 
@@ -151,7 +151,7 @@ export default function Analytics() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-widest text-[#555]">Breakdown</p>
-            <h3 className="text-base font-semibold text-primary">Performance by Strategy</h3>
+            <h3 className="text-base font-semibold">Performance by Strategy</h3>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={280}>
@@ -177,7 +177,7 @@ export default function Analytics() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-widest text-[#555]">Breakdown</p>
-            <h3 className="text-base font-semibold text-primary">Performance by Setup</h3>
+            <h3 className="text-base font-semibold">Performance by Setup</h3>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={280}>
@@ -202,7 +202,7 @@ export default function Analytics() {
           </div>
           <div>
             <p className="text-xs uppercase tracking-widest text-[#555]">Patterns</p>
-            <h3 className="text-base font-semibold text-primary">Win Rate by Day of Week</h3>
+            <h3 className="text-base font-semibold">Win Rate by Day of Week</h3>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={280}>
