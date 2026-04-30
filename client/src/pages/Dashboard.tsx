@@ -172,7 +172,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <WarningCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#f87171' }} />
             <div>
-              <p className="text-sm font-medium" style={{ color: '#fca5a5' }}>Failed to load dashboard</p>
+              <p className="text-sm font-medium" style={{ color: 'rgb(var(--red))' }}>Failed to load dashboard</p>
               <p className="text-xs mt-0.5" style={{ color: 'rgb(var(--text-secondary))' }}>
                 {(dashboardError as any)?.message || 'Request failed'}
               </p>

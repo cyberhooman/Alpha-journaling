@@ -185,7 +185,7 @@ export default function Strategies() {
       >
         <div>
           <p className="text-xs uppercase tracking-widest font-semibold text-[#555] mb-1">Library</p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-[#f2f2f2]">Strategy Library</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Strategy Library</h1>
           <p className="text-[#8c8c8c] mt-1 text-sm">Build and document your trading edge</p>
         </div>
         {!showForm && (
@@ -457,7 +457,7 @@ export default function Strategies() {
           >
             <BookOpen size={32} className="text-[#FF7522]" />
           </div>
-          <h3 className="text-xl font-bold text-[#f2f2f2] mb-2">No Strategies Yet</h3>
+          <h3 className="text-xl font-bold text-primary mb-2">No Strategies Yet</h3>
           <p className="text-[#8c8c8c] text-sm mb-6 max-w-sm mx-auto">
             Start building your edge by documenting your proven trading strategies and frameworks
           </p>
@@ -490,7 +490,7 @@ export default function Strategies() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-2">
-                        <h3 className="text-base font-bold text-[#f2f2f2]">{strategy.name}</h3>
+                        <h3 className="text-base font-bold text-primary">{strategy.name}</h3>
                         {strategy.is_active === 1 && (
                           <span className="badge badge-green text-[10px] px-2 py-0.5">Active</span>
                         )}
