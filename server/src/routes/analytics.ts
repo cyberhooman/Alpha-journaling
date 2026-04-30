@@ -190,7 +190,7 @@ router.get('/calendar', authenticateToken, async (req: AuthRequest, res) => {
 
     if (year && month) {
       dateFilter = `AND strftime('%Y', entry_date) = $2 AND strftime('%m', entry_date) = $3`;
-      params.push(year, month);
+      params.push(year.toString(), month.toString().padStart(2, '0'));
     }
 
     const result = await query(

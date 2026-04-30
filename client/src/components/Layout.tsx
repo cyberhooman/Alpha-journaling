@@ -14,6 +14,7 @@ import {
   Target,
   CheckSquare,
   CaretLeft,
+  SignOut,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../store/authStore';
 
@@ -35,7 +36,7 @@ const COLLAPSED_W = 56;
 const easeOutQuart = [0.25, 1, 0.5, 1] as const;
 
 export default function Layout() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
   const [collapsed, setCollapsed] = useState(() => {
@@ -285,6 +286,30 @@ export default function Layout() {
                   </motion.div>
                 ))}
               </nav>
+              <div className="px-3 pb-4 flex-shrink-0" style={{ borderTop: '1px solid rgb(var(--border))' }}>
+                <div className="flex items-center gap-3 px-3 py-2.5 mt-3 rounded-xl" style={{ background: 'rgb(var(--surface-2))' }}>
+                  <div
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                    style={{ background: 'rgba(255,117,34,0.12)', color: '#FF7522' }}
+                  >
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate" style={{ color: 'rgb(var(--text-primary))' }}>
+                      {user?.firstName || user?.email || 'Trader'}
+                    </p>
+                    <p className="text-[10px] truncate" style={{ color: 'rgb(var(--text-muted))' }}>{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={() => { logout(); setMobileMenuOpen(false); }}
+                    title="Sign out"
+                    className="p-1.5 rounded-lg transition-colors flex-shrink-0"
+                    style={{ color: 'rgb(var(--text-muted))' }}
+                  >
+                    <SignOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </>
         )}
