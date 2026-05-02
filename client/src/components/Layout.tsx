@@ -61,7 +61,8 @@ export default function Layout() {
   }, []);
 
   const handleBackToApp = () => {
-    window.location.href = 'https://app.alphalabs.live';
+    logout();
+    window.location.href = '/login';
   };
 
   const initials = (user?.firstName || user?.email || 'U').slice(0, 2).toUpperCase();

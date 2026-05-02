@@ -19,8 +19,12 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
     let paramIndex = 2;
 
     if (accountId) {
+      const accountIdNum = parseInt(accountId as string, 10);
+      if (isNaN(accountIdNum)) {
+        return res.status(400).json({ error: 'Invalid account ID' });
+      }
       filters += ` AND account_id = $${paramIndex}`;
-      params.push(accountId);
+      params.push(accountIdNum);
       paramIndex++;
     }
 
@@ -38,8 +42,8 @@ router.get('/dashboard', authenticateToken, async (req: AuthRequest, res) => {
         COUNT(*) as total_trades,
         SUM(CASE WHEN status = 'CLOSED' THEN 1 ELSE 0 END) as closed_trades,
         SUM(CASE WHEN status = 'OPEN' THEN 1 ELSE 0 END) as open_trades,
-        SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as winning_trades,
-        SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) as losing_trades,
+        SUM(CASE WHEN pnl > 0 AND status = 'CLOSED' THEN 1 ELSE 0 END) as winning_trades,
+        SUM(CASE WHEN pnl < 0 AND status = 'CLOSED' THEN 1 ELSE 0 END) as losing_trades,
         COALESCE(SUM(pnl), 0) as total_pnl,
         COALESCE(AVG(pnl), 0) as avg_pnl,
         COALESCE(MAX(pnl), 0) as best_trade,

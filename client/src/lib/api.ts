@@ -62,7 +62,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = 'https://app.alphalabs.live';
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

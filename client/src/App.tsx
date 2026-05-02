@@ -26,7 +26,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((state) => state.token);
 
   if (!user || !token) {
-    window.location.href = 'https://app.alphalabs.live';
+    window.location.href = '/login';
     return null;
   }
   return <>{children}</>;
