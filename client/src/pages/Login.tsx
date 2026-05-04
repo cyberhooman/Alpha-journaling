@@ -1,37 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChartBar, ChartLine, TrendUp } from '@phosphor-icons/react';
 const BarChart3 = ChartBar;
 const LineChart = ChartLine;
 const TrendingUp = TrendUp;
-import { authAPI } from '../lib/api';
-import { useAuthStore } from '../store/authStore';
-import GoogleSignInButton from '../components/GoogleSignInButton';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const response = await authAPI.login({ email, password });
-      setAuth(response.data.user, response.data.token);
-      navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-neutral-100 text-dark-500 flex overflow-hidden relative">
       {/* Google Fonts */}
@@ -125,7 +97,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right side - Login Form */}
+      {/* Right side - Login */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-10 relative">
         {/* Mobile logo */}
         <div className="lg:hidden absolute top-8 left-6 flex items-center gap-3 fade-up">
@@ -156,90 +128,16 @@ export default function Login() {
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-primary-200/60 via-white to-accent-200/60 blur-xl opacity-80"></div>
 
             <div className="relative rounded-3xl border border-neutral-200 bg-white/85 p-8 shadow-[0_24px_60px_-28px_rgba(31,31,31,0.6)] backdrop-blur">
-              {error && (
-                <div className="bg-danger/10 border border-danger/30 text-danger px-4 py-3 mb-6 rounded-xl text-sm">
-                  <div className="font-semibold mb-1">We couldn&apos;t sign you in.</div>
-                  {error}
-                </div>
-              )}
-
-              <GoogleSignInButton className="rounded-xl border-neutral-200 bg-white hover:bg-neutral-50" text="Continue with Google" />
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-neutral-200"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-4 bg-white/90 text-xs tracking-[0.3em] uppercase text-dark-300">
-                    Or continue with email
-                  </span>
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="block text-xs uppercase tracking-[0.3em] text-dark-300">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-dark-500 placeholder-dark-300 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-200/40 transition-all duration-200"
-                    placeholder="you@domain.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoFocus
-                    style={{ fontFamily: 'Manrope, sans-serif' }}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-xs uppercase tracking-[0.3em] text-dark-300">
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    className="w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl text-dark-500 placeholder-dark-300 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-200/40 transition-all duration-200"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    style={{ fontFamily: 'Manrope, sans-serif' }}
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full relative group overflow-hidden bg-dark-500 hover:bg-dark-600 text-neutral-100 font-semibold py-3.5 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
-                  style={{ fontFamily: 'Manrope, sans-serif' }}
-                >
-                  <span className="relative z-10 flex items-center justify-center gap-3">
-                    {loading ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-neutral-100 border-t-transparent rounded-full animate-spin"></div>
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        Continue
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-accent-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </button>
-              </form>
-
-              <div className="mt-6 pt-5 border-t border-neutral-200 text-center text-sm text-dark-400">
-                Access via AlphaLabs?{' '}
-                <a
-                  href="https://app.alphalabs.live"
-                  className="text-primary-700 hover:text-primary-800 font-semibold transition-colors duration-200"
-                >
-                  Sign in with AlphaLabs
-                </a>
-              </div>
+              <a
+                href="https://app.alphalabs.live"
+                className="w-full relative group overflow-hidden flex items-center justify-center gap-3 bg-dark-500 hover:bg-dark-600 text-neutral-100 font-semibold py-3.5 px-6 rounded-xl transition-all duration-300"
+                style={{ fontFamily: 'Manrope, sans-serif' }}
+              >
+                <img src="/alphalabs-icon.png" alt="" className="w-5 h-5 object-contain flex-shrink-0" />
+                <span>Sign in with AlphaLabs</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary-500/20 to-accent-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+              </a>
             </div>
           </div>
 

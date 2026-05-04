@@ -14,7 +14,6 @@ import {
   Target,
   CheckSquare,
   CaretLeft,
-  SignOut,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../store/authStore';
 
@@ -36,7 +35,7 @@ const COLLAPSED_W = 56;
 const easeOutQuart = [0.25, 1, 0.5, 1] as const;
 
 export default function Layout() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
   const [collapsed, setCollapsed] = useState(() => {
@@ -61,8 +60,7 @@ export default function Layout() {
   }, []);
 
   const handleBackToApp = () => {
-    logout();
-    window.location.href = '/login';
+    window.location.href = 'https://app.alphalabs.live';
   };
 
   const initials = (user?.firstName || user?.email || 'U').slice(0, 2).toUpperCase();
@@ -302,12 +300,12 @@ export default function Layout() {
                     <p className="text-[10px] truncate" style={{ color: 'rgb(var(--text-muted))' }}>{user?.email}</p>
                   </div>
                   <button
-                    onClick={() => { logout(); setMobileMenuOpen(false); }}
-                    title="Sign out"
+                    onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://app.alphalabs.live'; }}
+                    title="Back to AlphaLabs"
                     className="p-1.5 rounded-lg transition-colors flex-shrink-0"
                     style={{ color: 'rgb(var(--text-muted))' }}
                   >
-                    <SignOut className="w-4 h-4" />
+                    <ArrowLeft className="w-4 h-4" />
                   </button>
                 </div>
               </div>
