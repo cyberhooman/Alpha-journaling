@@ -14,6 +14,7 @@ import {
   Target,
   CheckSquare,
   CaretLeft,
+  SignOut,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../store/authStore';
 
@@ -35,7 +36,7 @@ const COLLAPSED_W = 56;
 const easeOutQuart = [0.25, 1, 0.5, 1] as const;
 
 export default function Layout() {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => window.innerWidth >= 1024);
   const [collapsed, setCollapsed] = useState(() => {
@@ -178,18 +179,30 @@ export default function Layout() {
             </AnimatePresence>
             <AnimatePresence initial={false}>
               {!collapsed && (
-                <motion.button
+                <motion.div
+                  className="flex items-center gap-0.5 flex-shrink-0"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  onClick={handleBackToApp}
-                  title="Back to AlphaLabs"
-                  className="p-1 rounded-lg transition-colors flex-shrink-0"
-                  style={{ color: 'rgb(var(--text-muted))' }}
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                </motion.button>
+                  <button
+                    onClick={handleBackToApp}
+                    title="Back to AlphaLabs"
+                    className="p-1 rounded-lg transition-colors"
+                    style={{ color: 'rgb(var(--text-muted))' }}
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={logout}
+                    title="Log out"
+                    className="p-1 rounded-lg transition-colors"
+                    style={{ color: 'rgb(var(--text-muted))' }}
+                  >
+                    <SignOut className="w-3.5 h-3.5" />
+                  </button>
+                </motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -299,14 +312,24 @@ export default function Layout() {
                     </p>
                     <p className="text-[10px] truncate" style={{ color: 'rgb(var(--text-muted))' }}>{user?.email}</p>
                   </div>
-                  <button
-                    onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://app.alphalabs.live'; }}
-                    title="Back to AlphaLabs"
-                    className="p-1.5 rounded-lg transition-colors flex-shrink-0"
-                    style={{ color: 'rgb(var(--text-muted))' }}
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://app.alphalabs.live'; }}
+                      title="Back to AlphaLabs"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => { setMobileMenuOpen(false); logout(); }}
+                      title="Log out"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                      <SignOut className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
